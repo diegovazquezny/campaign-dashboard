@@ -48,4 +48,45 @@ RSpec.describe ScaleCheck do
 
     expect { described_class.new(out: StringIO.new, env: {}).run }.to raise_error(ScaleCheck::Refused)
   end
+
+  # These run the task for real on a tiny dataset. They create and drop
+  # `<test db>_scale_check`, so they cannot be transactional.
+  describe "against a real scratch database", :real_data do
+    self.use_transactional_tests = false
+
+    let(:base) { ActiveRecord::Base.connection_db_config.configuration_hash[:database] }
+    let(:scratch) { "#{base}#{described_class::SUFFIX}" }
+    let(:out) { StringIO.new }
+
+    def database_exists?(name)
+      ActiveRecord::Base.connection.select_value("SELECT 1 FROM pg_database WHERE datname = #{ActiveRecord::Base.connection.quote(name)}")
+    end
+
+    def run_task(env)
+      described_class.new(out: out, env: { "CALLS" => "300", "CAMPAIGNS" => "5", "OFFICES" => "3" }.merge(env)).run
+    end
+
+    it "builds the dataset, prints plans, drops the scratch database and restores the connection" do
+      run_task({})
+
+      expect(out.string).to include("dropped #{scratch}")
+      expect(database_exists?(scratch)).to be_nil
+      expect(ActiveRecord::Base.connection.current_database).to eq(base)
+    end
+
+    it "drops the scratch database and restores the connection when the run fails" do
+      expect { run_task("CAMPAIGNS" => "0") }.to raise_error(ActiveRecord::ActiveRecordError)
+
+      expect(database_exists?(scratch)).to be_nil
+      expect(ActiveRecord::Base.connection.current_database).to eq(base)
+    end
+
+    it "refuses, before loading the schema or inserting, when connected to the wrong database" do
+      allow_any_instance_of(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
+        .to receive(:current_database).and_return(base)
+
+      expect { run_task({}) }.to raise_error(ScaleCheck::Refused, /is not a _scale_check database/)
+      expect(database_exists?(scratch)).to be_nil
+    end
+  end
 end
