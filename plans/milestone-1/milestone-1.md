@@ -6,7 +6,7 @@
 
 ## Status
 
-Planned, not started (8 PRs). Builds on M0 (Rails API on Postgres 18, RSpec, CI, `db:prepare db:seed` in the compose command, empty `db/seeds.rb`). The plan was reviewed by an independent agent; its findings are folded in below.
+In progress (8 PRs). PR 1 (reference tables) and PR 3 (fixtures) opened first, in parallel. Builds on M0 (Rails API on Postgres 18, RSpec, CI, `db:prepare db:seed` in the compose command, empty `db/seeds.rb`). The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
