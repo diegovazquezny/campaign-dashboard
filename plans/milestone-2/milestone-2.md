@@ -60,6 +60,7 @@ Same as M0/M1:
 - Depends on PR 1 (controller base, spec helpers).
 
 ### PR 3 — Spend calculation in SQL (`Metrics::SpendSql`)
+**Status:** done (PR #29)
 SQL fragments only (no controller, no endpoint), so it merges independently. Specs run through Postgres with inline `VALUES` rows, so no model data is needed.
 - **Pinned contract** (PR 5 and PR 8 are written against it). Inputs are columns of a caller-supplied relation, plus bound dates:
   - `SpendSql.covered_days(from:, to:, cov_from:, cov_to:)` → SQL scalar `GREATEST(0, LEAST(to, cov_to) − GREATEST(from, cov_from) + 1)`; 0 when disjoint, and 0 when coverage is `nil`.
