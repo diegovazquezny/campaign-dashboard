@@ -120,6 +120,7 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 2 (coverage, controller base), PR 3, PR 4. Parallel with PR 5–7.
 
 ### PR 9 — Cross-endpoint consistency on the real data
+**Status:** in review
 Specs only, no application code.
 - `:real_data` spec (non-transactional, as in M1; fast, runs in the default `rspec`): imports `data/` and asserts
   - for every campaign, the sum of `/daily` `spend_cents`, `revenue_cents`, `calls` and `booked` over a range equals the same campaign's row in `/metrics`, with and without a location filter, and for a range that partly overlaps data coverage;
