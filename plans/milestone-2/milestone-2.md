@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29) and PR 4 (#31) and PR 5 (#32) are merged; PR 6 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
+In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29) and PR 4 (#31) PR 5 (#32) and PR 6 (#33) are merged; PR 7 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
@@ -93,7 +93,7 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 2 (coverage), PR 3, PR 4.
 
 ### PR 6 — Totals and `totals.paid`
-**Status:** in review
+**Status:** done (PR #33)
 **Deviation:** the totals row is a `UNION ALL` over the same `spent` CTE (tagged `is_total`, so "No campaign" is never confused with it) instead of a `GROUPING SETS` clause: `unique_callers` needs a separate `count(DISTINCT)` over all calls in range either way, and the union keeps spend computed once and the SQL simpler.
 - Extends the PR 5 statement with a grouping set `((campaign_id), ())` and `GROUPING(campaign_id)`, so the "No campaign" row (`campaign_id` NULL) is never confused with the grand total. `Metrics::CampaignMetrics.call(...)` returns the full §8 hash: `range`, `rows`, `totals`.
 - `totals` has exactly: `calls`, `unique_callers`, `new_callers`, `booked`, `booking_rate`, `unanswered_rate`, `awaiting_outcome`, `revenue_cents`, `spend_cents`, `paid`. It omits `campaign_id`, `name`, `channel`, `channel_breakdown` and the two spend ratios (`revenue_per_spend`, `spend_per_booking_cents`).
@@ -104,6 +104,7 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 5.
 
 ### PR 7 — `GET /api/campaigns/metrics`
+**Status:** in review
 - Route, `Api::CampaignMetricsController#index` using `RangeParams` and `CampaignMetrics.call`; JSON per §8.
 - **Request specs:** happy path shape (all §8 fields present, `channel_breakdown` only on the "No campaign" row), every metric field `be_a(Numeric)` or `nil`, location filter, 400s (missing/invalid/reversed/too-long range, blank `location_id`), 404 unknown `location_id`.
 - **Check:** `bundle exec rspec`; `curl 'localhost:3001/api/campaigns/metrics?from=2026-09-01&to=2026-09-30'` returns 12 campaign rows plus "No campaign" (the real `campaigns.csv` has 12 campaigns) with sane totals.
