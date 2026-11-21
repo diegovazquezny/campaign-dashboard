@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29) and PR 4 (#31) PR 5 (#32) and PR 6 (#33) are merged; PR 7 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
+In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29), PR 4 (#31), PR 5 (#32) and PR 6 (#33) are merged; PR 7 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
