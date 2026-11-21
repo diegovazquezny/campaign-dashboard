@@ -26,7 +26,7 @@ module Importer
       @seen = {} # [call_id, updated_at] => { digest:, row:, conflicted: }
       @rows_read = 0
       @collapsed = 0
-      each_row { |row, line| process(row, line) }
+      each_row { |fields, line| process(fields, line) }
       finish
     end
 
@@ -36,7 +36,7 @@ module Importer
       CSV.open(@path, "r") do |csv|
         check_header(csv.shift.to_a)
         csv.each do |fields|
-          yield HEADERS.zip(fields).to_h, csv.lineno
+          yield fields, csv.lineno
         end
       end
     rescue CSV::MalformedCSVError => e
@@ -49,9 +49,15 @@ module Importer
       raise Error, "#{FILE}: bad header (missing: #{(HEADERS - header).join(",")}; extra: #{(header - HEADERS).join(",")})"
     end
 
-    def process(row, line)
+    def process(fields, line)
       @rows_read += 1
-      outcome = @validator.call(row, line)
+      # HEADERS.zip would silently drop extra fields; a blank line is an empty row.
+      if fields.size != HEADERS.size
+        return @rejections << Rejection.new(file: FILE, line: line,
+                                            reason: "expected #{HEADERS.size} fields, got #{fields.size}")
+      end
+
+      outcome = @validator.call(HEADERS.zip(fields).to_h, line)
       return @rejections << outcome if outcome.is_a?(Rejection)
 
       key = [ outcome[:call_id], outcome[:source_updated_at] ]

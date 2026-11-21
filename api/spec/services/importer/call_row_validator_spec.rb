@@ -45,6 +45,17 @@ RSpec.describe Importer::CallRowValidator do
     expect(attrs).to include(campaign_id: nil, outcome: nil)
   end
 
+  it "accepts an unanswered voicemail" do
+    expect(validator.call(missed_row.merge("outcome" => "voicemail"), 2)).to include(answered: false, outcome: "voicemail")
+  end
+
+  %w[qualified_lead not_qualified].each do |outcome|
+    it "accepts an answered #{outcome} call without revenue" do
+      attrs = validator.call(answered_row.merge("outcome" => outcome, "revenue_usd" => ""), 2)
+      expect(attrs).to include(answered: true, outcome: outcome, revenue_cents: nil)
+    end
+  end
+
   it "returns UTC Time values" do
     expect(validator.call(answered_row, 2)[:started_at]).to be_utc
   end
@@ -68,6 +79,14 @@ RSpec.describe Importer::CallRowValidator do
 
     it "rejects a bad updated_at" do
       expect(reason_for("updated_at" => "yesterday")).to eq('updated_at: invalid timestamp "yesterday"')
+    end
+
+    it "rejects a blank duration_seconds" do
+      expect(reason_for("duration_seconds" => "")).to eq("duration_seconds: invalid integer nil")
+    end
+
+    it "rejects a blank answered" do
+      expect(reason_for("answered" => "")).to eq("answered: invalid boolean nil")
     end
 
     it "rejects a non-integer duration" do

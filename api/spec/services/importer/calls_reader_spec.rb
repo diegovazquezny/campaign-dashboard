@@ -24,6 +24,24 @@ RSpec.describe Importer::CallsReader do
     expect(result).to have_attributes(rows_read: 2, duplicates_collapsed: 0, rejections: [])
   end
 
+  it "rejects rows with extra fields instead of silently dropping them" do
+    result = read(line(call_id: "c_1") + ",junk", line(call_id: "c_2"))
+    expect(result.rows.map(&:line)).to eq([ 3 ])
+    expect(result.rejections.map { |r| [ r.line, r.reason ] }).to eq([ [ 2, "expected 14 fields, got 15" ] ])
+  end
+
+  it "rejects a short row with a field-count reason" do
+    result = read("c_1,2026-09-01T10:00:00Z")
+    expect(result.rejections.map(&:reason)).to eq([ "expected 14 fields, got 2" ])
+  end
+
+  it "rejects a blank line and counts it as a row" do
+    result = read(line(call_id: "c_1"), "", line(call_id: "c_2"))
+    expect(result.rows.map(&:line)).to eq([ 2, 4 ])
+    expect(result.rows_read).to eq(3)
+    expect(result.rejections.map { |r| [ r.line, r.reason ] }).to eq([ [ 3, "expected 14 fields, got 0" ] ])
+  end
+
   it "reports rejections with their line number" do
     result = read(line, line(call_id: "c_2", revenue: ""))
     expect(result.rows.size).to eq(1)
