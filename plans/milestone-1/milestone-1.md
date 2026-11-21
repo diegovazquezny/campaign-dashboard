@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress (8 PRs). Merged: PR 1 (#18), PR 2 (#20), PR 3 (#19), PR 4 (#21), PR 5 (#22), PR 6a (#23). PR 6b (stale `local_date` recompute, rollback specs) is open; PR 7 remains. Builds on M0 (Rails API on Postgres 18, RSpec, CI, `db:prepare db:seed` in the compose command, empty `db/seeds.rb`). The plan was reviewed by an independent agent; its findings are folded in below.
+Code complete once PR 7 merges: PR 1 (#18), PR 2 (#20), PR 3 (#19), PR 4 (#21), PR 5 (#22), PR 6a (#23), PR 6b (#24) are merged; PR 7 (seeds, `import:all`, summary, real-data spec) is open. Builds on M0 (Rails API on Postgres 18, RSpec, CI, `db:prepare db:seed` in the compose command, empty `db/seeds.rb`). The plan was reviewed by an independent agent; its findings are folded in below.
 
 Deviation from §5 (PR 2): the unanswered-rule check is wrapped as `answered OR ((outcome IN ('missed','voicemail')) IS TRUE AND agent_id IS NULL)`, because the unwrapped form evaluates to NULL for an unanswered call with a blank outcome and Postgres lets NULL pass.
 

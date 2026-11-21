@@ -297,7 +297,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M1 — Data model + import pipeline (§3, §5, §6; D1, D4, D10)
 **Goal:** the CSVs load correctly, idempotently and safely.
-**Status:** planned (8 PRs, not started). Task breakdown and dependency diagram: [milestone-1/milestone-1.md](milestone-1/milestone-1.md).
+**Status:** code complete once PR 7 (seeds, `import:all`, summary, real-data spec) merges; PRs 1–6b are merged. Task breakdown and dependency diagram: [milestone-1/milestone-1.md](milestone-1/milestone-1.md).
 
 - Migrations for `campaigns`, `locations`, `calls` with every check constraint and index from §5; shared channel constant defined once.
 - Models with Rails `enum`s.
