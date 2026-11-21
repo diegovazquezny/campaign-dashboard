@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_21_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_21_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -35,6 +35,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_000003) do
     t.index ["campaign_id", "local_date"], name: "index_calls_on_campaign_id_and_local_date"
     t.index ["local_date"], name: "index_calls_on_local_date"
     t.index ["location_id", "local_date"], name: "index_calls_on_location_id_and_local_date"
+    t.index ["source_updated_at"], name: "index_calls_on_source_updated_at"
     t.check_constraint "(revenue_cents IS NOT NULL) = (NOT outcome IS DISTINCT FROM 'booked'::text)", name: "calls_revenue_booked_rule_check"
     t.check_constraint "NOT answered OR agent_id IS NOT NULL AND (outcome IS NULL OR (outcome = ANY (ARRAY['booked'::text, 'qualified_lead'::text, 'not_qualified'::text])))", name: "calls_answered_rule_check"
     t.check_constraint "answered OR (outcome = ANY (ARRAY['missed'::text, 'voicemail'::text])) IS TRUE AND agent_id IS NULL", name: "calls_unanswered_rule_check"
