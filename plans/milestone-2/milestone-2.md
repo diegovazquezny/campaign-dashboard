@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29) and PR 4 (#31) are merged; PR 5 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
+In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29) and PR 4 (#31) and PR 5 (#32) are merged; PR 6 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
@@ -85,7 +85,7 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 1 (spec helpers).
 
 ### PR 5 — Campaign rows: spend and ratios
-**Status:** in review
+**Status:** done (PR #32)
 - `Metrics::CampaignMetrics.rows(from:, to:, location_id: nil)` → the `rows` array of §8. One SQL statement: the `CampaignCounts` fragment joined to `campaigns` for the budget, `covered_days` from `DataCoverage` bound dates, `total_cents` from `Metrics::SpendSql`, and the ratios. The statement is structured so PR 6 can add a grouping set for totals.
 - Ratios: `booking_rate = booked / calls`, `unanswered_rate`, `revenue_per_spend`, `spend_per_booking_cents`, all null-safe (`NULL` when the denominator is `NULL` or 0), cast `::float8`; counts and money `::bigint`.
 - **Specs:** each §7 formula; 0 bookings and `NULL`/0 spend → `nil` ratios; $0-budget → `nil` spend; "No campaign" spend `nil`; range partly outside coverage clipped, entirely outside coverage with no location filter → spend 0 and `nil` ratios (with a location filter, a campaign with no calls in range is `nil` even when no day is covered: the no-calls rule wins); with a location filter: spend follows call share, an office with no calls for a campaign that has calls elsewhere → 0, a campaign with no calls in range → `nil`, $0-budget → `nil`, each office's spend within half a cent of the exact share over a multi-week range; spend and ratios match the PR 3 spec oracle on a hand-built dataset.
@@ -93,6 +93,8 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 2 (coverage), PR 3, PR 4.
 
 ### PR 6 — Totals and `totals.paid`
+**Status:** in review
+**Deviation:** the totals row is a `UNION ALL` over the same `spent` CTE (tagged `is_total`, so "No campaign" is never confused with it) instead of a `GROUPING SETS` clause: `unique_callers` needs a separate `count(DISTINCT)` over all calls in range either way, and the union keeps spend computed once and the SQL simpler.
 - Extends the PR 5 statement with a grouping set `((campaign_id), ())` and `GROUPING(campaign_id)`, so the "No campaign" row (`campaign_id` NULL) is never confused with the grand total. `Metrics::CampaignMetrics.call(...)` returns the full §8 hash: `range`, `rows`, `totals`.
 - `totals` has exactly: `calls`, `unique_callers`, `new_callers`, `booked`, `booking_rate`, `unanswered_rate`, `awaiting_outcome`, `revenue_cents`, `spend_cents`, `paid`. It omits `campaign_id`, `name`, `channel`, `channel_breakdown` and the two spend ratios (`revenue_per_spend`, `spend_per_booking_cents`).
 - Per §7: counts and revenue summed over all rows including "No campaign"; `unique_callers` is a `count(DISTINCT caller_number_hash)` over all calls in range and office (never a sum of rows); rates recomputed from summed counts; `spend_cents` = sum of non-null row spend (`nil` if all `nil`).
