@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Native development setup: installs dependencies and prepares the database.
+# Needs Ruby, Node and a local PostgreSQL. Safe to re-run.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "== API: installing gems =="
+cd "$ROOT/api"
+bundle check >/dev/null 2>&1 || bundle install
+
+echo
+echo "== API: preparing database =="
+bin/rails db:prepare db:seed
+
+echo
+echo "== Web: installing packages =="
+cd "$ROOT/dashboard-ui"
+npm ci
+
+echo
+echo "Setup complete. Run bin/dev to start the API (3001) and web (3000)."
