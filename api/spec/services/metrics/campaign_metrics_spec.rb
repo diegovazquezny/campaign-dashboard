@@ -141,4 +141,145 @@ RSpec.describe Metrics::CampaignMetrics do
       expect(row_for("cmp_01")[:spend_cents]).to eq(10_000 * 21)
     end
   end
+
+  describe ".call totals" do
+    def totals(**)
+      described_class.call(from:, to:, **)[:totals]
+    end
+
+    def book(campaign, caller, d, revenue)
+      build_call(campaign: campaign, caller_number: caller, started_at: day(d), outcome: "booked", revenue_cents: revenue)
+    end
+
+    it "returns the range, rows and exactly the documented totals keys" do
+      build_call(caller_number: "a", started_at: day(1))
+
+      result = described_class.call(from:, to:)
+
+      expect(result[:range]).to eq(from: from, to: to)
+      expect(result[:rows].pluck(:campaign_id)).to eq(%w[cmp_01 cmp_02])
+      expect(result[:totals].keys).to eq(%i[calls unique_callers new_callers booked booking_rate unanswered_rate
+                                            awaiting_outcome revenue_cents spend_cents paid])
+      expect(result[:totals][:paid].keys).to eq(%i[revenue_cents booked spend_cents revenue_per_spend spend_per_booking_cents])
+    end
+
+    it "counts a caller who reached two campaigns once in unique_callers but twice in calls" do
+      build_call(campaign: paid, caller_number: "same", started_at: day(1))
+      build_call(campaign: free, caller_number: "same", started_at: day(2))
+
+      expect(totals).to include(calls: 2, unique_callers: 1, new_callers: 1)
+      expect(rows.sum { |r| r[:unique_callers] }).to eq(2)
+    end
+
+    it "recomputes rates from summed counts rather than averaging" do
+      book(paid, "a", 1, 10_000)
+      build_call(campaign: paid, caller_number: "b", started_at: day(2), answered: false)
+      build_call(campaign: free, caller_number: "c", started_at: day(3), answered: false)
+      build_call(campaign: free, caller_number: "d", started_at: day(10), answered: false)
+      build_call(campaign: free, caller_number: "e", started_at: day(4), answered: false)
+      build_call(campaign: free, caller_number: "f", started_at: day(5), answered: false)
+
+      # booking rows: cmp_01 1/2 = 0.5, cmp_02 0/4 = 0; average would be 0.25, summed is 1/6.
+      expect(totals[:booking_rate]).to eq(1.0 / 6)
+      expect(totals[:unanswered_rate]).to eq(5.0 / 6)
+    end
+
+    it "includes No campaign in counts and revenue but excludes it and $0 budgets from paid" do
+      book(paid, "a", 1, 20_000)
+      book(paid, "b", 10, 10_000)
+      book(free, "c", 2, 5_000)
+      build_call(campaign: nil, caller_number: "n", started_at: day(3), outcome: "booked", revenue_cents: 7_000)
+
+      expect(totals).to include(calls: 4, booked: 4, revenue_cents: 42_000, spend_cents: 100_000)
+      expect(totals[:paid]).to eq(revenue_cents: 30_000, booked: 2, spend_cents: 100_000,
+                                  revenue_per_spend: 0.3, spend_per_booking_cents: 50_000.0)
+    end
+
+    it "gives nil spend and zero paid sums when every row's spend is nil" do
+      only_free = build_campaign(id: "cmp_03", daily_budget_cents: 0)
+      Campaign.where(id: "cmp_01").delete_all
+      book(only_free, "a", 1, 5_000)
+      build_call(campaign: nil, caller_number: "n", started_at: day(2), outcome: "booked", revenue_cents: 1_000)
+
+      expect(totals).to include(revenue_cents: 6_000, spend_cents: nil)
+      expect(totals[:paid]).to eq(revenue_cents: 0, booked: 0, spend_cents: nil, revenue_per_spend: nil, spend_per_booking_cents: nil)
+    end
+
+    it "includes a paid row with spend 0 in paid, next to a row with spend" do
+      # At loc_01, cmp_01 has calls only elsewhere (spend 0); cmp_03 has a booking here.
+      loc2 = build_location(id: "loc_02")
+      other = build_campaign(id: "cmp_03", daily_budget_cents: 1_000)
+      build_call(campaign: paid, location: loc2, caller_number: "a", started_at: day(1))
+      build_call(campaign: other, caller_number: "z", started_at: day(10), outcome: "booked", revenue_cents: 2_000)
+
+      result = described_class.call(from:, to:, location_id: "loc_01")
+      zero_row = result[:rows].find { |r| r[:campaign_id] == "cmp_01" }
+
+      expect(zero_row).to include(calls: 0, spend_cents: 0, revenue_per_spend: nil)
+      # A zero-spend row never has revenue (no office calls), so paid equals the spending row; the point is
+      # that the 0 is "non-null spend": paid is computed and ratios are real numbers.
+      expect(result[:totals][:paid]).to eq(revenue_cents: 2_000, booked: 1, spend_cents: 10_000,
+                                           revenue_per_spend: 0.2, spend_per_booking_cents: 10_000.0)
+    end
+
+    it "gives nil paid ratios when the only non-null spend is 0" do
+      build_call(campaign: paid, caller_number: "a", started_at: day(1))
+
+      out = described_class.call(from: Date.new(2026, 10, 1), to: Date.new(2026, 10, 5))[:totals]
+
+      expect(out[:paid]).to eq(revenue_cents: 0, booked: 0, spend_cents: 0, revenue_per_spend: nil, spend_per_booking_cents: nil)
+    end
+
+    it "only counts callers inside the date range in unique_callers" do
+      build_call(campaign: paid, caller_number: "in", started_at: day(5))
+      build_call(campaign: paid, caller_number: "before", started_at: Time.utc(2026, 8, 20, 15), local_date: Date.new(2026, 8, 20))
+      build_call(campaign: paid, caller_number: "after", started_at: Time.utc(2026, 9, 20, 15), local_date: Date.new(2026, 9, 20))
+
+      expect(totals).to include(calls: 1, unique_callers: 1)
+    end
+
+    it "returns zeroed totals with no campaigns and no calls" do
+      Campaign.delete_all
+
+      result = described_class.call(from:, to:)
+
+      expect(result[:rows]).to eq([])
+      expect(result[:totals]).to include(calls: 0, unique_callers: 0, booked: 0, revenue_cents: 0, spend_cents: nil,
+                                         booking_rate: nil, unanswered_rate: nil)
+      expect(result[:totals][:paid]).to eq(revenue_cents: 0, booked: 0, spend_cents: nil, revenue_per_spend: nil, spend_per_booking_cents: nil)
+    end
+
+    it "applies the location filter to counts, unique callers and spend" do
+      loc2 = build_location(id: "loc_02")
+      build_call(campaign: paid, caller_number: "a", started_at: day(1))
+      build_call(campaign: paid, caller_number: "b", started_at: day(10))
+      build_call(campaign: paid, caller_number: "a", location: loc2, started_at: day(5))
+      build_call(campaign: paid, caller_number: "c", location: loc2, started_at: day(6))
+
+      expect(totals(location_id: "loc_01")).to include(calls: 2, unique_callers: 2, spend_cents: 50_000)
+      expect(totals(location_id: "loc_02")).to include(calls: 2, unique_callers: 2, spend_cents: 50_000)
+    end
+
+    it "does not confuse the No campaign row with the grand total" do
+      build_call(caller_number: "a", started_at: day(1))
+      expect(described_class.call(from:, to:)[:rows].pluck(:campaign_id)).to eq(%w[cmp_01 cmp_02])
+
+      build_call(campaign: nil, caller_number: "n", started_at: day(2))
+      result = described_class.call(from:, to:)
+
+      expect(result[:rows].pluck(:campaign_id)).to eq([ "cmp_01", "cmp_02", nil ])
+      expect(result[:totals]).to include(calls: 2)
+      expect(result[:rows].last).to include(calls: 1)
+    end
+
+    it "gives only numbers or nil in every total field" do
+      book(paid, "a", 1, 10_000)
+      build_call(campaign: nil, caller_number: "n", started_at: day(10))
+
+      t = totals
+      values = t.except(:paid).values + t[:paid].values
+
+      expect(values).to all(satisfy { |v| v.nil? || v.is_a?(Numeric) && !v.is_a?(BigDecimal) })
+    end
+  end
 end
