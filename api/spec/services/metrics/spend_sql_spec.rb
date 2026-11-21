@@ -62,6 +62,16 @@ RSpec.describe Metrics::SpendSql do
                                          cov_from: "DATE '2026-09-06'", cov_to: "DATE '2026-12-01'")
       expect(select_value(sql)).to eq(5)
     end
+
+    it "is 0 when a coverage expression is NULL (e.g. min/max over an empty table)" do
+      sql = described_class.covered_days(from: "DATE '2026-09-01'", to: "DATE '2026-09-30'",
+                                         cov_from: "NULL::date", cov_to: "NULL::date")
+      expect(select_value(sql)).to eq(0)
+      sql = described_class.covered_days(from: "DATE '2026-09-01'", to: "DATE '2026-09-30'",
+                                         cov_from: "(SELECT min(local_date) FROM calls)",
+                                         cov_to: "(SELECT max(local_date) FROM calls)")
+      expect(select_value(sql)).to eq(0) if Call.none?
+    end
   end
 
   describe ".total_cents" do
@@ -113,6 +123,12 @@ RSpec.describe Metrics::SpendSql do
                        office_calls: 1, campaign_calls: 3)).to eq(0)
     end
 
+    it "treats a NULL covered_day as not covered, with and without a filter" do
+      expect(sql_daily(budget: 700, covered_day: "NULL::boolean", covered_through: 3, filtered: true,
+                       office_calls: 1, campaign_calls: 3)).to eq(0)
+      expect(sql_daily(budget: 700, covered_day: "NULL::boolean", covered_through: 3, filtered: false)).to eq(0)
+    end
+
     it "sums to the total for a 1/3 share over four weeks, within half a cent of exact" do
       budget = 1001
       days = 28
@@ -148,25 +164,52 @@ RSpec.describe Metrics::SpendSql do
     it "matches over a randomized batch (fixed seed), including daily sums" do
       rng = Random.new(20_260_921)
       60.times do
-        budget = rng.rand(0..50_000)
+        budget = rng.rand(0..9) == 0 ? nil : rng.rand(0..50_000)
         days = rng.rand(0..45)
         campaign = rng.rand(1..40)
         office = rng.rand(0..campaign)
         check_total(budget:, covered_days: days, filtered: true, office_calls: office, campaign_calls: campaign)
         check_total(budget:, covered_days: days, filtered: false, office_calls: office, campaign_calls: campaign)
 
-        next if days.zero? || budget.zero?
+        next if days.zero? || budget.to_i.zero?
 
-        daily = (1..days).map do |k|
-          args = { budget:, covered_day: true, covered_through: k, filtered: true,
-                   office_calls: office, campaign_calls: campaign }
-          value = sql_daily(**args)
-          expect(value).to eq(SpendOracle.daily_cents(**args))
-          value
+        [ true, false ].each do |filtered|
+          daily = (1..days).map do |k|
+            args = { budget:, covered_day: true, covered_through: k, filtered:,
+                     office_calls: office, campaign_calls: campaign }
+            value = sql_daily(**args)
+            expect(value).to eq(SpendOracle.daily_cents(**args))
+            value
+          end
+          expected_total = SpendOracle.total_cents(budget:, covered_days: days, filtered:,
+                                                   office_calls: office, campaign_calls: campaign)
+          expect(daily.sum).to eq(expected_total)
         end
-        expected_total = SpendOracle.total_cents(budget:, covered_days: days, filtered: true,
-                                                 office_calls: office, campaign_calls: campaign)
-        expect(daily.sum).to eq(expected_total)
+      end
+    end
+
+    it "chains covered_days into covered_day/covered_through so daily sums equal the total" do
+      rng = Random.new(99)
+      base = Date.new(2026, 9, 1)
+      40.times do
+        from = base + rng.rand(-10..20)
+        to = from + rng.rand(0..40)
+        cov_from = base + rng.rand(0..15)
+        cov_to = cov_from + rng.rand(0..30)
+        cov = { cov_from:, cov_to: }
+        budget = rng.rand(1..20_000)
+        campaign = rng.rand(1..30)
+        office = rng.rand(1..campaign)
+        days = sql_covered_days(from:, to:, **cov)
+
+        daily = (from..to).map do |date|
+          sql_daily(budget:, covered_day: date.between?(cov_from, cov_to),
+                    covered_through: sql_covered_days(from:, to: date, **cov), filtered: true,
+                    office_calls: office, campaign_calls: campaign)
+        end
+
+        expect(daily.sum).to eq(sql_total(budget:, covered_days: days, filtered: true,
+                                          office_calls: office, campaign_calls: campaign))
       end
     end
 
