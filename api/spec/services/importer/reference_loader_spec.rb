@@ -44,6 +44,39 @@ RSpec.describe Importer::ReferenceLoader do
     expect(Location.order(:id).pluck(:id, :updated_at) + Campaign.order(:id).pluck(:id, :updated_at)).to eq(before)
   end
 
+  describe "malformed rows" do
+    def reasons(result) = result.rejections.map { |r| [ r.file, r.line, r.reason ] }
+
+    it "rejects a row with extra fields" do
+      result = load_files(locations: "location_id,name,timezone\nloc_1,North,America/New_York,junk\nloc_2,South,America/Phoenix\n")
+      expect(reasons(result)).to eq([ [ "locations.csv", 2, "expected 3 fields, got 4" ] ])
+      expect(result.location_ids).to eq(Set["loc_2"])
+    end
+
+    it "rejects a short row with a field-count reason" do
+      result = load_files(locations: "location_id,name,timezone\nloc_1,North\nloc_2,South,America/Phoenix\n")
+      expect(reasons(result)).to eq([ [ "locations.csv", 2, "expected 3 fields, got 2" ] ])
+    end
+
+    it "rejects a blank line and counts it as a row" do
+      result = load_files(locations: "location_id,name,timezone\nloc_1,North,America/New_York\n\nloc_2,South,America/Phoenix\n")
+      expect(result.locations.to_h).to include(rows: 3, inserted: 2, rejected: 1)
+      expect(reasons(result)).to eq([ [ "locations.csv", 3, "expected 3 fields, got 0" ] ])
+    end
+
+    it "rejects a location id with surrounding whitespace" do
+      result = load_files(locations: "location_id,name,timezone\n\"loc_1 \",North,America/New_York\nloc_2,South,America/Phoenix\n")
+      expect(reasons(result).first.last).to match(/location_id has leading or trailing whitespace/)
+      expect(Location.pluck(:id)).to eq([ "loc_2" ])
+    end
+
+    it "rejects a campaign id with surrounding whitespace" do
+      result = load_files(campaigns: "campaign_id,name,channel,daily_budget_usd\n\" cmp_1\",Brand,paid_search,150.00\ncmp_2,Organic,organic,0\n")
+      expect(reasons(result).first.last).to match(/campaign_id has leading or trailing whitespace/)
+      expect(result.campaign_ids).to eq(Set["cmp_2"])
+    end
+  end
+
   it "counts a changed location name as an update" do
     load_files
     result = load_files(locations: locations_csv.sub("North", "Northside"))

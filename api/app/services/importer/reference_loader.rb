@@ -20,7 +20,7 @@ module Importer
       zones = Set.new(ActiveRecord::Base.connection.select_values("SELECT name FROM pg_timezone_names"))
 
       loc = process("locations.csv", LOCATION_HEADERS, "locations", %w[name timezone], rejections) do |row|
-        raise Parsing::Invalid, "blank location_id" if blank?(row["location_id"])
+        check_id!(row["location_id"], "location_id")
         raise Parsing::Invalid, "blank name" if blank?(row["name"])
         raise Parsing::Invalid, "unknown timezone #{row['timezone'].inspect}" unless zones.include?(row["timezone"])
 
@@ -28,7 +28,7 @@ module Importer
       end
 
       camp = process("campaigns.csv", CAMPAIGN_HEADERS, "campaigns", %w[name channel daily_budget_cents], rejections) do |row|
-        raise Parsing::Invalid, "blank campaign_id" if blank?(row["campaign_id"])
+        check_id!(row["campaign_id"], "campaign_id")
         raise Parsing::Invalid, "blank name" if blank?(row["name"])
         raise Parsing::Invalid, "unknown channel #{row['channel'].inspect}" unless Channel::ALL.include?(row["channel"])
 
@@ -45,6 +45,13 @@ module Importer
       value.nil? || value.strip.empty?
     end
 
+    # Ids are stored as-is, so surrounding whitespace would create a distinct key
+    # that calls referencing the trimmed id could never match.
+    def check_id!(value, name)
+      raise Parsing::Invalid, "blank #{name}" if blank?(value)
+      raise Parsing::Invalid, "#{name} has leading or trailing whitespace #{value.inspect}" if value != value.strip
+    end
+
     def budget_cents(str)
       Parsing.money_to_cents(str)
     rescue Parsing::Invalid => e
@@ -55,10 +62,14 @@ module Importer
     def process(file, headers, table, columns, rejections)
       candidates = []
       rows = 0
-      read_csv(file, headers) do |row, line|
+      read_csv(file, headers) do |fields, line|
         rows += 1
         begin
-          candidates << { line: line, values: yield(row) }
+          # A blank line parses as an empty row; extra or missing fields are malformed too.
+          unless fields.size == headers.size
+            raise Parsing::Invalid, "expected #{headers.size} fields, got #{fields.size}"
+          end
+          candidates << { line: line, values: yield(headers.zip(fields).to_h) }
         rescue Parsing::Invalid => e
           rejections << Rejection.new(file: file, line: line, reason: e.message)
         end
@@ -89,15 +100,13 @@ module Importer
       path = File.join(@data_dir, file)
       raise Error, "#{file} not found in #{@data_dir}" unless File.file?(path)
 
-      csv = CSV.new(File.read(path), headers: true)
-      csv.shift
-      actual = csv.headers
-      unless actual.is_a?(Array) && actual == expected_headers
+      csv = CSV.new(File.read(path))
+      actual = csv.shift
+      unless actual == expected_headers
         raise Error, "#{file}: expected header #{expected_headers.join(',')}, got #{Array(actual).join(',')}"
       end
 
-      csv.rewind
-      csv.each { |row| yield row, csv.lineno }
+      csv.each { |fields| yield fields, csv.lineno }
     rescue CSV::MalformedCSVError => e
       raise Error, "#{file}: #{e.message}"
     end

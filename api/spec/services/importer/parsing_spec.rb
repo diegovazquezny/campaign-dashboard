@@ -48,6 +48,15 @@ RSpec.describe Importer::Parsing do
     it("rejects a missing zone") { invalid(:timestamp, "2025-09-01T12:30:45") }
     it("rejects date only") { invalid(:timestamp, "2025-09-01") }
     it("rejects impossible dates") { invalid(:timestamp, "2025-13-45T12:30:45Z") }
+
+    [ "2025-02-30T00:00:00Z", "2025-04-31T00:00:00Z", "2025-02-29T00:00:00Z",
+     "2025-09-01T24:00:00Z", "2025-09-01T12:60:00Z", "2025-09-01T12:30:60Z" ].each do |value|
+      it("rejects #{value} instead of rolling it over") { invalid(:timestamp, value) }
+    end
+
+    it("accepts a leap day in a leap year") do
+      expect(described_class.timestamp("2024-02-29T23:59:59Z")).to eq(Time.utc(2024, 2, 29, 23, 59, 59))
+    end
     it("rejects blank") { invalid(:timestamp, "") }
   end
 
