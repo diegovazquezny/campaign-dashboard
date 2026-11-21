@@ -7,6 +7,9 @@ class ScaleCheck
   class Refused < StandardError; end
 
   SUFFIX = "_scale_check".freeze
+  # Postgres silently truncates longer identifiers, which could turn
+  # "<base>_scale_check" back into the base database name.
+  MAX_NAME_BYTES = 63
   CHANNELS = %w[paid_search social display organic direct referral].freeze
 
   # The only database name this task may create, connect to or drop.
@@ -15,11 +18,19 @@ class ScaleCheck
     raise Refused, "no database configured" if base.to_s.empty?
     raise Refused, "#{base} is already a scratch database" if base.end_with?(SUFFIX)
 
-    "#{base}#{SUFFIX}"
+    name = "#{base}#{SUFFIX}"
+    assert_scratch!(name, base: base)
+    name
   end
 
-  def self.assert_scratch!(name)
-    raise Refused, "#{name.inspect} is not a #{SUFFIX} database" unless name.to_s.end_with?(SUFFIX)
+  # Called before every DROP/CREATE: `name` must end in the suffix, fit in a
+  # Postgres identifier (so it cannot be truncated back to `base`) and differ
+  # from the configured database.
+  def self.assert_scratch!(name, base:)
+    name = name.to_s
+    raise Refused, "#{name.inspect} is not a #{SUFFIX} database" unless name.end_with?(SUFFIX)
+    raise Refused, "#{name.inspect} is longer than #{MAX_NAME_BYTES} bytes; Postgres would truncate it" if name.bytesize > MAX_NAME_BYTES
+    raise Refused, "#{name.inspect} is the configured database" if name == base.to_s
   end
 
   def self.run(out: $stdout, env: ENV)
@@ -40,22 +51,24 @@ class ScaleCheck
 
   def run
     original = ActiveRecord::Base.connection_db_config.configuration_hash
-    scratch = self.class.scratch_name(original[:database])
+    base = original[:database]
+    scratch = self.class.scratch_name(base)
     admin = original.merge(database: "postgres")
     scratch_config = original.merge(database: scratch)
 
     say "scratch database: #{scratch} (#{@calls} calls, #{@campaigns} campaigns, #{@offices} offices)"
     begin
-      recreate(admin, scratch)
+      recreate(admin, scratch, base)
       ActiveRecord::Base.establish_connection(scratch_config)
       conn = ActiveRecord::Base.connection
-      self.class.assert_scratch!(conn.current_database)
+      # Before any schema load or insert: we really are in the scratch database.
+      self.class.assert_scratch!(conn.current_database, base: base)
       load_schema
       populate(conn)
       report(conn)
     ensure
       ActiveRecord::Base.establish_connection(original)
-      drop(admin, scratch, original) unless @keep
+      drop(admin, scratch, base, original) unless @keep
     end
   end
 
@@ -72,14 +85,14 @@ class ScaleCheck
     ActiveRecord::Base.connection_pool.disconnect!
   end
 
-  def recreate(admin, scratch)
-    self.class.assert_scratch!(scratch)
+  def recreate(admin, scratch, base)
+    self.class.assert_scratch!(scratch, base: base)
     admin_exec(admin, "DROP DATABASE IF EXISTS #{PG::Connection.quote_ident(scratch)} WITH (FORCE)")
     admin_exec(admin, "CREATE DATABASE #{PG::Connection.quote_ident(scratch)}")
   end
 
-  def drop(admin, scratch, original)
-    self.class.assert_scratch!(scratch)
+  def drop(admin, scratch, base, original)
+    self.class.assert_scratch!(scratch, base: base)
     admin_exec(admin, "DROP DATABASE IF EXISTS #{PG::Connection.quote_ident(scratch)} WITH (FORCE)")
     ActiveRecord::Base.establish_connection(original)
     say "dropped #{scratch}"
