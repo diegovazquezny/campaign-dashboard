@@ -24,6 +24,7 @@ module Metrics
       <<~SQL.squish
         SELECT
           c.call_id,
+          c.local_date,
           c.campaign_id,
           c.marketing_channel,
           c.caller_number_hash,
