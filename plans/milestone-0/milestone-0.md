@@ -2,21 +2,40 @@
 
 **Goal:** `docker compose up` on a clean clone shows a page that reaches the API. `bundle exec rspec` and `npm test` both run.
 
-## Current state
+## Status
 
-- The repo has **no commits and no remote**. Everything is untracked.
-- `api/`:
-  - Rails 8.1.4 API-only, Ruby 3.4.7.
-  - Uses **SQLite** and **Minitest** (`test/`), and has its own **nested `.git`** with no commits.
-  - The `Dockerfile` is production-only (`RAILS_ENV=production`, needs the master key).
-  - Unused deployment pieces: Kamal (`.kamal/`, `config/deploy.yml`), `solid_cache/queue/cable` (and `db/*_schema.rb`), `thruster`, `image_processing`, `api/.github/`.
-  - `config/master.key` exists but is ignored by `api/.gitignore`.
-- `dashboard-ui/`:
-  - Next 16.4.6, React 19.3, Tailwind 4, `cacheComponents: true`.
-  - Still the create-next-app boilerplate page, and no test runner.
-  - `AGENTS.md` warns this Next version differs from what you may know. Read `node_modules/next/dist/docs/` before writing code.
-- No `docker-compose.yml`, no root `bin/`. `shared/` holds only `.gitkeep`.
-- Local tools: Node 24.1, Ruby 3.4.7, Docker 25, Postgres.app 16.
+**M0 is complete in code: all 11 PRs below are merged to `main`** (last merge: PR #15, 2026-11-21 12:39Z; `origin/main` at `a118b53`). GitHub CI passed on #15 (api lint/test, dashboard-ui lint/test).
+
+| Plan PR | Merged as | Notes |
+|---|---|---|
+| 0 Bootstrap `main` | #1 | |
+| 1 Rails scaffold | #3 | |
+| 2 Next.js scaffold | #2 | |
+| 3 Remove deploy tooling | #4 | |
+| 4 SQLite → PostgreSQL | #6, landed on `main` by #10 | Stacked PR; never reached `main` on its own |
+| 5 Minitest → RSpec | #8, landed on `main` by #10 | Stacked PR; never reached `main` on its own |
+| 6 Vitest + Testing Library | #5 | |
+| 7 Hello page calls API | #7 and #11 | Stacked PR; #11 landed it on `main`. Both carry the title "PR 7" |
+| 8 Compose db + api | #9, landed on `main` by #10 | Stacked PR; #10 also carries PR 4 and 5 content |
+| 9 Compose web | #12 | |
+| 10 Native dev scripts | #15 | |
+
+Work outside the original PR list, merged to `main`:
+- **#13** shared git hooks: pre-commit runs RSpec and Vitest; pre-push blocks direct pushes to `main`; `scripts/setup-hooks.sh` sets `core.hooksPath` and creates `.env` from `.env.example`.
+- **#14** GitHub Actions CI (`.github/workflows/ci.yml`): api lint and test (Postgres 18), dashboard-ui lint and test.
+
+**Deviations from the PR specs below:**
+- Postgres credentials are not committed. Compose reads `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` and `DB_PORT` from a git-ignored `.env` (copied from `.env.example`) and builds `DATABASE_URL` from them. The compose file fails fast if they are missing.
+- The `api` service also mounts `./api` at `/rails` for live reload.
+- `web` runs `npm run build` then `npm start`, not `next dev`.
+- The `dashboard-ui` `prepare` script runs the hook setup, so `npm ci` enables the hooks.
+
+**Not yet verified end to end:**
+- PR 10 (`bin/setup`, `bin/dev`): only `bash -n` was run. Run `bin/setup && bin/dev` on a fresh clone with local Postgres and confirm "API: OK".
+- The M0 exit check on a fresh clone (`docker compose up`, `docker compose exec api bundle exec rspec`, `npm test`) has not been run as one pass. PR 9 verified `docker compose up` with "API: OK" and "API: unreachable" on its own branch.
+- PR 13 did not build the `web` Docker image.
+
+**Original scaffold state (before PR 0), for reference:** `api/` was Rails 8.1.4 API-only on SQLite and Minitest with a nested `.git`. Kamal, Solid Cache/Queue/Cable, Thruster and image_processing were unused. `dashboard-ui/` was the create-next-app boilerplate with no test runner.
 
 ## PR rules
 

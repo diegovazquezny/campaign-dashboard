@@ -27,4 +27,4 @@ This skill checks the ./plans/PLAN.md, determines which milestone is in progress
 - Never stack PRs.
 - PRs should always branch from the latest up-to-date main branch.
 - If the next task is blocked by an unresolved issue, do not proceed and instead report the blockage.
-- If the previous PR is still open, the skill should stop and say so. 
+- If the previous PR is still open, the skill should stop and say so.
