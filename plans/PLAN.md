@@ -100,7 +100,7 @@ Profiled from `calls.csv`, `campaigns.csv`, `locations.csv`:
 | timestamps | | |
 
 Check constraints (mirror the §3 field rules; the import rejects violating rows first, so these are a backstop):
-- `answered OR (outcome IN ('missed','voicemail') AND agent_id IS NULL)`
+- `answered OR ((outcome IN ('missed','voicemail')) IS TRUE AND agent_id IS NULL)` (`IS TRUE` because a NULL outcome would otherwise make the check NULL, which Postgres treats as a pass)
 - `NOT answered OR (agent_id IS NOT NULL AND (outcome IS NULL OR outcome IN ('booked','qualified_lead','not_qualified')))`
 - `(revenue_cents IS NOT NULL) = (outcome IS NOT DISTINCT FROM 'booked')`
 - `ended_at >= started_at`
@@ -111,7 +111,7 @@ Not modeled as tables (IDs only in data): agents, tracking numbers.
 
 ## 6. Import pipeline
 
-The CSVs are seed data. The API container's start command and `bin/setup` both run `bin/rails db:prepare db:seed`, and `db/seeds.rb` runs the import **only if `calls` is empty** (`Importer.run unless Call.exists?`). Because the import is a single transaction (below), `calls` is either fully loaded or empty, so "empty" reliably means "no import has succeeded yet": the first start imports, a start after a failed import retries, and every other start costs one indexed check. (Plain `db:prepare` seeding is not enough on its own: it seeds only when it creates the database, so a failed first import would never be retried.)
+The CSVs are seed data. The API container's start command and `bin/setup` both run `bin/rails db:prepare db:seed`, and `db/seeds.rb` runs the import **only if `calls` is empty** (`Importer.run unless Call.exists?`). Because the import is a single transaction (below), `calls` is either fully loaded or empty, so "empty" reliably means "no import has succeeded yet": the first start imports, a start after a failed import retries, and every other start costs one indexed check. (Plain `db:prepare` seeding is not enough on its own: it seeds only when it creates the database, so a failed first import would never be retried. The converse also holds: a freshly created *test* database gets seeded too, so the spec suite empties the importer's tables before it starts.)
 
 `bin/rails import:all` forces a re-import regardless; run it after editing a CSV, since restarts don't pick up CSV changes. It is idempotent: re-running the same files changes nothing. CSV directory via `DATA_DIR`, defaulting to `data/` at the repo root (where `calls.csv`, `campaigns.csv`, `locations.csv` live); in Docker `./data` is mounted read-only into `/data` and `DATA_DIR=/data`. No run history is stored (see §13 for a recurring feed).
 
@@ -119,6 +119,7 @@ The whole import runs in **one transaction**: if any step fails, nothing changes
 
 1. Load `locations.csv`, `campaigns.csv`; validate timezone (against `pg_timezone_names`) and channel. Upsert valid rows by id; invalid rows are rejected and listed like call rows.
 2. Stream `calls.csv`; per row: parse/validate (ISO-8601 UTC timestamps, enums, integer duration, decimal revenue → cents, boolean) and check:
+   - the row has exactly the header's number of fields (a blank line or a short/long row is rejected), and ids carry no surrounding whitespace;
    - the §3 field rules (answered/outcome/agent/revenue consistency, `ended_at >= started_at`, `duration_seconds` = `ended_at − started_at`);
    - references: `location_id` is a location loaded in step 1, and `campaign_id` is empty or a campaign loaded in step 1. A call pointing at a missing or rejected location/campaign is rejected with that reason, so a bad reference costs one row, not a foreign-key failure that rolls back the import;
    - duplicate versions: two rows with the same `(call_id, updated_at)` but different content are both rejected ("conflicting versions"), since neither can be trusted as latest; exact duplicates collapse to one.
@@ -297,7 +298,8 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M1 — Data model + import pipeline (§3, §5, §6; D1, D4, D10)
 **Goal:** the CSVs load correctly, idempotently and safely.
-**Status:** code complete once PR 7 (seeds, `import:all`, summary, real-data spec) merges; PRs 1–6b are merged. Task breakdown and dependency diagram: [milestone-1/milestone-1.md](milestone-1/milestone-1.md).
+**Status:** complete. All 8 PRs are merged to `main` (last: PR #25). Importing the real data reports `5,411 rows → 5,000 calls (411 older versions dropped, 0 rejected …)`; a re-import changes nothing. The per-PR breakdown, deviations and exit-check results are in
+[milestone-1/milestone-1.md](milestone-1/milestone-1.md).
 
 - Migrations for `campaigns`, `locations`, `calls` with every check constraint and index from §5; shared channel constant defined once.
 - Models with Rails `enum`s.
