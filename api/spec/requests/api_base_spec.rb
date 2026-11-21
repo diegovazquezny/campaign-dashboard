@@ -20,7 +20,16 @@ RSpec.describe "Api::BaseController and Api::RangeParams", type: :request do
       error = error_of(response)
       expect(error.keys).to contain_exactly("code", "message")
       expect(error["code"]).to eq("not_found")
-      expect(error["message"]).to be_a(String)
+      expect(error["message"]).to eq("record not found")
+    end
+  end
+
+  describe "missing required params" do
+    it "renders ActionController::ParameterMissing as 400 in the same error shape" do
+      get "/api/spec_dummy/parameter_missing"
+
+      expect(response).to have_http_status(:bad_request)
+      expect(error_of(response)["code"]).to eq("bad_request")
     end
   end
 
@@ -34,6 +43,12 @@ RSpec.describe "Api::BaseController and Api::RangeParams", type: :request do
 
     it "accepts a single-day range" do
       get "/api/spec_dummy", params: { from: "2026-09-01", to: "2026-09-01" }
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "accepts a real leap day" do
+      get "/api/spec_dummy", params: { from: "2028-02-29", to: "2028-03-01" }
 
       expect(response).to have_http_status(:ok)
     end
@@ -57,7 +72,10 @@ RSpec.describe "Api::BaseController and Api::RangeParams", type: :request do
       [ "impossible month", { from: "2026-13-01", to: "2026-03-30" } ],
       [ "reversed range", { from: "2026-09-30", to: "2026-09-01" } ],
       [ "367 days", { from: "2027-01-01", to: "2028-01-02" } ],
-      [ "non-string date", { from: [ "2026-09-01" ], to: "2026-09-30" } ]
+      [ "non-string date", { from: [ "2026-09-01" ], to: "2026-09-30" } ],
+      [ "hash-valued date", { from: { a: "2026-09-01" }, to: "2026-09-30" } ],
+      [ "to blank", { from: "2026-09-01", to: "" } ],
+      [ "impossible leap day", { from: "2026-02-29", to: "2026-03-30" } ]
     ].each do |name, params|
       it "rejects #{name} with 400" do
         get "/api/spec_dummy", params: params
@@ -83,6 +101,18 @@ RSpec.describe "Api::BaseController and Api::RangeParams", type: :request do
 
     it "rejects a present but blank location_id with 400" do
       get "/api/spec_dummy", params: range.merge(location_id: "")
+
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "rejects a whitespace-only location_id with 400" do
+      get "/api/spec_dummy", params: range.merge(location_id: " ")
+
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "rejects an array-valued location_id with 400" do
+      get "/api/spec_dummy", params: range.merge(location_id: [ "loc_01" ])
 
       expect(response).to have_http_status(:bad_request)
     end

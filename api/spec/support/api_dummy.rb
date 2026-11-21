@@ -7,8 +7,12 @@ module Api
       render json: { from: range.from, to: range.to, location_id: range.location&.id }
     end
 
-    def missing
+    def not_found
       Campaign.find("missing")
+    end
+
+    def parameter_missing
+      params.require(:needed)
     end
 
     def bad_request
@@ -20,7 +24,8 @@ end
 Rails.application.routes.prepend do
   namespace :api do
     get "spec_dummy" => "spec_dummy#show"
-    get "spec_dummy/not_found" => "spec_dummy#missing"
+    get "spec_dummy/not_found" => "spec_dummy#not_found"
     get "spec_dummy/bad_request" => "spec_dummy#bad_request"
+    get "spec_dummy/parameter_missing" => "spec_dummy#parameter_missing"
   end
 end

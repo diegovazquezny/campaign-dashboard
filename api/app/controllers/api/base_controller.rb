@@ -4,8 +4,13 @@ module Api
       render_error("bad_request", error.message, :bad_request)
     end
 
-    rescue_from ActiveRecord::RecordNotFound do |error|
-      render_error("not_found", error.message, :not_found)
+    rescue_from ActionController::ParameterMissing do |error|
+      render_error("bad_request", "#{error.param} is required", :bad_request)
+    end
+
+    # A fixed message: Rails' own text names the model and is not a stable contract.
+    rescue_from ActiveRecord::RecordNotFound do
+      render_error("not_found", "record not found", :not_found)
     end
 
     private
