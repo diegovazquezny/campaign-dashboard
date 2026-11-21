@@ -5,10 +5,14 @@ RSpec.describe "GET /api/campaigns/metrics", type: :request do
   let(:params) { { from: "2026-09-01", to: "2026-09-10" } }
   let(:body) { JSON.parse(response.body) }
 
-  ROW_FIELDS = %w[campaign_id name channel calls unique_callers new_callers booked booking_rate unanswered_rate
-                  awaiting_outcome revenue_cents spend_cents revenue_per_spend spend_per_booking_cents].freeze
-  TOTAL_FIELDS = %w[calls unique_callers new_callers booked booking_rate unanswered_rate awaiting_outcome
-                    revenue_cents spend_cents paid].freeze
+  let(:row_fields) do
+    %w[campaign_id name channel calls unique_callers new_callers booked booking_rate unanswered_rate
+       awaiting_outcome revenue_cents spend_cents revenue_per_spend spend_per_booking_cents]
+  end
+  let(:total_fields) do
+    %w[calls unique_callers new_callers booked booking_rate unanswered_rate awaiting_outcome
+       revenue_cents spend_cents paid]
+  end
 
   def metric_values(hash)
     hash.except("campaign_id", "name", "channel", "channel_breakdown").values
@@ -39,7 +43,7 @@ RSpec.describe "GET /api/campaigns/metrics", type: :request do
 
     it "lists campaigns by id, then No campaign, with every row field" do
       expect(body["rows"].pluck("campaign_id")).to eq([ "cmp_01", "cmp_02", nil ])
-      expect(body["rows"]).to all(include(*ROW_FIELDS))
+      expect(body["rows"]).to all(include(*row_fields))
       expect(body["rows"].first).to include("name" => "Brand", "calls" => 2, "booked" => 1,
                                             "revenue_cents" => 20_000, "spend_cents" => 100_000)
     end
@@ -51,7 +55,7 @@ RSpec.describe "GET /api/campaigns/metrics", type: :request do
     end
 
     it "returns totals with the paid block" do
-      expect(body["totals"].keys).to match_array(TOTAL_FIELDS)
+      expect(body["totals"].keys).to match_array(total_fields)
       expect(body["totals"]).to include("calls" => 3, "unique_callers" => 3)
       expect(body["totals"]["paid"].keys).to match_array(%w[revenue_cents booked spend_cents revenue_per_spend spend_per_booking_cents])
     end
