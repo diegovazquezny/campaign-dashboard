@@ -285,8 +285,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M0 — Working skeleton
 **Goal:** one command runs db + api + web from a clean checkout.
-
-Current scaffold gaps to fix: `api/` uses SQLite (plan says PostgreSQL) and Minitest (plan says RSpec), and has its own nested `.git`; there is no `docker-compose.yml` or `bin/dev`; `dashboard-ui/` lacks Vitest and Testing Library; `shared/` holds only `.gitkeep`.
+**Status:** code complete. All PRs are merged to `main` (last: PR #15). The per-PR breakdown, deviations and unverified items are in [milestone-0/milestone-0.md](milestone-0/milestone-0.md).
 
 - Remove the nested `api/.git` so the outer repo tracks `api/`.
 - Switch the API to PostgreSQL (`pg` gem, `database.yml` from env vars). Replace Minitest `test/` with `rspec-rails` (`api/spec/`).
@@ -294,7 +293,7 @@ Current scaffold gaps to fix: `api/` uses SQLite (plan says PostgreSQL) and Mini
 - `bin/dev` and `bin/setup` for native development.
 - `dashboard-ui/`: add Vitest and Testing Library; hello page whose server component calls `API_URL/up`.
 
-**Done when:** `docker compose up` on a clean clone shows the hello page with API status OK, and `bundle exec rspec` and `npm test` both run (zero tests).
+**Done when:** `docker compose up` on a clean clone shows the hello page with API status OK, and `bundle exec rspec` and `npm test` both run (one smoke test each: `GET /up` and a trivial component test).
 
 ### M1 — Data model + import pipeline (§3, §5, §6; D1, D4, D10)
 **Goal:** the CSVs load correctly, idempotently and safely.
