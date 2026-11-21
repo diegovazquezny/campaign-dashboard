@@ -67,8 +67,30 @@ RSpec.describe "Importer.run" do
 
     it "does not let an older file overwrite a newer stored version" do
       run
-      run("out_of_order")
+      result = run("out_of_order")
+      expect(result).to have_attributes(inserted: 0, updated: 0)
       expect(Call.find("c_001").source_updated_at).to eq(Time.utc(2026, 9, 3, 10, 5))
+    end
+
+    it "updates only the call that has a strictly newer version" do
+      run
+      before = Call.order(:call_id).index_by(&:call_id)
+      newer = "c_008,2026-09-01T15:00:00Z,2026-09-01T15:02:00Z,120,h_a8,+1-555-0100,cmp_01," \
+              "paid_search,loc_01,true,booked,50.00,agt_08,2026-09-02T15:00:00Z\n"
+
+      result = with_import_dir do |dir|
+        File.open(File.join(dir, "calls.csv"), "a") { |f| f.write(newer) }
+        Importer.run(data_dir: dir)
+      end
+
+      expect(result).to have_attributes(inserted: 0, updated: 1, rows: 13, older_versions_dropped: 5)
+      call = Call.find("c_008")
+      expect(call).to have_attributes(outcome: "booked", revenue_cents: 5_000,
+                                      source_updated_at: Time.utc(2026, 9, 2, 15))
+      expect(call.created_at).to eq(before["c_008"].created_at)
+      expect(call.updated_at).to be > before["c_008"].updated_at
+      untouched = Call.where.not(call_id: "c_008").order(:call_id).pluck(:call_id, :updated_at)
+      expect(untouched).to eq(before.except("c_008").values.map { |c| [ c.call_id, c.updated_at ] })
     end
   end
 
