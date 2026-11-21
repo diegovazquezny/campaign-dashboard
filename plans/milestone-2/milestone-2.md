@@ -44,7 +44,7 @@ Same as M0/M1:
 ## PRs
 
 ### PR 1 — API base: routing, params validation, error shape, spec helpers
-**Status:** done (PR #TBD)
+**Status:** done (PR #28)
 - `Api::BaseController` (inherits `ApplicationController`): rescues `Api::BadRequest` → 400 and `ActiveRecord::RecordNotFound` → 404, rendering `{ "error": { "code", "message" } }` (`bad_request`, `not_found`).
 - `Api::RangeParams` (plain Ruby): parses and validates `from`, `to`, optional `location_id`: both dates required and strict `YYYY-MM-DD` (real calendar dates), `from <= to`, range ≤ 366 days; a present but blank `location_id` → 400; unknown `location_id` → 404. Returns a `Data` object `(from, to, location)`. **Param validation (400) always runs before any record lookup (404).**
 - `namespace :api` in `routes.rb` (no endpoints yet beyond a spec-only dummy route/controller used to exercise the base controller).
