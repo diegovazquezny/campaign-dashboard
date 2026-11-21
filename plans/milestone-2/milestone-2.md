@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29), PR 4 (#31), PR 5 (#32) and PR 6 (#33) are merged; PR 7 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The plan was reviewed by an independent agent; its findings are folded in below.
+In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29), PR 4 (#31), PR 5 (#32) and PR 6 (#33) and PR 7 (#34) are merged; PR 8 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
@@ -104,13 +104,15 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 5.
 
 ### PR 7 — `GET /api/campaigns/metrics`
-**Status:** in review
+**Status:** done (PR #34)
 - Route, `Api::CampaignMetricsController#index` using `RangeParams` and `CampaignMetrics.call`; JSON per §8.
 - **Request specs:** happy path shape (all §8 fields present, `channel_breakdown` only on the "No campaign" row), every metric field `be_a(Numeric)` or `nil`, location filter, 400s (missing/invalid/reversed/too-long range, blank `location_id`), 404 unknown `location_id`.
 - **Check:** `bundle exec rspec`; `curl 'localhost:3001/api/campaigns/metrics?from=2026-09-01&to=2026-09-30'` returns 12 campaign rows plus "No campaign" (the real `campaigns.csv` has 12 campaigns) with sane totals.
 - Depends on PR 6 (which builds on PR 5, PR 2 and PR 1, so the controller base is already merged).
 
 ### PR 8 — `GET /api/campaigns/:id/daily`
+**Status:** in review
+**Note:** `CallFacts` gained a `local_date` column so the daily query can group on it.
 - `Metrics::CampaignDaily.call(campaign:, from:, to:, location_id: nil)`: one SQL statement: `generate_series` over the range left-joined to `call_facts` (this campaign) grouped by `local_date` (`calls`, `booked`, `revenue_cents`, all `FILTER (WHERE at_office)`), so zero-filling happens in the database, with per-day `spend_cents` from `SpendSql.daily_cents`. `campaign_calls`/`office_calls` come from the whole range (not per day), as in §8, from the same scan.
 - Route and `Api::CampaignDailyController#show`; params validated first (400), then the campaign lookup (404 via `RecordNotFound`). The "No campaign" row has no daily view in v1 (`:id` must be a real campaign).
 - **Specs:** every date present with zeros; counts and revenue per day on `local_date`; spend on covered days and 0 outside coverage; `nil` spend for $0-budget; the daily spend sums exactly to `SpendSql.total_cents` **without** a location filter when the range partly overlaps coverage, and **with** a location filter (including an office with no calls → 0, and a campaign with no calls in range → `nil`); every field numeric or `nil`; unknown campaign and location → 404; param errors → 400 (400 wins when both apply).
