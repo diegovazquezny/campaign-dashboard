@@ -20,6 +20,20 @@ module Importer
       upsert
     end
 
+    # The upsert skips unchanged calls, so a timezone corrected in locations.csv
+    # would leave their local_date stale. Fixes every call whose stored date no
+    # longer matches its location's current timezone, bumping updated_at like
+    # every other write to calls; returns the row count.
+    def recompute_local_dates
+      @conn.update(<<~SQL.squish)
+        UPDATE calls SET local_date = (calls.started_at AT TIME ZONE locations.timezone)::date,
+                         updated_at = #{@conn.quote(Time.current)}
+        FROM locations
+        WHERE calls.location_id = locations.id
+          AND calls.local_date IS DISTINCT FROM (calls.started_at AT TIME ZONE locations.timezone)::date
+      SQL
+    end
+
     private
 
     # DROP IF EXISTS first so the table can be re-created within one outer
