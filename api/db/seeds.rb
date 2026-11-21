@@ -1,9 +1,5 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# Imports the CSVs on first start (see plans/PLAN.md section 6). The import is a
+# single transaction, so an empty calls table means no import has succeeded yet:
+# a failed first import is retried on the next start, and every later start
+# costs one indexed check. Use `bin/rails import:all` to force a re-import.
+puts Importer.run.summary unless Call.exists?
