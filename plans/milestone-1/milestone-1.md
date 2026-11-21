@@ -6,9 +6,33 @@
 
 ## Status
 
-Code complete once PR 7 merges: PR 1 (#18), PR 2 (#20), PR 3 (#19), PR 4 (#21), PR 5 (#22), PR 6a (#23), PR 6b (#24) are merged; PR 7 (seeds, `import:all`, summary, real-data spec) is open. Builds on M0 (Rails API on Postgres 18, RSpec, CI, `db:prepare db:seed` in the compose command, empty `db/seeds.rb`). The plan was reviewed by an independent agent; its findings are folded in below.
+**M1 is complete: all 8 PRs below are merged to `main`** (last merge: PR #25, 2026-11-21 14:17Z; `origin/main` at `c2731e0`). GitHub CI passed on the merge commit.
 
-Deviation from §5 (PR 2): the unanswered-rule check is wrapped as `answered OR ((outcome IN ('missed','voicemail')) IS TRUE AND agent_id IS NULL)`, because the unwrapped form evaluates to NULL for an unanswered call with a blank outcome and Postgres lets NULL pass.
+| Plan PR | Merged as | Notes |
+|---|---|---|
+| 1 Reference tables | #18 | |
+| 2 `calls` table | #20 | Unanswered check tightened (see deviations) |
+| 3 Fixture CSVs + helper | #19 | |
+| 4 Strict parsing + reference loader | #21 | Review fixes: strict timestamp ranges, field-count check, padded ids rejected |
+| 5 Call row validator + reader | #22 | Review fixes: field-count check; carries PR 4's shared files byte-for-byte |
+| 6a Staging + latest-version upsert | #23 | Review: update-path spec added |
+| 6b Stale `local_date` recompute | #24 | Review fixes: recompute bumps `updated_at`; rollback spec raises after the real recompute |
+| 7 Seeds, `import:all`, summary, real-data spec | #25 | Review fix: spec wipes guarded to `RAILS_ENV=test` |
+
+Work was reviewed by independent subagents on every PR from #18 on; their findings are folded in.
+
+**Exit check, verified:**
+- `bundle exec rspec` passes (215 examples on #25's head), including the import, idempotence, local-time, rollback and `:real_data` specs; `bin/rubocop` is clean.
+- In Docker, the first `bin/rails db:prepare db:seed` logs `5,411 rows → 5,000 calls (411 older versions dropped, 0 rejected; 5,000 inserted, 0 updated, 0 local dates recomputed)`; a second run prints nothing.
+- `bin/rails import:all` run twice reports `0 inserted, 0 updated, 0 local dates recomputed`.
+
+**Deviations from the PR specs below:**
+- **Unanswered check (PR 2):** `answered OR ((outcome IN ('missed','voicemail')) IS TRUE AND agent_id IS NULL)`. The §5 form evaluates to NULL for an unanswered call with a blank outcome, and Postgres treats NULL as a pass. PLAN.md §5 now shows the corrected form.
+- **Strict parsing (PR 4):** timestamps accept fractional seconds before `Z` but are range-checked (`Time.iso8601` alone rolls `2025-02-30` over to March 2); CSV headers must match exactly and in order; timezone match is case-sensitive; money above the 4-byte cap is rejected.
+- **Field counts (PR 4, 5):** rows with extra or missing fields, and blank lines, are rejected as `expected N fields, got M` and counted as rows read. Ids with leading or trailing whitespace are rejected.
+- **Result (PR 6a):** `Importer::Result` also reports `duplicates_collapsed`; the summary prints it when non-zero.
+- **Test database (PR 7):** `db:prepare` seeds a freshly created database, so a new test DB used to receive the real data. `spec/support/clean_database.rb` empties `calls`, `campaigns` and `locations` before the suite, and refuses to run outside `RAILS_ENV=test`.
+- **Not done, by choice:** `api/bin/setup` (stock Rails script) still runs only `db:prepare`; the project's root `bin/setup` runs `db:prepare db:seed`. Exact-duplicate collapses in the reference files are not counted in their results.
 
 ## PR rules
 
