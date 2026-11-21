@@ -3,6 +3,10 @@
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT" || exit 1
 
+echo "==> api: rubocop"
+docker compose run --rm -T api bundle exec rubocop \
+  || { echo "Commit blocked: api lint failed."; exit 1; }
+
 echo "==> api: rspec"
 # Separate _test database so the dev data isn't touched.
 docker compose run --rm -T \
@@ -10,6 +14,10 @@ docker compose run --rm -T \
   api bash -c 'export DATABASE_URL="${DATABASE_URL%/*}/campaign_dashboard_test" && bin/rails db:prepare && bundle exec rspec' \
   || { echo "Commit blocked: api tests failed."; exit 1; }
 
+echo "==> dashboard-ui: eslint"
+(cd dashboard-ui && { [ -d node_modules ] || npm ci; } && npm run lint) \
+  || { echo "Commit blocked: dashboard-ui lint failed."; exit 1; }
+
 echo "==> dashboard-ui: vitest"
-(cd dashboard-ui && { [ -d node_modules ] || npm ci; } && npm test) \
+(cd dashboard-ui && npm test) \
   || { echo "Commit blocked: dashboard-ui tests failed."; exit 1; }
