@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. PR 1 (#28), PR 2 (#30) and PR 3 (#29) are merged; PR 4 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
+In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29) and PR 4 (#31) are merged; PR 5 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
@@ -76,7 +76,7 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on nothing.
 
 ### PR 4 — `call_facts` CTE and per-campaign counts
-**Status:** in review
+**Status:** done (PR #31)
 - `Metrics::CallFacts.sql(from:, to:, location_id: nil)` as described in the conventions (`at_office`, `is_new` via the `NOT EXISTS` probe on unfiltered `calls`, `(started_at, call_id)` ordering).
 - `Metrics::CampaignCounts.sql(...)` (composable fragment; `.call(...)` runs it): per-campaign `calls`, `unique_callers`, `new_callers`, `booked`, `unanswered`, `awaiting_outcome`, `revenue_cents`, all `FILTER (WHERE at_office)`, plus `campaign_calls` (unfiltered by office). Every campaign is listed (LEFT JOIN from `campaigns`; zeros when no calls in range or at the office). A `campaign_id: nil` "No campaign" row appears **only when it has office calls in range**, with `channel_breakdown` (`[{channel, calls}]`, office calls only, by calls descending then channel). Breakdown uses `marketing_channel` (§3).
 - **Specs:** every count with a known answer; booking/awaiting/unanswered definitions; every campaign listed with zero counts when out of range or at another office; no "No campaign" row when there are none (including none at the selected office); channel breakdown respects the location filter; `new_callers`: a repeat caller across campaigns counts once as new, an earlier call before the range or at another office makes a later call not new, `started_at` tie broken by `call_id`; `unique_callers` per row; date filter uses `local_date`, not the UTC date.
@@ -85,6 +85,7 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 1 (spec helpers).
 
 ### PR 5 — Campaign rows: spend and ratios
+**Status:** in review
 - `Metrics::CampaignMetrics.rows(from:, to:, location_id: nil)` → the `rows` array of §8. One SQL statement: the `CampaignCounts` fragment joined to `campaigns` for the budget, `covered_days` from `DataCoverage` bound dates, `total_cents` from `Metrics::SpendSql`, and the ratios. The statement is structured so PR 6 can add a grouping set for totals.
 - Ratios: `booking_rate = booked / calls`, `unanswered_rate`, `revenue_per_spend`, `spend_per_booking_cents`, all null-safe (`NULL` when the denominator is `NULL` or 0), cast `::float8`; counts and money `::bigint`.
 - **Specs:** each §7 formula; 0 bookings and `NULL`/0 spend → `nil` ratios; $0-budget → `nil` spend; "No campaign" spend `nil`; range partly outside coverage clipped, entirely outside coverage with no location filter → spend 0 and `nil` ratios (with a location filter, a campaign with no calls in range is `nil` even when no day is covered: the no-calls rule wins); with a location filter: spend follows call share, an office with no calls for a campaign that has calls elsewhere → 0, a campaign with no calls in range → `nil`, $0-budget → `nil`, each office's spend within half a cent of the exact share over a multi-week range; spend and ratios match the PR 3 spec oracle on a hand-built dataset.
