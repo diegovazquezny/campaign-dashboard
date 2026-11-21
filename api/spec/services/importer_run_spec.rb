@@ -142,3 +142,75 @@ RSpec.describe "Importer.run" do
     expect([ Location.count, Campaign.count, Call.count ]).to eq([ 0, 0, 0 ])
   end
 end
+
+RSpec.describe "Importer.run local dates and rollback" do
+  def run(*scenarios)
+    with_import_dir(*scenarios) { |dir| Importer.run(data_dir: dir) }
+  end
+
+  describe "stale local_date" do
+    def run_with_timezone(zone)
+      with_import_dir do |dir|
+        path = File.join(dir, "locations.csv")
+        File.write(path, File.read(path).sub("America/Phoenix", zone))
+        Importer.run(data_dir: dir)
+      end
+    end
+
+    it "recomputes local dates for existing calls when a location's timezone changes" do
+      expect(run.local_dates_recomputed).to eq(0)
+      expect(Call.find("c_004").local_date).to eq(Date.new(2026, 8, 31)) # Phoenix, 23:30 on Aug 31
+
+      result = run_with_timezone("America/Denver") # same instant is 00:30 on Sep 1 in Denver
+
+      expect(result).to have_attributes(local_dates_recomputed: 1, inserted: 0, updated: 0)
+      expect(result.locations.updated).to eq(1)
+      expect(Call.find("c_004").local_date).to eq(Date.new(2026, 9, 1))
+      expect(Call.find("c_005").local_date).to eq(Date.new(2026, 9, 1))
+    end
+
+    it "reports 0 recomputed on a re-run" do
+      run
+      run_with_timezone("America/Denver")
+      expect(run_with_timezone("America/Denver").local_dates_recomputed).to eq(0)
+    end
+  end
+
+  describe "rollback", :aggregate_failures do
+    # Needs real commits/rollbacks, so no wrapping transaction.
+    self.use_transactional_tests = false
+
+    after { [ Call, Campaign, Location ].each(&:delete_all) }
+
+    def counts = [ Location.count, Campaign.count, Call.count ]
+
+    it "leaves everything untouched when a failure follows the reference load" do
+      allow_any_instance_of(Importer::CallsReader).to receive(:call).and_raise("boom")
+      expect { run }.to raise_error("boom")
+      expect(counts).to eq([ 0, 0, 0 ])
+    end
+
+    it "leaves everything untouched when a failure follows the calls upsert" do
+      allow_any_instance_of(Importer::CallsWriter).to receive(:recompute_local_dates).and_raise("boom")
+      expect { run }.to raise_error("boom")
+      expect(counts).to eq([ 0, 0, 0 ])
+    end
+
+    it "restores previously imported data when a later import fails" do
+      run
+      before = [ Location.pluck(:id, :timezone, :updated_at), Call.order(:call_id).pluck(:call_id, :local_date, :updated_at) ]
+      allow_any_instance_of(Importer::CallsWriter).to receive(:recompute_local_dates).and_raise("boom")
+
+      expect do
+        with_import_dir do |dir|
+          path = File.join(dir, "locations.csv")
+          File.write(path, File.read(path).sub("America/Phoenix", "America/Denver"))
+          Importer.run(data_dir: dir)
+        end
+      end.to raise_error("boom")
+
+      expect(Location.pluck(:id, :timezone, :updated_at)).to eq(before.first)
+      expect(Call.order(:call_id).pluck(:call_id, :local_date, :updated_at)).to eq(before.last)
+    end
+  end
+end
