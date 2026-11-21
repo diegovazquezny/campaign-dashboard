@@ -1,0 +1,13 @@
+campaign_id,name,channel,daily_budget_usd
+cmp_01,Search - Brand Terms,paid_search,150.00
+cmp_02,Search - Core Services,paid_search,400.00
+cmp_03,Search - Emergency Service,paid_search,250.00
+cmp_04,Social - Seasonal Promo,social,120.00
+cmp_05,Social - Retargeting,social,80.00
+cmp_06,Display - Regional Awareness,display,100.00
+cmp_07,Display - Retargeting,display,60.00
+cmp_08,Website - Organic,organic,0.00
+cmp_09,Direct - Listed Number,direct,0.00
+cmp_10,Referral - Partner Network,referral,50.00
+cmp_11,Referral - Review Sites,referral,40.00
+cmp_12,Search - Local Listings,paid_search,180.00

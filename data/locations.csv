@@ -1,0 +1,9 @@
+location_id,name,timezone
+loc_01,Northside Office,America/New_York
+loc_02,Riverside Office,America/New_York
+loc_03,Lakeview Office,America/Chicago
+loc_04,Midtown Office,America/Chicago
+loc_05,Mesa Ridge Office,America/Denver
+loc_06,Canyon Office,America/Phoenix
+loc_07,Bayside Office,America/Los_Angeles
+loc_08,Hillcrest Office,America/Los_Angeles
