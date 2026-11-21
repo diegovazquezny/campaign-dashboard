@@ -1,0 +1,3 @@
+call_id,started_at,ended_at,duration_seconds,caller_number_hash,tracking_number,campaign_id,marketing_channel,location_id,answered,outcome,revenue_usd,agent_id,updated_at
+c_newest_bad,2026-09-02T10:00:00Z,2026-09-02T10:01:00Z,60,h_n,+1-555-0100,cmp_01,paid_search,loc_01,true,,,agt_01,2026-09-02T10:02:00Z
+c_newest_bad,2026-09-02T10:00:00Z,2026-09-02T10:01:00Z,60,h_n,+1-555-0100,cmp_01,paid_search,loc_01,true,booked,,agt_01,2026-09-04T10:00:00Z

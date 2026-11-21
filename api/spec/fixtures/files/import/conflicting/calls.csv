@@ -1,0 +1,5 @@
+call_id,started_at,ended_at,duration_seconds,caller_number_hash,tracking_number,campaign_id,marketing_channel,location_id,answered,outcome,revenue_usd,agent_id,updated_at
+c_conflict,2026-09-02T10:00:00Z,2026-09-02T10:01:00Z,60,h_r,+1-555-0100,cmp_01,paid_search,loc_01,true,qualified_lead,,agt_01,2026-09-02T10:02:00Z
+c_after_conflict,2026-09-02T10:00:00Z,2026-09-02T10:01:00Z,60,h_r,+1-555-0100,cmp_01,paid_search,loc_01,true,not_qualified,,agt_01,2026-09-02T10:02:00Z
+c_between,2026-09-02T10:00:00Z,2026-09-02T10:01:00Z,60,h_r,+1-555-0100,cmp_01,paid_search,loc_01,true,not_qualified,,agt_01,2026-09-02T10:02:00Z
+c_conflict,2026-09-02T10:00:00Z,2026-09-02T10:01:00Z,60,h_r,+1-555-0100,cmp_01,paid_search,loc_01,true,not_qualified,,agt_01,2026-09-02T10:02:00Z
