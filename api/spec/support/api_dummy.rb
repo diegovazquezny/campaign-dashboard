@@ -1,5 +1,7 @@
 # Spec-only controller and routes that exercise Api::BaseController and
-# Api::RangeParams. `prepend` keeps the routes across route reloads.
+# Api::RangeParams. `prepend` keeps the routes across route reloads, and the
+# explicit reload covers CI (eager_load), where routes are drawn before this
+# file loads and a later prepend would otherwise never apply.
 module Api
   class SpecDummyController < BaseController
     def show
@@ -29,3 +31,4 @@ Rails.application.routes.prepend do
     get "spec_dummy/parameter_missing" => "spec_dummy#parameter_missing"
   end
 end
+Rails.application.reload_routes!
