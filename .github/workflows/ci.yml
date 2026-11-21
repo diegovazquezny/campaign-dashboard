@@ -8,9 +8,32 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded runs on the same PR/branch.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Each concern is its own job so they run in parallel and show up as
+# separate checks. Add more jobs (or matrix/shard `api-test`) as suites grow.
 jobs:
-  api:
+  api-lint:
+    name: api / lint
     # Pinned: ubuntu-latest (26.04) only has the newest Ruby patch, not .ruby-version's 3.4.7.
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+          working-directory: api
+      - run: bundle exec rubocop
+
+  api-test:
+    name: api / test
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -40,14 +63,13 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
           working-directory: api
-      - name: Lint (rubocop)
-        run: bundle exec rubocop
       - name: Prepare database
         run: bin/rails db:prepare
-      - name: Test (rspec)
+      - name: Run rspec
         run: bundle exec rspec
 
-  dashboard-ui:
+  dashboard-ui-lint:
+    name: dashboard-ui / lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -60,7 +82,20 @@ jobs:
           cache: npm
           cache-dependency-path: dashboard-ui/package-lock.json
       - run: npm ci
-      - name: Lint (eslint)
-        run: npm run lint
-      - name: Test (vitest)
-        run: npm test
+      - run: npm run lint
+
+  dashboard-ui-test:
+    name: dashboard-ui / test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: dashboard-ui/package-lock.json
+      - run: npm ci
+      - run: npm test
