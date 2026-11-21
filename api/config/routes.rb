@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   # JSON API; endpoints are added by the milestone 2 PRs.
   namespace :api do
     get "meta" => "meta#show"
+    get "campaigns/metrics" => "campaign_metrics#index"
   end
 
   # Defines the root path route ("/")
