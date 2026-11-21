@@ -6,7 +6,7 @@
 
 ## Status
 
-Planned, not started. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
+In progress. PR 1 (#28) and PR 3 (#29) are merged; PR 2 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The API has no controllers or `/api` routes yet (only `GET /up`), so PR 1 creates the controller base. The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
@@ -54,6 +54,7 @@ Same as M0/M1:
 - Depends on nothing.
 
 ### PR 2 — Data coverage + `GET /api/meta`
+**Status:** in review
 - `Metrics::DataCoverage.current` → `(from, to)` (min/max `calls.local_date`, one indexed query) or `nil`; also exposes `latest_update_at` (max `source_updated_at`).
 - `GET /api/meta` per §8: `data_coverage`, `freshness` (`latest_update_at`, `outcomes_may_be_incomplete_from` = date of `latest_update_at − 72h`, in UTC), `locations`, `campaigns` (ordered by id).
 - **Specs:** coverage from hand-built calls (local-date based, not UTC: a call at `2026-09-01T00:39Z` in New York covers `2026-08-31`); freshness date math across a day boundary; empty DB → nulls; request spec for the JSON shape.
