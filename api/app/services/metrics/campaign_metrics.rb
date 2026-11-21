@@ -108,14 +108,10 @@ module Metrics
       SQL
     end
 
-    # Distinct callers over every call in range and office (never a sum of rows).
+    # Distinct callers over every call in range and office (never a sum of
+    # rows). Built on CallFacts so the range and office rules have one owner.
     def distinct_callers(from:, to:, location_id:)
-      conn = ActiveRecord::Base.connection
-      office = location_id.nil? ? "" : "AND location_id = #{conn.quote(location_id.to_s)}"
-      <<~SQL.squish
-        SELECT count(DISTINCT caller_number_hash) FROM calls
-        WHERE local_date BETWEEN #{conn.quote(from.to_date.iso8601)}::date AND #{conn.quote(to.to_date.iso8601)}::date #{office}
-      SQL
+      "SELECT count(DISTINCT caller_number_hash) FROM (#{CallFacts.sql(from:, to:, location_id:)}) f WHERE at_office"
     end
     private_class_method :distinct_callers
   end

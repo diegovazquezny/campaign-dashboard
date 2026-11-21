@@ -205,15 +205,48 @@ RSpec.describe Metrics::CampaignMetrics do
       expect(totals[:paid]).to eq(revenue_cents: 0, booked: 0, spend_cents: nil, revenue_per_spend: nil, spend_per_booking_cents: nil)
     end
 
-    it "includes a paid row with spend 0 in paid, with nil ratios" do
-      book(paid, "a", 1, 8_000)
+    it "includes a paid row with spend 0 in paid, next to a row with spend" do
+      # At loc_01, cmp_01 has calls only elsewhere (spend 0); cmp_03 has a booking here.
+      loc2 = build_location(id: "loc_02")
+      other = build_campaign(id: "cmp_03", daily_budget_cents: 1_000)
+      build_call(campaign: paid, location: loc2, caller_number: "a", started_at: day(1))
+      build_call(campaign: other, caller_number: "z", started_at: day(10), outcome: "booked", revenue_cents: 2_000)
+
+      result = described_class.call(from:, to:, location_id: "loc_01")
+      zero_row = result[:rows].find { |r| r[:campaign_id] == "cmp_01" }
+
+      expect(zero_row).to include(calls: 0, spend_cents: 0, revenue_per_spend: nil)
+      # A zero-spend row never has revenue (no office calls), so paid equals the spending row; the point is
+      # that the 0 is "non-null spend": paid is computed and ratios are real numbers.
+      expect(result[:totals][:paid]).to eq(revenue_cents: 2_000, booked: 1, spend_cents: 10_000,
+                                           revenue_per_spend: 0.2, spend_per_booking_cents: 10_000.0)
+    end
+
+    it "gives nil paid ratios when the only non-null spend is 0" do
+      build_call(campaign: paid, caller_number: "a", started_at: day(1))
 
       out = described_class.call(from: Date.new(2026, 10, 1), to: Date.new(2026, 10, 5))[:totals]
+
       expect(out[:paid]).to eq(revenue_cents: 0, booked: 0, spend_cents: 0, revenue_per_spend: nil, spend_per_booking_cents: nil)
-      # A second paid campaign with a booking inside coverage joins paid, with its revenue and bookings.
-      other = build_campaign(id: "cmp_03", daily_budget_cents: 1_000)
-      build_call(campaign: other, caller_number: "z", started_at: day(10), outcome: "booked", revenue_cents: 2_000)
-      expect(totals[:paid]).to include(revenue_cents: 10_000, booked: 2, spend_cents: 110_000)
+    end
+
+    it "only counts callers inside the date range in unique_callers" do
+      build_call(campaign: paid, caller_number: "in", started_at: day(5))
+      build_call(campaign: paid, caller_number: "before", started_at: Time.utc(2026, 8, 20, 15), local_date: Date.new(2026, 8, 20))
+      build_call(campaign: paid, caller_number: "after", started_at: Time.utc(2026, 9, 20, 15), local_date: Date.new(2026, 9, 20))
+
+      expect(totals).to include(calls: 1, unique_callers: 1)
+    end
+
+    it "returns zeroed totals with no campaigns and no calls" do
+      Campaign.delete_all
+
+      result = described_class.call(from:, to:)
+
+      expect(result[:rows]).to eq([])
+      expect(result[:totals]).to include(calls: 0, unique_callers: 0, booked: 0, revenue_cents: 0, spend_cents: nil,
+                                         booking_rate: nil, unanswered_rate: nil)
+      expect(result[:totals][:paid]).to eq(revenue_cents: 0, booked: 0, spend_cents: nil, revenue_per_spend: nil, spend_per_booking_cents: nil)
     end
 
     it "applies the location filter to counts, unique callers and spend" do
