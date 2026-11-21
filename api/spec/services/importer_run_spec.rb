@@ -160,6 +160,7 @@ RSpec.describe "Importer.run local dates and rollback" do
     it "recomputes local dates for existing calls when a location's timezone changes" do
       expect(run.local_dates_recomputed).to eq(0)
       expect(Call.find("c_004").local_date).to eq(Date.new(2026, 8, 31)) # Phoenix, 23:30 on Aug 31
+      updated_before = Call.pluck(:call_id, :updated_at).to_h
 
       result = run_with_timezone("America/Denver") # same instant is 00:30 on Sep 1 in Denver
 
@@ -167,6 +168,9 @@ RSpec.describe "Importer.run local dates and rollback" do
       expect(result.locations.updated).to eq(1)
       expect(Call.find("c_004").local_date).to eq(Date.new(2026, 9, 1))
       expect(Call.find("c_005").local_date).to eq(Date.new(2026, 9, 1))
+      expect(Call.find("c_004").updated_at).to be > updated_before["c_004"]
+      expect(Call.where.not(call_id: "c_004").pluck(:call_id, :updated_at).to_h)
+        .to eq(updated_before.except("c_004"))
     end
 
     it "reports 0 recomputed on a re-run" do
@@ -180,6 +184,9 @@ RSpec.describe "Importer.run local dates and rollback" do
     # Needs real commits/rollbacks, so no wrapping transaction.
     self.use_transactional_tests = false
 
+    # Clean before as well as after, so rows leaked by an aborted example
+    # can't break the next one.
+    before { [ Call, Campaign, Location ].each(&:delete_all) }
     after { [ Call, Campaign, Location ].each(&:delete_all) }
 
     def counts = [ Location.count, Campaign.count, Call.count ]
@@ -196,10 +203,13 @@ RSpec.describe "Importer.run local dates and rollback" do
       expect(counts).to eq([ 0, 0, 0 ])
     end
 
-    it "restores previously imported data when a later import fails" do
+    it "restores previously imported data when a failure follows the real recompute" do
       run
-      before = [ Location.pluck(:id, :timezone, :updated_at), Call.order(:call_id).pluck(:call_id, :local_date, :updated_at) ]
-      allow_any_instance_of(Importer::CallsWriter).to receive(:recompute_local_dates).and_raise("boom")
+      before = [ Location.pluck(:id, :timezone, :updated_at),
+                 Call.order(:call_id).pluck(:call_id, :local_date, :updated_at) ]
+      # build_result runs after the upsert and the recompute, so by now c_004's
+      # local_date has really been rewritten inside the transaction.
+      allow_any_instance_of(Importer::Runner).to receive(:build_result).and_raise("boom")
 
       expect do
         with_import_dir do |dir|
@@ -209,6 +219,7 @@ RSpec.describe "Importer.run local dates and rollback" do
         end
       end.to raise_error("boom")
 
+      expect(Call.find("c_004").local_date).to eq(Date.new(2026, 8, 31))
       expect(Location.pluck(:id, :timezone, :updated_at)).to eq(before.first)
       expect(Call.order(:call_id).pluck(:call_id, :local_date, :updated_at)).to eq(before.last)
     end
