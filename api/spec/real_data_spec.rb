@@ -5,8 +5,8 @@ require "rails_helper"
 RSpec.describe "Importing the real data", :real_data do
   self.use_transactional_tests = false
 
-  before { [ Call, Campaign, Location ].each(&:delete_all) }
-  after { [ Call, Campaign, Location ].each(&:delete_all) }
+  before { CleanDatabase.wipe! }
+  after { CleanDatabase.wipe! }
 
   let(:data_dir) { Rails.root.join("..", "data").to_s }
 

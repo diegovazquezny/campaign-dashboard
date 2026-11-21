@@ -186,8 +186,8 @@ RSpec.describe "Importer.run local dates and rollback" do
 
     # Clean before as well as after, so rows leaked by an aborted example
     # can't break the next one.
-    before { [ Call, Campaign, Location ].each(&:delete_all) }
-    after { [ Call, Campaign, Location ].each(&:delete_all) }
+    before { CleanDatabase.wipe! }
+    after { CleanDatabase.wipe! }
 
     def counts = [ Location.count, Campaign.count, Call.count ]
 
