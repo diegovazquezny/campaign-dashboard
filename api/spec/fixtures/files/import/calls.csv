@@ -1,0 +1,13 @@
+call_id,started_at,ended_at,duration_seconds,caller_number_hash,tracking_number,campaign_id,marketing_channel,location_id,answered,outcome,revenue_usd,agent_id,updated_at
+c_001,2026-09-01T10:00:00Z,2026-09-01T10:02:00Z,120,h_a1,+1-555-0100,cmp_01,paid_search,loc_01,true,,,agt_01,2026-09-01T10:02:10Z
+c_001,2026-09-01T10:00:00Z,2026-09-01T10:02:00Z,120,h_a1,+1-555-0100,cmp_01,paid_search,loc_01,true,,,agt_01,2026-09-01T10:30:00Z
+c_001,2026-09-01T10:00:00Z,2026-09-01T10:02:00Z,120,h_a1,+1-555-0100,cmp_01,paid_search,loc_01,true,booked,299.50,agt_01,2026-09-03T10:05:00Z
+c_002,2026-09-01T11:00:00Z,2026-09-01T11:01:00Z,60,h_a2,+1-555-0103,cmp_04,social,loc_01,true,qualified_lead,,agt_02,2026-09-01T11:01:10Z
+c_002,2026-09-01T11:00:00Z,2026-09-01T11:01:00Z,60,h_a2,+1-555-0103,cmp_04,social,loc_01,true,qualified_lead,,agt_02,2026-09-01T11:20:00Z
+c_003,2026-09-01T12:00:00Z,2026-09-01T12:03:00Z,180,h_a3,+1-555-0103,cmp_04,social,loc_01,true,,,agt_03,2026-09-01T12:03:10Z
+c_003,2026-09-01T12:00:00Z,2026-09-01T12:03:00Z,180,h_a3,+1-555-0103,cmp_04,social,loc_01,true,booked,120.00,agt_03,2026-09-03T12:00:00Z
+c_004,2026-09-01T06:30:00Z,2026-09-01T06:31:00Z,60,h_a4,+1-555-0108,cmp_08,organic,loc_06,true,not_qualified,,agt_04,2026-09-01T06:31:05Z
+c_005,2026-09-01T06:30:00Z,2026-09-01T06:31:00Z,60,h_a5,+1-555-0108,cmp_08,organic,loc_05,true,not_qualified,,agt_05,2026-09-01T06:31:05Z
+c_006,2026-09-01T13:00:00Z,2026-09-01T13:00:20Z,20,h_a6,+1-555-0190,,direct,loc_01,false,missed,,,2026-09-01T13:00:30Z
+c_007,2026-09-01T14:00:00Z,2026-09-01T14:00:30Z,30,h_a7,+1-555-0100,cmp_01,paid_search,loc_05,false,voicemail,,,2026-09-01T14:00:40Z
+c_008,2026-09-01T15:00:00Z,2026-09-01T15:02:00Z,120,h_a8,+1-555-0100,cmp_01,paid_search,loc_01,true,,,agt_08,2026-09-01T15:02:10Z

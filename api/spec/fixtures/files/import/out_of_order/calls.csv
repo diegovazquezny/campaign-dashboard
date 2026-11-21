@@ -1,0 +1,4 @@
+call_id,started_at,ended_at,duration_seconds,caller_number_hash,tracking_number,campaign_id,marketing_channel,location_id,answered,outcome,revenue_usd,agent_id,updated_at
+c_001,2026-09-01T10:00:00Z,2026-09-01T10:02:00Z,120,h_a1,+1-555-0100,cmp_01,paid_search,loc_01,true,booked,299.50,agt_01,2026-09-03T10:05:00Z
+c_001,2026-09-01T10:00:00Z,2026-09-01T10:02:00Z,120,h_a1,+1-555-0100,cmp_01,paid_search,loc_01,true,,,agt_01,2026-09-01T10:02:10Z
+c_001,2026-09-01T10:00:00Z,2026-09-01T10:02:00Z,120,h_a1,+1-555-0100,cmp_01,paid_search,loc_01,true,,,agt_01,2026-09-01T10:30:00Z

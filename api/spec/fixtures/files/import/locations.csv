@@ -1,0 +1,4 @@
+location_id,name,timezone
+loc_01,Northside Office,America/New_York
+loc_05,Mesa Ridge Office,America/Denver
+loc_06,Canyon Office,America/Phoenix
