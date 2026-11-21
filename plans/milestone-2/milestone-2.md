@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29), PR 4 (#31), PR 5 (#32) and PR 6 (#33) and PR 7 (#34) are merged; PR 8 is in review. Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The plan was reviewed by an independent agent; its findings are folded in below.
+In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29), PR 4 (#31), PR 5 (#32) and PR 6 (#33), PR 7 (#34) and PR 8 (#35) are merged; PR 10 is in review (PR 9 is in parallel). Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
@@ -129,12 +129,34 @@ Specs only, no application code.
 - Depends on PR 7, PR 8.
 
 ### PR 10 — Scale check and M2 docs
+**Status:** in review
+
 No application code.
 - A rake task (`bin/rails metrics:scale_check`, not part of the default `rspec`) that builds a larger synthetic dataset in a scratch database (for example 1M calls over 500 campaigns and 50 offices) and prints `EXPLAIN (ANALYZE, BUFFERS)` for the metrics and daily queries.
 - Record the output summary in this file: indexes used, timings, and whether the §7 rollup is needed.
 - Update this file's status and the PLAN.md M2 status line; record the real-data `curl` results (coverage, row count, totals) as the M2 exit evidence.
 - **Check:** the three `curl`s from PRs 2, 7 and 8 against `docker compose up`; the rake task runs end to end.
 - Depends on PR 7, PR 8. Parallel with PR 9.
+
+**Implemented:** `bin/rails metrics:scale_check` (`api/lib/tasks/metrics.rake`, `api/lib/scale_check.rb`; guard spec in `spec/lib/scale_check_spec.rb`). It creates `<configured db>_scale_check`, loads `db/schema.rb`, bulk-inserts with `generate_series`/`INSERT … SELECT`, runs `ANALYZE`, prints `EXPLAIN (ANALYZE, BUFFERS)` for the four queries and drops the scratch database (`KEEP=1` keeps it). It refuses production and derives the scratch name as `<configured db>_scale_check`. Before every `DROP`/`CREATE` it checks that the name ends in `_scale_check`, differs from the configured database and fits in 63 bytes (Postgres truncates longer identifiers, which could turn the scratch name back into the real database name). After connecting and before loading the schema or inserting anything, it checks that `current_database()` passes the same test. Overrides: `CALLS`, `CAMPAIGNS`, `OFFICES`, `CALLERS`, `FROM`, `TO`, `DAYS`.
+
+**Scale-check results** (1,000,000 calls over 92 days ending 2026-09-30, 500 campaigns, 50 offices, 333k distinct callers, 5% with no campaign; query range 2026-09-01..2026-09-30, about 326k calls in range; Postgres 18 in Docker on a laptop; two runs on one laptop, same numbers within 1%; load + ANALYZE 55-76 s):
+
+| Query | Execution time | Plan |
+|---|---|---|
+| `CampaignMetrics`, no location filter | **about 11.0 s** | `index_calls_on_local_date` bitmap scan (326k rows), then one `NOT EXISTS` probe per call on `index_calls_on_caller_number_hash_and_started_at_and_call_id` (index-only scan, 326k loops; about 5 s of the facts CTE, with about 240k block reads). The per-campaign `count(DISTINCT caller_number_hash)` sort spills 16 MB to disk (about 3 s), and the totals row's distinct callers re-scans the range and sorts again (about 2.8 s, 5.6 MB spill) |
+| `CampaignMetrics`, `location_id=loc_001` | **about 3.3 s** | the facts CTE still scans all 326k rows through `index_calls_on_local_date` (about 0.2 s), because the office filter is a flag, not a `WHERE`; but the probe runs only for the 6.5k office rows. The per-campaign distinct sort still spills 16 MB for all 326k rows (about 2.5 s, the bulk of the time). The totals' distinct callers uses `index_calls_on_location_id_and_local_date` (6.5k rows, 45 ms) |
+| `CampaignDaily` cmp_001, no location filter | **about 10 ms** | `index_calls_on_campaign_id_and_local_date` |
+| `CampaignDaily` cmp_001, `location_id=loc_001` | **under 1 ms** | `index_calls_on_campaign_id_and_local_date` (the sort is trivial) |
+
+Indexes used: `local_date` (metrics, both variants), `(location_id, local_date)` (only the totals' distinct-callers subquery with an office), `(campaign_id, local_date)` (daily), `(caller_number_hash, started_at, call_id)` (the `new_callers` probe). `source_updated_at` is not used by these queries.
+
+**Is the §7 rollup needed?** Not for the real data: its 5,000 calls (5,411 CSV rows) answer in milliseconds, and the daily endpoint is fine at 1M calls (about 10 ms). A month-wide, all-offices metrics table at 1M calls (326k in range) takes about 11 s at the default settings, which is too slow for an interactive dashboard, so the data size this query can serve is bounded. Whether a rollup is the right fix is not settled by these measurements. The time splits into the per-call `new_callers` probe (about 5 s unfiltered) and the two `count(DISTINCT)` sorts (about 5.8 s together), which spill to disk at the default `work_mem` (4 MB). Cheaper options were not measured: a larger `work_mem` for the sorts, and a stored `is_first_call` on `calls` for the probe. Try those first; if the table is still too slow, a daily rollup shrinks the scan from 326k rows to about 500 campaigns × 30 days, with a stored `is_first_call` removing the probe. Distinct callers do not roll up by summing days, so `unique_callers` would need either a per-campaign-day HyperLogLog/bitmap sketch or its own query. The office-filtered variant is cheaper only because the probe is skipped for other offices; the full-range sort remains. None of this is built in M2, as planned. These are laptop figures from two runs on synthetic uniform data, with no `VACUUM` after the load (so index-only scans still fetch heap pages), not production latency targets.
+
+**M2 exit evidence (real data, `docker compose up`, seeded from `data/`, 2026-11-21):**
+- `GET /api/meta`: `data_coverage` 2026-08-31..2026-10-29; `latest_update_at` 2026-11-01T13:33:15Z, `outcomes_may_be_incomplete_from` 2026-10-29; 8 locations, 12 campaigns.
+- `GET /api/campaigns/metrics?from=2026-09-01&to=2026-09-30`: 13 rows (12 campaigns plus "No campaign", 73 calls). Totals: 2,520 calls, 1,347 unique callers, 1,344 new callers, 605 booked (booking rate 0.2401), unanswered rate 0.1968, 25 awaiting outcome, revenue 21,425,000 cents, spend 4,290,000 cents; paid: revenue 14,758,300, booked 421, revenue per spend 3.44, spend per booking 10,190 cents.
+- `GET /api/campaigns/cmp_01/daily?from=2026-09-01&to=2026-09-30`: 30 days; sums 316 calls, 67 booked, 2,214,800 revenue cents, 450,000 spend cents, which match cmp_01's metrics row exactly.
 
 ## Dependencies
 
