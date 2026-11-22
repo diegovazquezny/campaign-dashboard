@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. PR 1 (#28), PR 2 (#30), PR 3 (#29), PR 4 (#31), PR 5 (#32) and PR 6 (#33), PR 7 (#34) and PR 8 (#35) are merged; PR 10 is in review (PR 9 is in parallel). Ten PRs. Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The plan was reviewed by an independent agent; its findings are folded in below.
+Complete. All ten PRs are merged: PR 1 (#28), PR 2 (#30), PR 3 (#29), PR 4 (#31), PR 5 (#32), PR 6 (#33), PR 7 (#34), PR 8 (#35), PR 9 (#36) and PR 10 (#37). Designed for scale: all metric and spend math is set-based SQL (see conventions). Builds on M1 (models, importer, seeded `calls`/`campaigns`/`locations`). The plan was reviewed by an independent agent; its findings are folded in below.
 
 ## PR rules
 
@@ -111,7 +111,7 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 6 (which builds on PR 5, PR 2 and PR 1, so the controller base is already merged).
 
 ### PR 8 — `GET /api/campaigns/:id/daily`
-**Status:** in review
+**Status:** done (PR #35)
 **Note:** `CallFacts` gained a `local_date` column so the daily query can group on it.
 - `Metrics::CampaignDaily.call(campaign:, from:, to:, location_id: nil)`: one SQL statement: `generate_series` over the range left-joined to `call_facts` (this campaign) grouped by `local_date` (`calls`, `booked`, `revenue_cents`, all `FILTER (WHERE at_office)`), so zero-filling happens in the database, with per-day `spend_cents` from `SpendSql.daily_cents`. `campaign_calls`/`office_calls` come from the whole range (not per day), as in §8, from the same scan.
 - Route and `Api::CampaignDailyController#show`; params validated first (400), then the campaign lookup (404 via `RecordNotFound`). The "No campaign" row has no daily view in v1 (`:id` must be a real campaign).
@@ -120,7 +120,7 @@ SQL fragments only (no controller, no endpoint), so it merges independently. Spe
 - Depends on PR 2 (coverage, controller base), PR 3, PR 4. Parallel with PR 5–7.
 
 ### PR 9 — Cross-endpoint consistency on the real data
-**Status:** in review
+**Status:** done (PR #36)
 Specs only, no application code.
 - `:real_data` spec (non-transactional, as in M1; fast, runs in the default `rspec`): imports `data/` and asserts
   - for every campaign, the sum of `/daily` `spend_cents`, `revenue_cents`, `calls` and `booked` over a range equals the same campaign's row in `/metrics`, with and without a location filter, and for a range that partly overlaps data coverage;
@@ -130,7 +130,7 @@ Specs only, no application code.
 - Depends on PR 7, PR 8.
 
 ### PR 10 — Scale check and M2 docs
-**Status:** in review
+**Status:** done (PR #37)
 
 No application code.
 - A rake task (`bin/rails metrics:scale_check`, not part of the default `rspec`) that builds a larger synthetic dataset in a scratch database (for example 1M calls over 500 campaigns and 50 offices) and prints `EXPLAIN (ANALYZE, BUFFERS)` for the metrics and daily queries.
