@@ -1,10 +1,12 @@
 #!/bin/sh
 # Run rubocop (api) and eslint (dashboard-ui) before committing.
+# Both run on the host (no Docker): needs Ruby per api/.ruby-version with
+# `bundle install` done in api/, and Node for dashboard-ui.
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT" || exit 1
 
 echo "==> api: rubocop"
-docker compose run --rm -T api bundle exec rubocop \
+(cd api && bundle exec rubocop) \
   || { echo "Commit blocked: api lint failed."; exit 1; }
 
 echo "==> dashboard-ui: eslint"

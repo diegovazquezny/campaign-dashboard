@@ -12,3 +12,4 @@ git config core.hooksPath .githooks
 chmod +x .githooks/*
 [ -f .env ] || cp .env.example .env
 echo "Git hooks enabled (pre-commit: rubocop + eslint, pre-push: blocks pushes to main)."
+echo "Pre-commit runs on the host, not Docker: run 'bundle install' in api/ (Ruby per api/.ruby-version)."
