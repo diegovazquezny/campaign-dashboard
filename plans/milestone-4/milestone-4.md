@@ -36,14 +36,14 @@ Same as M0–M3:
 - Depends on M3 only.
 
 ### PR 2 — Detail link helper and back link
-**Status:** in progress
+**Status:** complete (#55)
 - `lib/filters.ts`: `detailHref(campaignId, query)` → `/campaigns/<id>?<query>` (id encoded; the given query string is used as is, empty query gives no `?`; callers build it with `buildQuery`) and `overviewHref(query)`. `components/back-link.tsx`: "← All campaigns" using `overviewHref`.
 - **Tests:** both helpers (ids with special characters, empty query, preserved `preset`/`from`/`to`/`location`); the back link renders the right `href`.
 - **Check:** `npm test`.
 - Depends on M3 only. Parallel with PR 1.
 
 ### PR 3 — Daily table
-**Status:** not started
+**Status:** in progress
 - `components/daily-table.tsx`: columns Date, Calls, Booked, Revenue, Budgeted spend (est.) (header text from a `locationSelected` prop, see conventions; this PR also moves the shared spend-label constants out of `campaign-table.tsx` into `lib/format.ts`). Rows in date order, "—" for null spend, zero-filled days shown as zeros, and a totals row from `sumDays`.
 - **Tests:** rows render in date order; null spend shows "—" (and the totals spend shows "—" when all are null); the totals row equals the sum of the rows; the location label appears only when a location is selected.
 - **Check:** `npm test`.
