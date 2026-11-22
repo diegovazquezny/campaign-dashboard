@@ -10,7 +10,7 @@ import { PageTitle } from "../../../components/page-title";
 import { ApiRequestError, getCampaignDaily, getMeta } from "../../../lib/api";
 import type { DailyResponse, Meta } from "../../../lib/api-types";
 import { formatDateSpan } from "../../../lib/badges";
-import { hasActivity } from "../../../lib/daily";
+import { dailyTableKey, hasActivity } from "../../../lib/daily";
 import { resolveRange, type SearchParams } from "../../../lib/date-ranges";
 import { buildQuery } from "../../../lib/filters";
 
@@ -125,7 +125,7 @@ export default async function CampaignDetail({
         <>
           <DailyChart days={daily.days} locationSelected={Boolean(location)} />
           <DailyTable
-            key={`${range.from}|${range.to}|${location ?? ""}`}
+            key={dailyTableKey(range, location)}
             days={daily.days}
             locationSelected={Boolean(location)}
           />

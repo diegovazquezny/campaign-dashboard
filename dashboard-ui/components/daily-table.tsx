@@ -38,7 +38,9 @@ export function DailyTable({ days, locationSelected }: Props) {
   const rows = [...days].sort((a, b) => a.date.localeCompare(b.date));
   const totals = sumDays(rows);
   const pageCount = Math.ceil(rows.length / PAGE_SIZE);
-  const start = (page - 1) * PAGE_SIZE;
+  // Clamp in case the days shrink while the key stays the same.
+  const current = Math.min(page, pageCount);
+  const start = (current - 1) * PAGE_SIZE;
   const shown = rows.slice(start, start + PAGE_SIZE);
   return (
     <div className="flex flex-col gap-3">
@@ -88,7 +90,7 @@ export function DailyTable({ days, locationSelected }: Props) {
         </tfoot>
       </table>
       <Pager
-        page={page}
+        page={current}
         pageCount={pageCount}
         onChange={setPage}
         label={`Days ${start + 1}–${start + shown.length} of ${rows.length}`}

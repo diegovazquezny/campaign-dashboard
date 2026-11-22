@@ -22,6 +22,14 @@ export function sumDays(days: Day[]): DayTotals {
   return { ...totals, spend_cents: spend };
 }
 
+/** React key for the daily table: changes with the range or office, so paging resets. */
+export function dailyTableKey(
+  range: { from?: string; to?: string },
+  location: string | undefined,
+): string {
+  return `${range.from ?? ""}|${range.to ?? ""}|${location ?? ""}`;
+}
+
 /** True when any day has at least one call. */
 export function hasActivity(days: Day[]): boolean {
   return days.some((d) => d.calls > 0);

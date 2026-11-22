@@ -1,6 +1,6 @@
 const button =
   "cursor-pointer rounded-ctl border border-border bg-card px-3.5 py-1.5 font-medium text-fg hover:border-accent " +
-  "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-border";
+  "aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:border-border";
 
 type Props = {
   /** 1-based current page. */
@@ -14,7 +14,9 @@ type Props = {
   nextLabel: string;
 };
 
-// Previous / Next with a live range label. Renders nothing for a single page.
+// Previous / Next with a live range label. Ends use aria-disabled (not disabled) so
+// keyboard focus stays on the button.
+// Renders nothing for a single page.
 // Agnostic about where the data comes from, so client- and server-paged lists can share it.
 export function Pager({
   page,
@@ -35,16 +37,16 @@ export function Pager({
       <button
         type="button"
         className={button}
-        disabled={page <= 1}
-        onClick={() => onChange(page - 1)}
+        aria-disabled={page <= 1}
+        onClick={() => page > 1 && onChange(page - 1)}
       >
         {prevLabel}
       </button>
       <button
         type="button"
         className={button}
-        disabled={page >= pageCount}
-        onClick={() => onChange(page + 1)}
+        aria-disabled={page >= pageCount}
+        onClick={() => page < pageCount && onChange(page + 1)}
       >
         {nextLabel}
       </button>

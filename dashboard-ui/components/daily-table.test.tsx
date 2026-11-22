@@ -6,7 +6,7 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import type { Day } from "../lib/daily";
+import { dailyTableKey, type Day } from "../lib/daily";
 import { DailyTable } from "./daily-table";
 
 afterEach(cleanup);
@@ -77,24 +77,9 @@ describe("DailyTable", () => {
     render(
       <DailyTable
         days={[
-          day("2025-10-01", {
-            calls: 2,
-            booked: 1,
-            revenue_cents: 10000,
-            spend_cents: 5000,
-          }),
-          day("2025-10-02", {
-            calls: 3,
-            booked: 2,
-            revenue_cents: 20000,
-            spend_cents: null,
-          }),
-          day("2025-10-03", {
-            calls: 5,
-            booked: 0,
-            revenue_cents: 5000,
-            spend_cents: 2500,
-          }),
+          day("2025-10-01", { calls: 2, booked: 1, revenue_cents: 10000, spend_cents: 5000 }),
+          day("2025-10-02", { calls: 3, booked: 2, revenue_cents: 20000, spend_cents: null }),
+          day("2025-10-03", { calls: 5, booked: 0, revenue_cents: 5000, spend_cents: 2500 }),
         ]}
       />,
     );
@@ -162,7 +147,7 @@ describe("DailyTable", () => {
       expect(screen.getByText("Days 31–45 of 45")).toBeTruthy();
     });
 
-    it("disables Previous on the first page and Next on the last", () => {
+    it("marks Previous disabled on the first page and Next on the last", () => {
       render(<DailyTable days={run(45)} />);
       const p = screen.getByRole("button", {
         name: "Previous 30 days",
@@ -170,11 +155,11 @@ describe("DailyTable", () => {
       const n = screen.getByRole("button", {
         name: "Next 30 days",
       }) as HTMLButtonElement;
-      expect([p.disabled, n.disabled]).toEqual([true, false]);
+      expect([p.ariaDisabled, n.ariaDisabled]).toEqual(["true", "false"]);
       next();
-      expect([p.disabled, n.disabled]).toEqual([false, true]);
+      expect([p.ariaDisabled, n.ariaDisabled]).toEqual(["false", "true"]);
       prev();
-      expect([p.disabled, n.disabled]).toEqual([true, false]);
+      expect([p.ariaDisabled, n.ariaDisabled]).toEqual(["true", "false"]);
     });
 
     it("keeps the totals row covering all days on every page", () => {
@@ -196,6 +181,28 @@ describe("DailyTable", () => {
       expect(screen.getByText("Days 31–60 of 90")).toBeTruthy();
       rerender(<DailyTable key="b" days={run(90)} />);
       expect(screen.getByText("Days 1–30 of 90")).toBeTruthy();
+    });
+
+    it("clamps to the last page if the days shrink under the same key", () => {
+      const { rerender } = render(<DailyTable days={run(90)} />);
+      next();
+      next();
+      rerender(<DailyTable days={run(45)} />);
+      expect(screen.getByText("Days 31–45 of 45")).toBeTruthy();
+      expect(bodyRows()).toHaveLength(15);
+    });
+
+    it("builds the key from from, to and location", () => {
+      const a = dailyTableKey({ from: "2025-01-01", to: "2025-03-31" }, "o1");
+      expect(a).not.toBe(
+        dailyTableKey({ from: "2025-01-02", to: "2025-03-31" }, "o1"),
+      );
+      expect(a).not.toBe(
+        dailyTableKey({ from: "2025-01-01", to: "2025-04-01" }, "o1"),
+      );
+      expect(a).not.toBe(
+        dailyTableKey({ from: "2025-01-01", to: "2025-03-31" }, undefined),
+      );
     });
   });
 });

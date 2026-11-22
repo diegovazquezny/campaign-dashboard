@@ -32,4 +32,18 @@ describe("Pager", () => {
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
     expect(onChange.mock.calls).toEqual([[1], [3]]);
   });
+
+  it("ignores clicks on the disabled ends but keeps the buttons focusable", () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <Pager {...props} page={1} pageCount={3} onChange={onChange} />,
+    );
+    const prev = screen.getByRole("button", { name: "Previous" });
+    fireEvent.click(prev);
+    expect(prev.getAttribute("aria-disabled")).toBe("true");
+    expect((prev as HTMLButtonElement).disabled).toBe(false);
+    rerender(<Pager {...props} page={3} pageCount={3} onChange={onChange} />);
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });
