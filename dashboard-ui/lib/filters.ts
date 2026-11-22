@@ -1,4 +1,4 @@
-import type { Preset } from './date-ranges';
+import { DEFAULT_PRESET, type Preset } from './date-ranges';
 
 export interface FilterState {
   preset?: string;
@@ -16,11 +16,16 @@ export type FilterChange = Partial<{
 
 /**
  * Build the query string (no leading "?") after applying `change` to `current`.
- * Params at their default are dropped: the default preset (last_quarter) and an
+ * Params in `extra` (a query string) other than preset/from/to/location are kept.
+ * Params at their default are dropped: the default preset and an
  * empty location. A preset change clears from/to unless it is `custom`, and
  * from/to are only kept while the preset is `custom`.
  */
-export function buildQuery(current: FilterState, change: FilterChange): string {
+export function buildQuery(
+  current: FilterState,
+  change: FilterChange,
+  extra = '',
+): string {
   const next: FilterState = { ...current };
   if (change.preset !== undefined) {
     next.preset = change.preset;
@@ -33,8 +38,9 @@ export function buildQuery(current: FilterState, change: FilterChange): string {
   if (change.to !== undefined) next.to = change.to;
   if (change.location !== undefined) next.location = change.location;
 
-  const params = new URLSearchParams();
-  if (next.preset && next.preset !== 'last_quarter') {
+  const params = new URLSearchParams(extra);
+  for (const k of ['preset', 'from', 'to', 'location']) params.delete(k);
+  if (next.preset && next.preset !== DEFAULT_PRESET) {
     params.set('preset', next.preset);
   }
   if (next.preset === 'custom') {
