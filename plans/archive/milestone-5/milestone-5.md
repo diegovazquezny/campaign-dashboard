@@ -6,7 +6,7 @@
 
 ## Status
 
-Complete (all five PRs done). Five PRs. Four are independent of each other (three docs and a smoke script); the last verifies everything from a fresh clone. M0–M4 are archived.
+Complete (all five PRs done). Five PRs. Four are independent of each other (three docs and a smoke script); the last verifies everything from a fresh clone. M0–M5 are archived.
 
 ## PR rules
 
@@ -54,7 +54,7 @@ Same as M0–M4:
 No application code beyond fixes the smoke run exposes (keep those minimal; split into their own PR if over the size limit).
 - Fresh `git clone` into an empty temporary directory, follow the README exactly, run `scripts/smoke.sh`, and record the results in this file: what was run, what passed, how long setup took, anything the README got wrong (fix it).
 - Check every relative link in README, DECISIONS, TECHNICAL and AI_COST_LOG resolves.
-- Update this file's status and the PLAN.md M5 status line; list deviations. Archiving to `plans/archive/` happens when M6 is planned.
+- Update this file's status and the PLAN.md M5 status line; list deviations. Archived to `plans/archive/milestone-5/` after completion.
 - Depends on PR 1, PR 2, PR 3, PR 4.
 
 ## Exit check results (PR 5)
