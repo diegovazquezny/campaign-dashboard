@@ -46,7 +46,7 @@ bundle exec rubocop
 # Web (Vitest), from dashboard-ui/:
 npm test
 npm run lint
-npx tsc --noEmit
+npx next typegen && npx tsc --noEmit
 ```
 
 To check the whole Docker stack end to end, run `scripts/smoke.sh` (add `--down` to stop the stack afterwards). It starts the stack, then checks the API and the dashboard; it exits non-zero with a `SMOKE FAIL` message on the first failure.
@@ -66,7 +66,7 @@ Things to know about the data:
 - Some calls have no campaign. They appear as a pinned "No campaign" row.
 - The data has no actual ad spend. Spend is estimated from each campaign's daily budget and labelled "Budgeted spend (est.)".
 
-More detail: [plans/PLAN.md](plans/PLAN.md) (the full design) and, once written, DECISIONS.md and TECHNICAL.md.
+More detail: [plans/PLAN.md](plans/PLAN.md) (the full design) [DECISIONS.md](DECISIONS.md) (product decisions and limits), [TECHNICAL.md](TECHNICAL.md) (architecture, import, metrics, API) and [AI_COST_LOG.md](AI_COST_LOG.md).
 
 ## Layout
 

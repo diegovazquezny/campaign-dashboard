@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress (PR 1 started). Five PRs. Four are independent of each other (three docs and a smoke script); the last verifies everything from a fresh clone. M0–M4 are archived.
+Complete (all five PRs done). Five PRs. Four are independent of each other (three docs and a smoke script); the last verifies everything from a fresh clone. M0–M4 are archived.
 
 ## PR rules
 
@@ -29,33 +29,44 @@ Same as M0–M4:
 - Depends on M4 only.
 
 ### PR 2 — DECISIONS.md and AI_COST_LOG.md
-**Status:** in review
+**Status:** merged (#69)
 - `DECISIONS.md`: product-focused summary of D1–D12 (why, in plain language), the **spend-estimate limitation** (budget × days, assumes full spend, overstates cost) and the "allocated by call share" rule, what was left out (auth, first-touch toggle, chatbot), open questions from §13, and the **AI spend total** (taken from `AI_COST_LOG.md`).
 - `AI_COST_LOG.md`: table of model, purpose, cost per entry, with a total; fold in `ai-spend.md` (existing entries) and then delete `ai-spend.md` with `git rm`. Costs not recoverable from history are stated as unknown, not invented.
 - **Check:** the total in DECISIONS.md equals the sum of the log's rows; no dead links; `ai-spend.md` is gone and nothing references it.
 - Depends on M4 only. Parallel with PR 1.
 
 ### PR 3 — TECHNICAL.md
-**Status:** in review
+**Status:** merged (#70)
 - Mermaid architecture diagram (browser → Next.js server component → Rails API → Postgres; import from `data/` CSVs at seed time). Sections: import pipeline and messy-data handling (versions by `updated_at`, rejected rows, timezones), metric definitions and the query-time spend/new-caller approach, API endpoints and error shape, data freshness (3-day outcome lag, `outcomes_may_be_incomplete_from`, partial-range badge), testing approach, scaling path (§7).
 - **Check:** the Mermaid block renders (GitHub preview or `mmdc`); endpoint paths, params and error codes match `api/` routes and specs.
 - Depends on M4 only. Parallel with PR 1 and PR 2.
 
 ### PR 4 — Smoke script
-**Status:** in review
+**Status:** merged (#71)
 - `scripts/smoke.sh`: from the repo root, copies `.env.example` to `.env` if missing, runs `docker compose up -d --build`, waits (with a timeout) for the API, then asserts: `GET /api/meta` returns coverage and locations, `GET /api/campaigns/metrics` returns campaigns with non-zero calls, `GET http://localhost:3000/` returns 200 and contains a campaign name. Exits non-zero with a clear message on the first failure. Does not tear down unless `--down` is passed.
 - **Tests:** the script itself is the test; run it against a healthy stack (passes) and with the API stopped (fails with the message).
 - **Check:** `scripts/smoke.sh` passes on the current stack.
 - Depends on M4 only. Parallel with PR 1–3.
 
 ### PR 5 — M5 exit check and docs
-**Status:** not started
+**Status:** complete
 
 No application code beyond fixes the smoke run exposes (keep those minimal; split into their own PR if over the size limit).
 - Fresh `git clone` into an empty temporary directory, follow the README exactly, run `scripts/smoke.sh`, and record the results in this file: what was run, what passed, how long setup took, anything the README got wrong (fix it).
 - Check every relative link in README, DECISIONS, TECHNICAL and AI_COST_LOG resolves.
 - Update this file's status and the PLAN.md M5 status line; list deviations. Archiving to `plans/archive/` happens when M6 is planned.
 - Depends on PR 1, PR 2, PR 3, PR 4.
+
+## Exit check results (PR 5)
+
+Fresh `git clone` of `main` (at the PR 4 merge) into an empty temp directory, following the README:
+- `cp .env.example .env`, then `scripts/smoke.sh --down`: **SMOKE OK**. Images were already cached, so the stack was up and checked in about 22 s; a cold build will take longer (not measured).
+- `dashboard-ui`: `npm ci`, `npm test` (17 files, 163 tests) and `npm run lint` passed.
+- `npx tsc --noEmit` **failed** on the clean tree (`Cannot find name 'LayoutProps'`; Next generates that type). Fixed in README: `npx next typegen && npx tsc --noEmit`, which passes.
+- Not run in the clone: API `rspec`/`rubocop` (need a local PostgreSQL and Ruby; covered by CI and earlier PRs).
+- Links: every relative link in README, DECISIONS, TECHNICAL and AI_COST_LOG resolves; nothing references `ai-spend.md`, which is gone.
+
+Deviations: README's "once written" pointer to DECISIONS/TECHNICAL replaced with real links (and AI_COST_LOG added). PLAN.md's current-milestone line now points at UI improvements, and its UI row was refreshed (it still said U0 was uncommitted).
 
 ## Dependencies
 
