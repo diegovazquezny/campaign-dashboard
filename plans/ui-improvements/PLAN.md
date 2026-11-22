@@ -102,9 +102,9 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 
 ### Remaining work
 
-1. ~~Commit the theme and convert it to Tailwind~~ In review (T1, PR #65; large on purpose, see [ui-improvements.md](ui-improvements.md)).
-2. Style the route loading states (`app/loading.tsx`, `app/campaigns/[id]/loading.tsx`): they render a bare `<p>` outside `<main>` and are unstyled today (T2; use `PageShell` and `Notice`).
-3. Add `components/theme-toggle.test.tsx`: renders the right label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
+1. ~~Commit the theme and convert it to Tailwind~~ Merged (T1, PR #65; large on purpose, see [ui-improvements.md](ui-improvements.md)).
+2. ~~Style the route loading states (`app/loading.tsx`, `app/campaigns/[id]/loading.tsx`): they render a bare `<p>` outside `<main>` and are unstyled today (T2; use `PageShell` and `Notice`)~~ Merged (T2, PR #67).
+3. ~~Add `components/theme-toggle.test.tsx`: renders the right label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.~~ Merged (T2, PR #67).
 4. ~~Rebuild the `web` image and check both themes on :3000.~~ Done 2026-11-22 (the screenshots in §2 are from that build).
 
 **Done when:** both themes render correctly on the overview, detail, loading and error states; the toggle persists across reloads; `npm test`, `npm run lint`, `npx tsc --noEmit` pass.

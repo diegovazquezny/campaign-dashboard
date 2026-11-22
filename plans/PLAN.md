@@ -254,13 +254,13 @@ Validation: `from`/`to` required and valid; `from <= to`; range ≤ 366 days; un
 Account-wide daily series, zero-filled, bucketed by `local_date`. Includes "No campaign" calls, so day sums equal `/api/campaigns/metrics` `totals` for the same filters. No spend. Validation as for the campaign daily endpoint (400 invalid range, 404 unknown `location_id`).
 
 ### `GET /api/calls?from=&to=&location_id=&campaign_id=&outcome=&page=`
-Paged call list. `campaign_id` is a campaign id or `none` (unattributed calls); `outcome` is one of the five outcomes or `awaiting` (no outcome yet), anything else is 400. Offset paging: `page` is 1-based, page size 25, out-of-range page returns empty `calls` with the right `total`. Order: `started_at DESC, call_id DESC`.
+Paged call list. `campaign_id` is a campaign id or `none` (unattributed calls); `outcome` is one of the five outcomes or `awaiting` (no outcome yet), anything else is 400. Offset paging: `page` is 1-based, page size 25, out-of-range page returns empty `calls` with the right `total`. A bad `page` (not a whole number of 1 or more) is 400. An unknown `campaign_id` is not an error: it returns an empty list with `total: 0`. Order: `started_at DESC, call_id DESC`.
 ```json
-{ "total": 198, "page": 1, "calls": [{
-  "call_id": "call_0001", "started_at": "2026-09-01T14:02:00Z", "ended_at": "2026-09-01T14:05:10Z",
+{ "total": 198, "page": 1, "page_size": 25, "calls": [{
+  "call_id": "c_003866", "started_at": "2026-09-01T14:02:00Z", "ended_at": "2026-09-01T14:05:10Z",
   "local_date": "2026-09-01", "timezone": "America/New_York", "duration_seconds": 190,
   "answered": true, "outcome": "booked", "revenue_cents": 29900, "agent_id": "agt_01",
-  "tracking_number": "+15550100", "campaign": { "id": "cmp_11", "name": "…" },
+  "tracking_number": "+1-555-0100", "campaign": { "id": "cmp_11", "name": "…" },
   "channel": "referral", "location": { "id": "loc_01", "name": "Northside Office" } }] }
 ```
 `outcome` is null while awaiting; `campaign` is null for unattributed calls.
