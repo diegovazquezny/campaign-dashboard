@@ -1,0 +1,9 @@
+/*
+ * Theme tokens only. Shared type and spacing live in typography.css; colours, radius
+ * and shadow live in theme-light.css ("Clarity", default) and theme-dark.css
+ * ("Midnight"), selected via <html data-theme="light|dark">. Components are styled
+ * with Tailwind utilities; the tokens are mapped to utilities in globals.css (@theme).
+ */
+@import "./styles/typography.css";
+@import "./styles/theme-light.css";
+@import "./styles/theme-dark.css";

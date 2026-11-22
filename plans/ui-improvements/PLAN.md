@@ -4,7 +4,7 @@
 
 | Phase | Status | Summary |
 |---|---|---|
-| U0 — Visual theme (light + dark) | implemented, uncommitted | "Clarity" light theme (default) and "Midnight" dark mode with a toggle |
+| U0 — Visual theme (light + dark) | in progress (T1 in review) | "Clarity" light theme (default) and "Midnight" dark mode with a toggle |
 | U0b — Daily table pagination | not started | Page the campaign page's daily table (client-side, 30 rows) |
 | U1 — Overview KPI cards + daily chart | not started | Invoca-style summary row and an account-wide daily trend |
 | U2 — Channel breakdown + missed-calls card | not started | Calls/revenue by channel; missed vs voicemail split |
@@ -69,7 +69,7 @@ Existing API: `GET /api/meta`, `GET /api/campaigns/metrics`, `GET /api/campaigns
 
 ### Design tokens
 
-`dashboard-ui/app/themes.css` is the source of truth; this table is a summary so the plan stands alone.
+`dashboard-ui/app/styles/typography.css` (shared type and spacing) and `theme-light.css` / `theme-dark.css` (colours, radius, shadow) are the source of truth; this table is a summary so the plan stands alone. **Decision (2026-11-22): type and spacing are identical in both themes** (the dense Midnight scale); themes differ only in colour, radius, shadow and the title dot, so toggling never moves or resizes text.
 
 | Token | Clarity (light) | Midnight (dark) |
 |---|---|---|
@@ -83,37 +83,37 @@ Existing API: `GET /api/meta`, `GET /api/campaigns/metrics`, `GET /api/campaigns
 | `--warn-bg` / `--warn-fg` | `#fff7e6` / `#8a5a00` | `#2a2110` / `#f5c562` |
 | `--bad` (errors) | `#c62828` | `#ff6b6b` |
 | `--series-revenue` | `#4f46e5` | `#2dd4bf` |
-| `--series-spend` | `#f59e0b` | `#fb923c` |
+| `--series-spend` | `#d97706` | `#fb923c` |
 | `--radius` / `--radius-lg` | 8px / 14px | 6px / 10px |
 | Shadow | soft two-layer | none (borders only) |
-| Body font | Geist Sans 14px | Geist Sans 13px; table numbers in Geist Mono |
-| `h1` | 28px / 700 | 20px / 600, with a glowing accent dot |
-| Table headers | 12px, sentence case | 11px, uppercase, 0.06em tracking |
-| Cell padding (y / x) | 12px / 10px | 8px / 12px |
+| Body font (**shared**) | Geist Sans 13px; table numbers in Geist Mono 12.5px | same |
+| `h1` (**shared**) | 20px / 600 | same, plus a glowing accent dot in dark only |
+| Table headers (**shared**) | 11px, uppercase, 0.06em tracking | same |
+| Cell padding y / x (**shared**) | 8px / 12px | same |
 
 Shared rules (both themes): segmented control for date presets; data-coverage and freshness notices as pill badges; tables in a rounded card with sticky header, right-aligned tabular numbers, active-sort column in the accent colour, row hover, emphasised totals row; chart in a card; visible focus ring in the accent colour.
 
-### Files (in the working tree, uncommitted)
+### Files
 
-- `dashboard-ui/app/themes.css` — tokens per theme on `html[data-theme="light|dark"]`, plus element styling for the existing semantic markup (no component changes).
-- `dashboard-ui/components/theme-toggle.tsx` — pill button (bottom right) that flips `data-theme` and saves the choice to `localStorage`.
+- `dashboard-ui/app/styles/typography.css` — shared type and spacing tokens; `theme-light.css`, `theme-dark.css` — the colour, radius and shadow variables on `html[data-theme="light|dark"]`; imported by `app/styles.css`.
+- `dashboard-ui/app/globals.css` — Tailwind import, the `dark:` variant (tied to `data-theme`), and the `@theme inline` mapping of tokens to utilities.
+- Components styled with utilities: `campaign-table`, `daily-table`, `daily-chart`, `filter-bar`, `page-header`, `back-link`, `theme-toggle`, plus `table-styles.ts`, `page-shell`, `page-title`, `notice`.
 - `dashboard-ui/app/layout.tsx` — loads the CSS, renders the toggle, runs an inline pre-paint script so a saved dark choice causes no white flash, sets the title to "Campaign Dashboard".
 
 ### Remaining work
 
-1. Branch from `main` (not from `milestone-5-pr-1-readme`).
-2. Leave `dashboard-ui/AGENTS.md` out of the commit. `next dev` edits it on every start, so it will keep showing as modified; revert it with `git checkout` before committing.
-3. Style the route loading states (`app/loading.tsx`, `app/campaigns/[id]/loading.tsx`): they render a bare `<p>` outside `<main>` and are unstyled today.
-4. Add `components/theme-toggle.test.tsx`: renders the right label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
-5. ~~Rebuild the `web` image and check both themes on :3000.~~ Done 2026-11-22 (the screenshots in §2 are from that build).
+1. ~~Commit the theme and convert it to Tailwind~~ In review (T1, PR #65; large on purpose, see [ui-improvements.md](ui-improvements.md)).
+2. Style the route loading states (`app/loading.tsx`, `app/campaigns/[id]/loading.tsx`): they render a bare `<p>` outside `<main>` and are unstyled today (T2; use `PageShell` and `Notice`).
+3. Add `components/theme-toggle.test.tsx`: renders the right label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
+4. ~~Rebuild the `web` image and check both themes on :3000.~~ Done 2026-11-22 (the screenshots in §2 are from that build).
 
 **Done when:** both themes render correctly on the overview, detail, loading and error states; the toggle persists across reloads; `npm test`, `npm run lint`, `npx tsc --noEmit` pass.
 
 ### Rules for U1–U3 components
 
 - Use theme tokens only; no hard-coded colours. Verify every new component in both themes.
-- `themes.css` currently styles **bare elements** (e.g. `main > p:not([role])`, `main > table`, `figure`). New widgets must use class-scoped styles (e.g. `.card`, `.kpi`) so they don't inherit those rules by accident, and should not be bare `<p>`/`<table>` children of `<main>`.
-- New tokens are added to `themes.css` in the phase that needs them (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
+- **Tailwind-first, everywhere (decision).** All styling uses Tailwind utilities in `className`, with theme tokens exposed through `@theme` in `globals.css` (e.g. `bg-card`, `text-muted`, `border-border`, `text-accent`, `shadow-card`, `rounded-card`, `px-cell-x`) so utilities follow `data-theme`. Dark-only styling uses the `dark:` variant. No CSS Modules and no component CSS files; the only CSS files are the two token files. Shared class strings go in a TS module (see `components/table-styles.ts`); recurring pieces become small components (`PageShell`, `PageTitle`, `Notice`).
+- New colour tokens are added to `app/styles/theme-light.css` and `theme-dark.css` (type/spacing tokens go in `typography.css`) in the phase that needs them, and mapped in `@theme` (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
 
 ## 4b. U0b — Daily table pagination
 
@@ -128,7 +128,7 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 - **Totals row** stays on every page and always covers the **whole range** (computed from all days, as today via `sumDays`), so it keeps matching the chart. Label it "Totals (all N days)" so it isn't read as a page total.
 - **State:** page number in component state, not the URL. It resets to page 1 when the date range or office changes (key the table on `from|to|location`).
 - **Accessibility:** pager is a `<nav aria-label="Daily table pages">`; the range label is `aria-live="polite"` so page changes are announced; buttons have explicit labels ("Previous 30 days" / "Next 30 days").
-- **Styling:** class-scoped (`.pager`) using theme tokens, per §4 rules; checked in both themes.
+- **Styling:** Tailwind utilities using theme tokens, per §4 rules; checked in both themes.
 
 **Alternative considered:** a fixed-height scroll box with a sticky header. Simpler, but scanning up to 366 rows is still painful; rejected.
 

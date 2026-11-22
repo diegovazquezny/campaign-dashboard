@@ -1,0 +1,27 @@
+/* =====================================================
+   DARK — "Midnight": dense, teal accent
+   ===================================================== */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0e14;
+  --fg: #e6e9ef;
+  --muted: #8a93a6;
+  --card: #121722;
+  --border: #212838;
+  --row-border: #1a2030;
+  --row-hover: #171e2d;
+  --thead-bg: #0f1420;
+  --chip-bg: #0f1420;
+  --accent: #2dd4bf;
+  --accent-fg: #04201c;
+  --warn-bg: #2a2110;
+  --warn-fg: #f5c562;
+  --warn-border: #4a3a17;
+  --bad: #ff6b6b;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --shadow-sm: 0 0 #0000;
+  --shadow: 0 0 #0000;
+  --series-revenue: #2dd4bf;
+  --series-spend: #fb923c;
+}

@@ -6,13 +6,13 @@
 
 ## Status
 
-Not started. T1 uses the U0 code that is **uncommitted in the main checkout** (`dashboard-ui/app/themes.css`, `dashboard-ui/components/theme-toggle.tsx`, `dashboard-ui/app/layout.tsx`). That code must be kept, not rewritten.
+T1 in review (PR #65). Everything else not started.
 
 ## PR rules
 
-- One thing per PR, individually mergeable and testable, under 500 changed lines. Every PR leaves the app runnable and states how to verify it.
+- One thing per PR, individually mergeable and testable, under 500 changed lines (T1 is the one exception). Every PR leaves the app runnable and states how to verify it.
 - Branch from `main`. Leave `dashboard-ui/AGENTS.md` out of commits (`next dev` edits it; `git checkout` it first).
-- Theme tokens only, class-scoped styles, check both themes (PLAN.md §4 "Rules for U1–U3 components").
+- Tailwind utilities only (no CSS Modules, no new global CSS; shared class strings live in TS modules like `components/table-styles.ts`), theme tokens only, check both themes (PLAN.md §4 "Rules for U1–U3 components").
 - Metric definitions are base-plan §7 and apply unchanged; reuse `call_facts.rb`, `spend_sql.rb`, `data_coverage.rb`.
 - **Gate:** T1–T3 may land any time. T4 onward starts only after base-plan M5 is complete.
 
@@ -30,21 +30,23 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 
 ## Tasks
 
-### T1 — Commit the Clarity/Midnight theme (U0)
-**Status:** not started · **Depends on:** nothing
-- The code already exists uncommitted in the main checkout. Branch from `main`, copy those three files in as they are (do not discard or redo them), exclude `dashboard-ui/AGENTS.md`, and commit. `layout.tsx` on `main` may have moved on; merge the diff by hand if so.
-- Size: about 470 lines (409 CSS + 40 toggle + ~20 layout). If it goes over 500 after rebasing, move the toggle into T2.
-- **Acceptance:** both themes render on overview and detail; toggle flips `data-theme` and persists across reload with no white flash; title is "Campaign Dashboard"; `npm test`, lint and `tsc` pass.
+### T1 — Theme, styled with Tailwind (U0)
+**Status:** in review · **Depends on:** nothing
+- Light ("Clarity") and dark ("Midnight") themes with a toggle, **styled entirely with Tailwind utilities** (decision: Tailwind-first everywhere, no CSS Modules, no bare-element CSS). Started from the uncommitted U0 code, then converted.
+- Tokens: `app/styles/typography.css` (type and spacing, **identical in both themes**) plus `theme-light.css` and `theme-dark.css` (colours, radius, shadow; variables on `html[data-theme]`), imported via `app/styles.css`, and mapped to utilities in `app/globals.css` (`@theme inline`, plus a `dark:` variant tied to `data-theme`).
+- Components converted to utilities: `campaign-table`, `daily-table`, `daily-chart` (Recharts styles passed as props), `filter-bar`, `page-header`, `back-link`, `theme-toggle`, page shells. New shared pieces: `components/table-styles.ts`, `page-shell.tsx`, `page-title.tsx`, `notice.tsx`.
+- **Exception to the 500-line rule:** this PR is large on purpose (it replaces the 400-line bare-element stylesheet with utilities in one go).
+- **Acceptance:** font sizes, font styles and spacing are identical in both themes (verified by comparing computed styles light vs dark); colours differ per theme on overview and detail; toggle flips `data-theme` and persists with no white flash; title is "Campaign Dashboard"; no bare-element styling remains except the shared focus ring in `globals.css`; `npm test`, lint and `tsc` pass.
 
 ### T2 — Loading states + toggle test (U0)
 **Status:** not started · **Depends on:** T1
-- Style `app/loading.tsx` and `app/campaigns/[id]/loading.tsx` (wrap in `<main>`, class-scoped styles).
+- Style `app/loading.tsx` and `app/campaigns/[id]/loading.tsx` (wrap in `<main>`, Tailwind utilities).
 - Add `components/theme-toggle.test.tsx`: label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
 - **Acceptance:** loading and error states look right in both themes; new tests pass.
 
 ### T3 — Pager + daily-table pagination (U0b)
 **Status:** not started · **Depends on:** T1
-- `components/pager.tsx` (`page`, `pageCount`, `onChange`; `<nav aria-label>`, live range label, `.pager` styles) and paging in `components/daily-table.tsx` per PLAN.md §4b (30 rows, oldest first, totals row covers all days, resets on range/office change).
+- `components/pager.tsx` (`page`, `pageCount`, `onChange`; `<nav aria-label>`, live range label, Tailwind styles) and paging in `components/daily-table.tsx` per PLAN.md §4b (30 rows, oldest first, totals row covers all days, resets on range/office change).
 - **Tests:** the six cases listed in §4b (`daily-table.test.tsx`) plus a small `pager.test.tsx`.
 - **Acceptance:** 90- and 366-day ranges page correctly; totals match the chart on every page.
 
