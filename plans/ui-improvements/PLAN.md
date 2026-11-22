@@ -112,8 +112,8 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 ### Rules for U1–U3 components
 
 - Use theme tokens only; no hard-coded colours. Verify every new component in both themes.
-- `app/styles/*.css` currently style **bare elements** (e.g. `main > p:not([role])`, `main > table`, `figure`). New widgets must use class-scoped styles in a **CSS Module next to the component** (e.g. `kpi-cards.module.css`) so they don't inherit those rules by accident, and should not be bare `<p>`/`<table>` children of `<main>`.
-- New tokens are added to `app/styles/theme-light.css` and `theme-dark.css` in the phase that needs them (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
+- **Tailwind-first, everywhere (decision).** All styling uses Tailwind utilities in `className`, with theme tokens exposed through `@theme` in `globals.css` (e.g. `bg-card`, `text-muted`, `border-border`, `text-accent`) so utilities follow `data-theme`. No CSS Modules, no new bare-element or global component rules. `app/styles/*.css` is the **legacy** bare-element styling (e.g. `main > p:not([role])`, `main > table`, `figure`); task T1b migrates the existing components to Tailwind and deletes those files except the token files. Until T1b lands, new widgets must not inherit those rules by accident (don't use bare `<p>`/`<table>` children of `<main>`).
+- New tokens are added to `app/styles/theme-light.css` and `theme-dark.css` in the phase that needs them, and mapped in `@theme` (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
 
 ## 4b. U0b — Daily table pagination
 
@@ -128,7 +128,7 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 - **Totals row** stays on every page and always covers the **whole range** (computed from all days, as today via `sumDays`), so it keeps matching the chart. Label it "Totals (all N days)" so it isn't read as a page total.
 - **State:** page number in component state, not the URL. It resets to page 1 when the date range or office changes (key the table on `from|to|location`).
 - **Accessibility:** pager is a `<nav aria-label="Daily table pages">`; the range label is `aria-live="polite"` so page changes are announced; buttons have explicit labels ("Previous 30 days" / "Next 30 days").
-- **Styling:** class-scoped (`.pager`) using theme tokens, per §4 rules; checked in both themes.
+- **Styling:** Tailwind utilities using theme tokens, per §4 rules; checked in both themes.
 
 **Alternative considered:** a fixed-height scroll box with a sticky header. Simpler, but scanning up to 366 rows is still painful; rejected.
 
