@@ -13,7 +13,7 @@
 | M4 — Campaign detail page | complete | §12, [milestone-4](archive/milestone-4/milestone-4.md) |
 | M5 — Docs + clean-checkout smoke test | complete | §12, [milestone-5](milestone-5/milestone-5.md) |
 | M6 — Stretch | not started | §12 |
-| UI improvements (after M5) | in progress (13 tasks); T1–T3 merged, T4 onward unblocked | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
+| UI improvements (after M5) | in progress (13 tasks); T1–T3 merged, T4 in review | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
 
 Update this table when a milestone's status changes. Statuses: `not started`, `in progress`, `complete`.
 

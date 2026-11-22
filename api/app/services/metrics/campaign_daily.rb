@@ -30,13 +30,7 @@ module Metrics
         totals AS (
           SELECT count(*) AS campaign_calls, count(*) FILTER (WHERE at_office) AS office_calls FROM mine
         ),
-        per_day AS (
-          SELECT local_date,
-            count(*) FILTER (WHERE at_office) AS calls,
-            count(*) FILTER (WHERE at_office AND booked) AS booked,
-            COALESCE(sum(revenue_cents) FILTER (WHERE at_office), 0)::bigint AS revenue_cents
-          FROM mine GROUP BY local_date
-        ),
+        per_day AS (#{DailySeries.per_day_sql(source: "mine")}),
         days AS (
           SELECT d.day AS date,
             COALESCE(p.calls, 0)::bigint AS calls, COALESCE(p.booked, 0)::bigint AS booked,
@@ -44,7 +38,7 @@ module Metrics
             #{conn.quote(campaign.daily_budget_cents)}::integer AS daily_budget_cents,
             t.office_calls, t.campaign_calls,
             (#{covered_day}) AS covered_day, #{through} AS covered_through
-          FROM (SELECT g::date AS day FROM generate_series(#{conn.quote(from.to_date.iso8601)}::date, #{conn.quote(to.to_date.iso8601)}::date, interval '1 day') g) d
+          FROM #{DailySeries.dates_sql(from:, to:)} d
           CROSS JOIN totals t
           LEFT JOIN per_day p ON p.local_date = d.day
         )

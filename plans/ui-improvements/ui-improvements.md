@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 (PR #65) and T2 (PR #67) merged. T3 in review. Everything else not started.
+T1 (PR #65), T2 (PR #67) and T3 (PR #68) merged. T4 in review. Everything else not started.
 
 ## PR rules
 
@@ -45,13 +45,13 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** loading and error states look right in both themes; new tests pass.
 
 ### T3 — Pager + daily-table pagination (U0b)
-**Status:** in review · **Depends on:** T1
+**Status:** merged (PR #68) · **Depends on:** T1
 - `components/pager.tsx` (`page`, `pageCount`, `onChange`; `<nav aria-label>`, live range label, Tailwind styles) and paging in `components/daily-table.tsx` per PLAN.md §4b (30 rows, oldest first, totals row covers all days, resets on range/office change).
 - **Tests:** the six cases listed in §4b (`daily-table.test.tsx`) plus a small `pager.test.tsx`.
 - **Acceptance:** 90- and 366-day ranges page correctly; totals match the chart on every page.
 
 ### T4 — `GET /api/daily` (U1 backend)
-**Status:** not started · **Depends on:** M5
+**Status:** in review · **Depends on:** M5
 - Extract the date-series + `CallFacts` aggregation out of `campaign_daily.rb` into a shared helper used by both; add the endpoint, route and controller. Response `{ range, days: [{ date, calls, booked, revenue_cents }] }`, zero-filled, includes "No campaign", no spend.
 - **Specs:** zero-fill, office filter, "No campaign" included, day sums = metrics `totals`, invalid range 400, unknown location 404; existing `campaign_daily` specs still pass.
 - **Acceptance:** endpoint matches PLAN.md §6 U1. Base-plan §8 is updated in T13, not here (docs stay stale until then, deliberately, so each API PR stays small).
