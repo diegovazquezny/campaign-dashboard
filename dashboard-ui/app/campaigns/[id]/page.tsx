@@ -13,11 +13,7 @@ import { ApiRequestError, getCampaignDaily, getMeta } from "../../../lib/api";
 import type { DailyResponse, Meta } from "../../../lib/api-types";
 import { formatDateSpan } from "../../../lib/badges";
 import { dailyTableKey, hasActivity } from "../../../lib/daily";
-import {
-  first,
-  resolveRange,
-  type SearchParams,
-} from "../../../lib/date-ranges";
+import { first, resolveRange, type SearchParams } from "../../../lib/date-ranges";
 import { isPastEnd, loadCalls, pageCount } from "../../../lib/calls";
 import { buildQuery, pageHref, parsePage } from "../../../lib/filters";
 
@@ -93,13 +89,7 @@ export default async function CampaignDetail({
 
   // A hand-edited page past the last one: go to the last page instead of an empty list.
   if (calls?.data && isPastEnd(calls.data)) {
-    redirect(
-      pageHref(
-        `/campaigns/${encodeURIComponent(id)}`,
-        filters,
-        pageCount(calls.data),
-      ),
-    );
+    redirect(pageHref(`/campaigns/${encodeURIComponent(id)}`, filters, pageCount(calls.data)));
   }
 
   if ("err" in metaOutcome) {

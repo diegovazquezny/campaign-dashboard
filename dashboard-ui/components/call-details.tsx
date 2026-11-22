@@ -2,8 +2,13 @@ import Link from "next/link";
 import type { CallDetail } from "../lib/api-types";
 import { outcomeLabel } from "../lib/calls";
 import { CHANNELS } from "../lib/channels";
-import { detailHref } from "../lib/filters";
-import { formatCallTime, formatDuration, formatMoney } from "../lib/format";
+import { listHref } from "../lib/filters";
+import {
+  formatCallTime,
+  formatDuration,
+  formatLocalDate,
+  formatMoney,
+} from "../lib/format";
 
 type Item = { label: string; value: React.ReactNode };
 
@@ -33,7 +38,14 @@ const channelLabel = (key: string) =>
 
 // The three cards of the call detail page. Times are in the call's office zone.
 // The caller is only ever described (first or repeat, count, first seen): never identified.
-export function CallDetails({ call }: { call: CallDetail }) {
+export function CallDetails({
+  call,
+  listQuery,
+}: {
+  call: CallDetail;
+  /** The filters and page the call was opened from, kept on the campaign link. */
+  listQuery: string;
+}) {
   const { timezone: tz } = call;
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -59,7 +71,10 @@ export function CallDetails({ call }: { call: CallDetail }) {
             value: call.is_first_call ? "First call" : "Repeat caller",
           },
           { label: "Calls from this caller", value: call.caller_call_count },
-          { label: "First seen", value: call.caller_first_seen },
+          {
+            label: "First seen",
+            value: formatLocalDate(call.caller_first_seen),
+          },
         ]}
       />
       <Card
@@ -69,7 +84,7 @@ export function CallDetails({ call }: { call: CallDetail }) {
             label: "Campaign",
             value: call.campaign ? (
               <Link
-                href={detailHref(call.campaign.id, "")}
+                href={listHref(call.campaign.id, listQuery)}
                 className="text-accent hover:underline"
               >
                 {call.campaign.name}

@@ -94,7 +94,7 @@ describe("CallPage", () => {
     const caller = card("Caller data").textContent ?? "";
     expect(caller).toContain("Repeat caller");
     expect(caller).toContain("4");
-    expect(caller).toContain("2026-08-31");
+    expect(caller).toContain("Aug 31, 2026");
     expect(caller).not.toMatch(/hash/i);
   });
 
@@ -129,6 +129,13 @@ describe("CallPage", () => {
     expect(
       screen.getByRole("link", { name: "← Spring Promo" }).getAttribute("href"),
     ).toBe("/campaigns/c1?preset=last_30_days&location=loc1&page=3");
+  });
+
+  it("keeps the filters and page on the campaign link in the Marketing card", async () => {
+    await renderPage(call, { location: "loc1", page: "3" });
+    expect(
+      screen.getByRole("link", { name: "Spring Promo" }).getAttribute("href"),
+    ).toBe("/campaigns/c1?location=loc1&page=3");
   });
 
   it("links back to /campaigns/none at the same page for a call with no campaign", async () => {

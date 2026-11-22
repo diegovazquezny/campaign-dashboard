@@ -94,10 +94,6 @@ export function parsePage(value: string | string[] | undefined): number {
 }
 
 /** `pathname` with `current`'s filters and `page`; used to leave a page past the end. */
-export function pageHref(
-  pathname: string,
-  current: FilterState,
-  page: number,
-): string {
+export function pageHref(pathname: string, current: FilterState, page: number): string {
   return withQuery(pathname, buildQuery(current, { page }));
 }

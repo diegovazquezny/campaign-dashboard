@@ -58,7 +58,7 @@ export default async function CallPage({
     <PageShell>
       <BackLink to={back} />
       <PageTitle>Call details</PageTitle>
-      <CallDetails call={call} />
+      <CallDetails call={call} listQuery={listQuery} />
     </PageShell>
   );
 }

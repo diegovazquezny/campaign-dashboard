@@ -1,9 +1,4 @@
-import {
-  isPastEnd,
-  outcomeLabel,
-  pageCount,
-  type CallsResult,
-} from "../lib/calls";
+import { isPastEnd, outcomeLabel, pageCount, type CallsResult } from "../lib/calls";
 import { formatCallTime, formatDuration, formatMoney } from "../lib/format";
 import Link from "next/link";
 import { callHref } from "../lib/filters";
