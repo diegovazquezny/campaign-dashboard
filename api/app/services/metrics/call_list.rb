@@ -17,13 +17,18 @@ module Metrics
       scope = filter_outcome(scope, outcome)
 
       total = scope.count
-      rows = scope.joins(:location).left_joins(:campaign)
-                  .select("calls.*", "locations.name AS location_name", "locations.timezone AS location_timezone",
-                          "campaigns.name AS campaign_name")
+      rows = with_names(scope)
                   .reorder(started_at: :desc, call_id: :desc)
                   .limit(PAGE_SIZE).offset((page - 1) * PAGE_SIZE)
 
       { page: page, page_size: PAGE_SIZE, total: total, calls: rows.map { |call| row(call) } }
+    end
+
+    # Adds the office and campaign names that `row` reads. Shared with CallDetail.
+    def with_names(scope)
+      scope.joins(:location).left_joins(:campaign)
+           .select("calls.*", "locations.name AS location_name", "locations.timezone AS location_timezone",
+                   "campaigns.name AS campaign_name")
     end
 
     def filter_campaign(scope, campaign_id)
