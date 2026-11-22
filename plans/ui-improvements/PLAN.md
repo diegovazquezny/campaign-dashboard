@@ -4,7 +4,7 @@
 
 | Phase | Status | Summary |
 |---|---|---|
-| U0 — Visual theme (light + dark) | implemented, uncommitted | "Clarity" light theme (default) and "Midnight" dark mode with a toggle |
+| U0 — Visual theme (light + dark) | in progress (T1 in review) | "Clarity" light theme (default) and "Midnight" dark mode with a toggle |
 | U0b — Daily table pagination | not started | Page the campaign page's daily table (client-side, 30 rows) |
 | U1 — Overview KPI cards + daily chart | not started | Invoca-style summary row and an account-wide daily trend |
 | U2 — Channel breakdown + missed-calls card | not started | Calls/revenue by channel; missed vs voicemail split |

@@ -31,7 +31,7 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 ## Tasks
 
 ### T1 — Commit the Clarity/Midnight theme (U0)
-**Status:** not started · **Depends on:** nothing
+**Status:** in review · **Depends on:** nothing
 - The code already exists uncommitted in the main checkout. Branch from `main`, copy those three files in as they are (do not discard or redo them), exclude `dashboard-ui/AGENTS.md`, and commit. `layout.tsx` on `main` may have moved on; merge the diff by hand if so.
 - Size: about 470 lines (409 CSS + 40 toggle + ~20 layout). If it goes over 500 after rebasing, move the toggle into T2.
 - **Acceptance:** both themes render on overview and detail; toggle flips `data-theme` and persists across reload with no white flash; title is "Campaign Dashboard"; `npm test`, lint and `tsc` pass.
