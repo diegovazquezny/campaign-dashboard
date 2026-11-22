@@ -311,7 +311,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M2 — Metrics engine + API (§7, §8; D2, D3, D5, D11, D12)
 **Goal:** all three endpoints return correct numbers, proven by specs.
-**Status:** in progress (PR 1–8 merged; PR 10 in review). Ten PRs, all metric and spend math in set-based SQL; task breakdown and dependency diagram: [milestone-2/milestone-2.md](milestone-2/milestone-2.md).
+**Status:** complete. All 10 PRs are merged to `main` (last: PR #37). Ten PRs, all metric and spend math in set-based SQL; task breakdown and dependency diagram: [milestone-2/milestone-2.md](milestone-2/milestone-2.md).
 
 - Single spend calculation, as SQL, shared by both endpoints (set-based so it scales and can later run over a rollup): budget × covered days clipped to data coverage; null for $0-budget and "No campaign"; call-share allocation with cumulative daily rounding under a location filter.
 - Campaign metrics query in SQL: every campaign listed, "No campaign" row with `channel_breakdown`, `NOT EXISTS` probe for `new_callers`, null-safe ratios, totals and `totals.paid`.
