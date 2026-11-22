@@ -42,7 +42,7 @@ Same as M0–M4:
 - Depends on M4 only. Parallel with PR 1 and PR 2.
 
 ### PR 4 — Smoke script
-**Status:** not started
+**Status:** in review
 - `scripts/smoke.sh`: from the repo root, copies `.env.example` to `.env` if missing, runs `docker compose up -d --build`, waits (with a timeout) for the API, then asserts: `GET /api/meta` returns coverage and locations, `GET /api/campaigns/metrics` returns campaigns with non-zero calls, `GET http://localhost:3000/` returns 200 and contains a campaign name. Exits non-zero with a clear message on the first failure. Does not tear down unless `--down` is passed.
 - **Tests:** the script itself is the test; run it against a healthy stack (passes) and with the API stopped (fails with the message).
 - **Check:** `scripts/smoke.sh` passes on the current stack.

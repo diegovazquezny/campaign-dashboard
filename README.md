@@ -49,6 +49,8 @@ npm run lint
 npx tsc --noEmit
 ```
 
+To check the whole Docker stack end to end, run `scripts/smoke.sh` (add `--down` to stop the stack afterwards). It starts the stack, then checks the API and the dashboard; it exits non-zero with a `SMOKE FAIL` message on the first failure.
+
 `scripts/setup-hooks.sh` enables the git hooks (pre-commit runs rubocop and eslint; pre-push blocks pushes to `main`). It runs automatically on `npm install`.
 
 ## Data
