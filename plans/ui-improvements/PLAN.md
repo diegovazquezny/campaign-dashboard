@@ -69,7 +69,7 @@ Existing API: `GET /api/meta`, `GET /api/campaigns/metrics`, `GET /api/campaigns
 
 ### Design tokens
 
-`dashboard-ui/app/styles/theme-light.css` and `theme-dark.css` are the source of truth; this table is a summary so the plan stands alone.
+`dashboard-ui/app/styles/typography.css` (shared type and spacing) and `theme-light.css` / `theme-dark.css` (colours, radius, shadow) are the source of truth; this table is a summary so the plan stands alone. **Decision (2026-11-22): type and spacing are identical in both themes** (the dense Midnight scale); themes differ only in colour, radius, shadow and the title dot, so toggling never moves or resizes text.
 
 | Token | Clarity (light) | Midnight (dark) |
 |---|---|---|
@@ -86,16 +86,16 @@ Existing API: `GET /api/meta`, `GET /api/campaigns/metrics`, `GET /api/campaigns
 | `--series-spend` | `#f59e0b` | `#fb923c` |
 | `--radius` / `--radius-lg` | 8px / 14px | 6px / 10px |
 | Shadow | soft two-layer | none (borders only) |
-| Body font | Geist Sans 14px | Geist Sans 13px; table numbers in Geist Mono |
-| `h1` | 28px / 700 | 20px / 600, with a glowing accent dot |
-| Table headers | 12px, sentence case | 11px, uppercase, 0.06em tracking |
-| Cell padding (y / x) | 12px / 10px | 8px / 12px |
+| Body font (**shared**) | Geist Sans 13px; table numbers in Geist Mono 12.5px | same |
+| `h1` (**shared**) | 20px / 600 | same, plus a glowing accent dot in dark only |
+| Table headers (**shared**) | 11px, uppercase, 0.06em tracking | same |
+| Cell padding y / x (**shared**) | 8px / 12px | same |
 
 Shared rules (both themes): segmented control for date presets; data-coverage and freshness notices as pill badges; tables in a rounded card with sticky header, right-aligned tabular numbers, active-sort column in the accent colour, row hover, emphasised totals row; chart in a card; visible focus ring in the accent colour.
 
 ### Files
 
-- `dashboard-ui/app/styles/theme-light.css`, `theme-dark.css` — the token variables on `html[data-theme="light|dark"]`; imported by `app/styles.css`.
+- `dashboard-ui/app/styles/typography.css` — shared type and spacing tokens; `theme-light.css`, `theme-dark.css` — the colour, radius and shadow variables on `html[data-theme="light|dark"]`; imported by `app/styles.css`.
 - `dashboard-ui/app/globals.css` — Tailwind import, the `dark:` variant (tied to `data-theme`), and the `@theme inline` mapping of tokens to utilities.
 - Components styled with utilities: `campaign-table`, `daily-table`, `daily-chart`, `filter-bar`, `page-header`, `back-link`, `theme-toggle`, plus `table-styles.ts`, `page-shell`, `page-title`, `notice`.
 - `dashboard-ui/app/layout.tsx` — loads the CSS, renders the toggle, runs an inline pre-paint script so a saved dark choice causes no white flash, sets the title to "Campaign Dashboard".
@@ -113,7 +113,7 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 
 - Use theme tokens only; no hard-coded colours. Verify every new component in both themes.
 - **Tailwind-first, everywhere (decision).** All styling uses Tailwind utilities in `className`, with theme tokens exposed through `@theme` in `globals.css` (e.g. `bg-card`, `text-muted`, `border-border`, `text-accent`, `shadow-card`, `rounded-card`, `px-cell-x`) so utilities follow `data-theme`. Dark-only styling uses the `dark:` variant. No CSS Modules and no component CSS files; the only CSS files are the two token files. Shared class strings go in a TS module (see `components/table-styles.ts`); recurring pieces become small components (`PageShell`, `PageTitle`, `Notice`).
-- New tokens are added to `app/styles/theme-light.css` and `theme-dark.css` in the phase that needs them, and mapped in `@theme` (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
+- New colour tokens are added to `app/styles/theme-light.css` and `theme-dark.css` (type/spacing tokens go in `typography.css`) in the phase that needs them, and mapped in `@theme` (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
 
 ## 4b. U0b — Daily table pagination
 

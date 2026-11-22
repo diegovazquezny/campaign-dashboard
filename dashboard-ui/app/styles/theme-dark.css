@@ -22,17 +22,6 @@ html[data-theme="dark"] {
   --radius-lg: 10px;
   --shadow-sm: 0 0 #0000;
   --shadow: 0 0 #0000;
-  --body-size: 13px;
-  --num-font: var(--font-geist-mono), ui-monospace, monospace;
-  --num-size: 12.5px;
-  --h1-size: 20px;
-  --h1-weight: 600;
-  --h1-tracking: -0.01em;
-  --th-size: 11px;
-  --th-transform: uppercase;
-  --th-tracking: 0.06em;
-  --cell-y: 8px;
-  --cell-x: 12px;
   --series-revenue: #2dd4bf;
   --series-spend: #fb923c;
 }

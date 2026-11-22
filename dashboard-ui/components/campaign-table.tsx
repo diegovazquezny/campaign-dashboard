@@ -103,9 +103,7 @@ const isLabelKey = (key: SortKey) => key === "name" || key === "channel";
 
 function cellClass(key: SortKey): string {
   if (key === "name") return labelCell;
-  // 12px in Clarity; Midnight keeps the channel at body size (13px) on purpose.
-  if (key === "channel")
-    return `${labelCell} text-xs text-muted dark:text-body`;
+  if (key === "channel") return `${labelCell} text-muted`;
   return numCell;
 }
 
