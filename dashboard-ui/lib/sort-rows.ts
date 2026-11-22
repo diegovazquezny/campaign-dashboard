@@ -1,18 +1,18 @@
-import type { CampaignRow } from './api-types';
+import type { CampaignRow } from "./api-types";
 
-export const TEXT_SORT_KEYS = ['name', 'channel'] as const;
+export const TEXT_SORT_KEYS = ["name", "channel"] as const;
 export const NUMERIC_SORT_KEYS = [
-  'calls',
-  'unique_callers',
-  'new_callers',
-  'booked',
-  'booking_rate',
-  'unanswered_rate',
-  'awaiting_outcome',
-  'revenue_cents',
-  'spend_cents',
-  'revenue_per_spend',
-  'spend_per_booking_cents',
+  "calls",
+  "unique_callers",
+  "new_callers",
+  "booked",
+  "booking_rate",
+  "unanswered_rate",
+  "awaiting_outcome",
+  "revenue_cents",
+  "spend_cents",
+  "revenue_per_spend",
+  "spend_per_booking_cents",
 ] as const;
 
 export const SORT_KEYS = [...TEXT_SORT_KEYS, ...NUMERIC_SORT_KEYS] as const;
@@ -20,7 +20,7 @@ export const SORT_KEYS = [...TEXT_SORT_KEYS, ...NUMERIC_SORT_KEYS] as const;
 export type TextSortKey = (typeof TEXT_SORT_KEYS)[number];
 export type NumericSortKey = (typeof NUMERIC_SORT_KEYS)[number];
 export type SortKey = TextSortKey | NumericSortKey;
-export type SortDirection = 'asc' | 'desc';
+export type SortDirection = "asc" | "desc";
 
 export type SortedRows = {
   ranked: CampaignRow[];
@@ -32,28 +32,28 @@ export function isTextSortKey(key: SortKey): key is TextSortKey {
 }
 
 function compareNames(a: CampaignRow, b: CampaignRow): number {
-  return a.name.localeCompare(b.name, 'en');
+  return a.name.localeCompare(b.name, "en");
 }
 
 // Returns campaigns sorted by key (null and non-finite values last in both
 // directions, ties broken by name ascending) and the "No campaign" row
-// separated out. The input array is not mutated.
+// separated out (any extra null-id rows stay in ranked rather than being dropped). The input array is not mutated.
 export function sortRows(
   rows: readonly CampaignRow[],
   key: SortKey,
   direction: SortDirection,
 ): SortedRows {
-  const sign = direction === 'asc' ? 1 : -1;
+  const sign = direction === "asc" ? 1 : -1;
   const ranked: CampaignRow[] = [];
   let noCampaign: CampaignRow | null = null;
   for (const row of rows) {
-    if (row.campaign_id === null) noCampaign ??= row;
+    if (row.campaign_id === null && noCampaign === null) noCampaign = row;
     else ranked.push(row);
   }
 
   ranked.sort((a, b) => {
     if (isTextSortKey(key)) {
-      return sign * a[key].localeCompare(b[key], 'en') || compareNames(a, b);
+      return sign * a[key].localeCompare(b[key], "en") || compareNames(a, b);
     }
     const x = a[key];
     const y = b[key];
