@@ -94,6 +94,12 @@ describe("Home", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
+  it("shows the channel chart and missed-calls card above the table", async () => {
+    await renderHome({});
+    expect(screen.getByRole("img", { name: "Calls by channel" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Missed calls" })).toBeTruthy();
+  });
+
   it("carries the filters to the row links", async () => {
     await renderHome({ preset: "last_30_days", location: "loc1" });
     expect(

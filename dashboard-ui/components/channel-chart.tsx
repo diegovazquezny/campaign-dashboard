@@ -1,0 +1,124 @@
+"use client";
+
+import { useId, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import type { ChannelTotal } from "../lib/channels";
+import { dollarsExact, formatCount, formatMoney } from "../lib/format";
+
+type Metric = "calls" | "revenue";
+
+const TOOLTIP_STYLE = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius)",
+  boxShadow: "var(--shadow)",
+};
+
+const TOGGLE =
+  "cursor-pointer rounded-ctl border px-3 py-1 text-[13px] aria-pressed:border-accent aria-pressed:text-accent border-border text-muted";
+
+export function ChannelChart({ channels }: { channels: ChannelTotal[] }) {
+  const [metric, setMetric] = useState<Metric>("calls");
+  const captionId = useId();
+  const descId = useId();
+  const isCalls = metric === "calls";
+
+  const data = channels
+    .map((c) => ({
+      label: c.label,
+      color: c.color,
+      value: isCalls ? c.calls : c.revenue_cents / 100,
+    }))
+    .sort((a, b) => b.value - a.value);
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  const describe = (v: number) =>
+    isCalls ? formatCount(v) : formatMoney(v * 100);
+  const description = `${isCalls ? "Calls" : "Revenue"} by channel: ${data
+    .map((d) => `${d.label} ${describe(d.value)}`)
+    .join(", ")}. Total ${describe(total)}.`;
+
+  return (
+    <figure className="m-0 rounded-card border border-border bg-card px-5 pt-5 pb-3 shadow-card">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <figcaption
+          id={captionId}
+          className="text-[15px] font-semibold text-fg"
+        >
+          {isCalls ? "Calls by channel" : "Revenue by channel"}
+        </figcaption>
+        <div role="group" aria-label="Channel metric" className="flex gap-2">
+          <button
+            type="button"
+            className={TOGGLE}
+            aria-pressed={isCalls}
+            onClick={() => setMetric("calls")}
+          >
+            Calls
+          </button>
+          <button
+            type="button"
+            className={TOGGLE}
+            aria-pressed={!isCalls}
+            onClick={() => setMetric("revenue")}
+          >
+            Revenue
+          </button>
+        </div>
+      </div>
+      <div
+        role="img"
+        aria-labelledby={captionId}
+        aria-describedby={descId}
+        className="h-64 w-full"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={data}
+            layout="vertical"
+            margin={{ top: 4, right: 16, left: 8, bottom: 0 }}
+          >
+            <XAxis
+              type="number"
+              allowDecimals={false}
+              tick={{ fontSize: 12, fill: "currentColor" }}
+              tickFormatter={describe}
+            />
+            <YAxis
+              type="category"
+              dataKey="label"
+              width={84}
+              tick={{ fontSize: 12, fill: "currentColor" }}
+            />
+            <Tooltip
+              cursor={{ fill: "var(--row-hover)" }}
+              formatter={(v) =>
+                isCalls ? formatCount(Number(v)) : dollarsExact(v)
+              }
+              contentStyle={TOOLTIP_STYLE}
+            />
+            <Bar
+              dataKey="value"
+              name={isCalls ? "Calls" : "Revenue"}
+              radius={[0, 4, 4, 0]}
+            >
+              {data.map((d) => (
+                <Cell key={d.label} fill={d.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <p id={descId} className="sr-only">
+        {description}
+      </p>
+    </figure>
+  );
+}

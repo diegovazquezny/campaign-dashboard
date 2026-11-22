@@ -1,7 +1,9 @@
 import { connection } from "next/server";
 import { CampaignTable } from "../components/campaign-table";
+import { ChannelChart } from "../components/channel-chart";
 import { FilterBar } from "../components/filter-bar";
 import { KpiCards } from "../components/kpi-cards";
+import { MissedCallsCard } from "../components/missed-calls-card";
 import { OverviewChart } from "../components/overview-chart";
 import { PageHeader } from "../components/page-header";
 import { Notice } from "../components/notice";
@@ -20,6 +22,7 @@ import type {
 } from "../lib/api-types";
 import { formatDateSpan } from "../lib/badges";
 import { resolveRange, type SearchParams } from "../lib/date-ranges";
+import { aggregateChannels } from "../lib/channels";
 import { buildQuery } from "../lib/filters";
 
 function first(value: string | string[] | undefined): string | undefined {
@@ -159,6 +162,10 @@ export default async function Home({
               }
             />
           ) : null}
+          <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+            <ChannelChart channels={aggregateChannels(metrics.rows)} />
+            <MissedCallsCard totals={metrics.totals} />
+          </div>
           <CampaignTable
             rows={metrics.rows}
             totals={metrics.totals}
