@@ -40,7 +40,7 @@ Definitions and rationale: [PLAN.md section 7](plans/PLAN.md). Implementation: `
 - `CallFacts` is the single per-call source for every metric. The office filter is a flag (`at_office`), not a WHERE, so campaign-wide call counts (the share denominator) and office counts come from one scan.
 - **New callers** use a per-call `NOT EXISTS` probe for an earlier call from the same `caller_number_hash`, ordered by `(started_at, call_id)`, over all calls (ignoring range, office and campaign). It uses the `(caller_number_hash, started_at, call_id)` index, so cost follows calls in range, not total history. "First" means first since the data starts, so earlier callers look new.
 - **Spend** is estimated at query time in `SpendSql`, shared by both endpoints. The data has no actual spend: it is `daily_budget_cents` times the days of the range inside data coverage. With a `location_id` it is the office's share of the campaign's calls in range times that, rounded; it is null if the campaign has no calls in range. Daily rows use cumulative rounding so they sum exactly to the table figure. $0-budget campaigns and "No campaign" have null spend.
-- **Totals** (`CampaignMetrics`): counts and revenue sum all rows; `unique_callers` is a distinct count, not a sum; rates are recomputed from summed counts; `totals.paid` holds `revenue_per_spend` and `spend_per_booking_cents` over rows with non-null spend only.
+- **Totals** (`CampaignMetrics`): counts and revenue sum all rows; `unique_callers` is a distinct count, not a sum; rates are recomputed from summed counts; `totals.paid` holds `revenue_cents`, `booked`, `spend_cents`, `revenue_per_spend` and `spend_per_booking_cents` over rows with non-null spend only.
 - Ratios are `null` when the denominator is null or 0.
 - Every campaign is listed even with no calls. The "No campaign" row (`campaign_id: null`) appears only when it has calls, and carries `channel_breakdown`.
 
@@ -65,15 +65,15 @@ Dates are `YYYY-MM-DD`, money is in cents. Routes are in `api/config/routes.rb`;
 
 | Status | `code` | Raised for |
 |---|---|---|
-| 400 | `bad_request` | `Api::BadRequest` and missing parameters |
+| 400 | `bad_request` | `Api::BadRequest` (for example `from is required`); `ActionController::ParameterMissing` is also mapped to 400 as a fallback |
 | 404 | `not_found` | `ActiveRecord::RecordNotFound`; the message is always `record not found` |
 
-The web client wraps failures in `ApiRequestError` (status, code, message), using `network_error`, `timeout`, `http_error` or `invalid_response` when there is no API error body.
+The web client wraps failures in `ApiRequestError` (status, code, message), using `network_error`, `timeout`, `http_error` or `invalid_response` for transport failures and non-API error bodies.
 
 ## Data freshness
 
 - Outcomes arrive late, up to about 3 days ([PLAN.md section 3](plans/PLAN.md)). `/api/meta` returns `latest_update_at` (max `calls.source_updated_at`) and `outcomes_may_be_incomplete_from`, the UTC date of `latest_update_at` minus 72 hours (`Api::MetaController::OUTCOME_DELAY`).
-- The `awaiting_outcome` metric counts answered calls with no outcome yet.
+- The `awaiting_outcome` metric counts answered calls with no outcome yet. It also counts outcomes that were never recorded, so it is not only the recent-days lag.
 - `dashboard-ui/lib/badges.ts` and `components/page-header.tsx` drive the header chips:
   - **Coverage chip:** "Data covers ..." from `data_coverage`, or "No data loaded".
   - **Freshness warning:** shown when the selected `to` is on or after `outcomes_may_be_incomplete_from` ("Bookings and revenue from ... onward may be incomplete.").
@@ -91,13 +91,13 @@ Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) r
   - `real_data_spec.rb` and `real_data_consistency_spec.rb` (tag `:real_data`): import the real `data/` CSVs and check that the daily series add up to the table.
   - `lib/scale_check_spec.rb` and `spec/support/spend_oracle.rb`: the scale-check helper and an independent spend oracle.
 - **Web (Vitest, `dashboard-ui/`):** unit and component tests next to the code (date presets, badges, table sorting, API client, pages).
-- **Commands:** `bundle exec rspec` and `bundle exec rubocop` in `api/`; `npm test`, `npm run lint` and `npx tsc --noEmit` in `dashboard-ui/`.
+- **Commands:** `bundle exec rspec` and `bundle exec rubocop` in `api/`; `npm test`, `npm run lint` and `npx next typegen && npx tsc --noEmit` in `dashboard-ui/` (`tsc` needs the route types that `next typegen` generates, `next build` and `next dev` also generate them).
 
 ## Scaling path
 
 Detail: [PLAN.md section 7](plans/PLAN.md) ("First-call query and scaling path").
 
 - Today every request aggregates `calls` directly, backed by indexes on `local_date`, `(campaign_id, local_date)`, `(location_id, local_date)`, `source_updated_at` and `(caller_number_hash, started_at, call_id)` (`api/db/schema.rb`).
-- `bin/rails metrics:scale_check` builds about 1M synthetic calls in a scratch `<db>_scale_check` database and runs `EXPLAIN ANALYZE` on the metrics and daily queries (see `api/lib/scale_check.rb` for the env options). It refuses to run against production or a non-scratch database.
+- `bin/rails metrics:scale_check` builds about 1M synthetic calls in a scratch `<db>_scale_check` database and runs `EXPLAIN ANALYZE` on the metrics and daily queries (see `api/lib/scale_check.rb` for the env options). It never touches the configured database: it creates `<db>_scale_check`, drops it afterwards (`KEEP=1` keeps it), and refuses to run in production or when the configured database already has that suffix.
 - If volume grows, measure first and materialize only when a latency target is missed. The likely next step is a daily rollup table; it would need first-call status stored at write time, with the current query as its backfill and test oracle.
 - Spend is computed in one place (`SpendSql`), so replacing the budget estimate with actual spend is a contained change.
