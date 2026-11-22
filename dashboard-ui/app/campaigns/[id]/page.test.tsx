@@ -155,5 +155,9 @@ describe("CampaignDetail", () => {
       "Could not reach the API",
     );
     expect(screen.queryByRole("combobox")).toBeNull();
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Alpha");
+    expect(
+      screen.getByRole("link", { name: /All campaigns/ }).getAttribute("href"),
+    ).toBe("/");
   });
 });
