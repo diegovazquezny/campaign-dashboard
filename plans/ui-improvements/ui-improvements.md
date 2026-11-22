@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73) and T5 (PR #74) merged. T6 in review. Everything else not started.
+T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74) and T6 (PR #75) merged. T7 in review. Everything else not started.
 
 ## PR rules
 
@@ -63,13 +63,13 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** KPI values equal the table's totals row; both themes checked.
 
 ### T6 — Overview chart + page wiring (U1)
-**Status:** in review · **Depends on:** T4, T5
+**Status:** merged (PR #75) · **Depends on:** T4, T5
 - `getAccountDaily()` in `lib/api.ts`, `AccountDailyResponse` in `lib/api-types.ts`, `components/overview-chart.tsx` (calls line, revenue toggle, `role="img"`, caption, screen-reader summary, `--series-calls` token, shaded/noted incomplete days). Page order: header → filters → KPIs → chart → table; empty range keeps the existing message. Resolves open question 1.
 - **Tests:** chart component (series, toggle, empty, freshness).
 - **Acceptance:** chart day sums equal KPI totals; both respond to filters; both themes checked.
 
 ### T7 — Totals missed/voicemail + extended `channel_breakdown` (U2 backend)
-**Status:** not started · **Depends on:** M5
+**Status:** in review · **Depends on:** M5
 - Add `missed` and `voicemail` flags to the facts in `call_facts.rb`, carry them through the per-campaign selects in `campaign_counts.rb` and `TOTAL_KEYS`/SQL in `campaign_metrics.rb`, and expose them in `totals`; add `booked` and `revenue_cents` to the "No campaign" row's `channel_breakdown`; update `Totals` in `lib/api-types.ts`. May conflict with T9 in `call_facts.rb` (rebase on whichever lands first).
 - **Specs:** new fields; `missed + voicemail = unanswered`; extended breakdown sums to the row totals; existing specs unchanged.
 - **Acceptance:** purely additive; existing clients and tests unaffected.

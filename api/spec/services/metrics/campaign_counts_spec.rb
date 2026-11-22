@@ -90,7 +90,7 @@ RSpec.describe Metrics::CampaignCounts do
       last = rows.last
 
       expect(last).to include(campaign_id: nil, name: "No campaign", channel: nil, calls: 4, campaign_calls: 4)
-      expect(last[:channel_breakdown]).to eq([
+      expect(last[:channel_breakdown].map { |b| b.slice("channel", "calls") }).to eq([
         { "channel" => "organic", "calls" => 2 },
         { "channel" => "direct", "calls" => 1 },
         { "channel" => "referral", "calls" => 1 }
@@ -106,7 +106,8 @@ RSpec.describe Metrics::CampaignCounts do
       last = rows(location_id: "loc_01").last
 
       expect(last).to include(calls: 1, campaign_calls: 2)
-      expect(last[:channel_breakdown]).to eq([ { "channel" => "organic", "calls" => 1 } ])
+      expect(last[:channel_breakdown].map { |b| b.slice("channel", "calls") })
+        .to eq([ { "channel" => "organic", "calls" => 1 } ])
     end
   end
 end

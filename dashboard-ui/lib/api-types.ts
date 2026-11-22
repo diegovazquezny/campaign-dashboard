@@ -13,7 +13,12 @@ export type Meta = {
   campaigns: { id: string; name: string; channel: string }[];
 };
 
-export type ChannelBreakdown = { channel: string; calls: number };
+export type ChannelBreakdown = {
+  channel: string;
+  calls: number;
+  booked: number;
+  revenue_cents: number;
+};
 
 type MetricFields = {
   calls: number | null;
@@ -41,6 +46,9 @@ export type Totals = Omit<
   MetricFields,
   "revenue_per_spend" | "spend_per_booking_cents"
 > & {
+  // missed + voicemail = unanswered (rate × calls).
+  missed: number | null;
+  voicemail: number | null;
   // Spend ratios over paid campaigns only (§7).
   paid: {
     revenue_cents: number | null;

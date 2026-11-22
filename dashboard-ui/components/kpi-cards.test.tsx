@@ -10,6 +10,8 @@ const totals: Totals = {
   booked: 200,
   booking_rate: 0.162,
   unanswered_rate: 0.1,
+  missed: 0,
+  voicemail: 0,
   awaiting_outcome: 5,
   revenue_cents: 1234500,
   spend_cents: 500000,

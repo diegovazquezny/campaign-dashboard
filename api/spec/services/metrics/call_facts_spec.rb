@@ -30,6 +30,17 @@ RSpec.describe Metrics::CallFacts do
     expect(rows["missed"].slice("unanswered", "awaiting")).to eq("unanswered" => true, "awaiting" => false)
   end
 
+  it "flags missed and voicemail separately, and only for unanswered calls" do
+    build_call(id: "missed", answered: false, outcome: "missed")
+    build_call(id: "vm", answered: false, outcome: "voicemail")
+    build_call(id: "booked", outcome: "booked")
+    build_call(id: "awaiting")
+
+    rows = facts
+    expect(rows.transform_values { |r| r.values_at("missed", "voicemail") })
+      .to eq("missed" => [ true, false ], "vm" => [ false, true ], "booked" => [ false, false ], "awaiting" => [ false, false ])
+  end
+
   it "flags every row at_office without a location filter" do
     build_call(id: "a", location: build_location(id: "loc_01"))
     build_call(id: "b", location: build_location(id: "loc_02"), caller_number: "other")
