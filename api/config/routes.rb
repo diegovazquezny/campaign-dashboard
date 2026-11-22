@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   # JSON API; endpoints are added by the milestone 2 PRs.
   namespace :api do
     get "meta" => "meta#show"
+    get "daily" => "daily#show"
     get "campaigns/metrics" => "campaign_metrics#index"
     get "campaigns/:id/daily" => "campaign_daily#show"
   end
