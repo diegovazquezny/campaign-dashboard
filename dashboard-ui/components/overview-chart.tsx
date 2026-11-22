@@ -12,8 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { AccountDailyResponse } from "../lib/api-types";
-import { formatCount, formatMoney } from "../lib/format";
-import { dollarsExact } from "./daily-chart";
+import { dollarsExact, formatCount, formatMoney } from "../lib/format";
 
 type Props = {
   days: AccountDailyResponse["days"];
@@ -110,8 +109,11 @@ export function OverviewChart({ days, incompleteFrom }: Props) {
               dataKey="date"
               tick={{ fontSize: 12, fill: "currentColor" }}
               minTickGap={24}
+              // "band" makes the shaded area cover whole days, even one day.
+              scale="band"
             />
             <YAxis
+              allowDecimals={false}
               tick={{ fontSize: 12, fill: "currentColor" }}
               tickFormatter={(v) =>
                 isCalls ? formatCount(v) : formatMoney(Number(v) * 100)

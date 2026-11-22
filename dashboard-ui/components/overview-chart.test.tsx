@@ -2,8 +2,14 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const received: { data?: unknown; area?: { x1: string; x2: string } | null } =
-  {};
+const received: {
+  data?: unknown;
+  area?: { x1: string; x2: string } | null;
+  tick?: (v: number) => string;
+  tooltip?: (v: number) => string;
+  yDecimals?: boolean;
+  xScale?: string;
+} = {};
 
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
@@ -23,9 +29,22 @@ vi.mock("recharts", () => ({
     received.area = { x1: p.x1, x2: p.x2 };
     return null;
   },
-  Tooltip: () => null,
-  XAxis: () => null,
-  YAxis: () => null,
+  Tooltip: (p: { formatter: (v: number) => string }) => {
+    received.tooltip = p.formatter;
+    return null;
+  },
+  XAxis: (p: { scale?: string }) => {
+    received.xScale = p.scale;
+    return null;
+  },
+  YAxis: (p: {
+    tickFormatter: (v: number) => string;
+    allowDecimals?: boolean;
+  }) => {
+    received.tick = p.tickFormatter;
+    received.yDecimals = p.allowDecimals;
+    return null;
+  },
   CartesianGrid: () => null,
 }));
 
@@ -105,5 +124,39 @@ describe("OverviewChart", () => {
 
     expect(received.area).toBeNull();
     expect(screen.queryByText(/Shaded days/)).toBeNull();
+  });
+
+  it("shades the single day of a one-day range", () => {
+    render(<OverviewChart days={[days[2]]} incompleteFrom="2026-09-03" />);
+
+    expect(received.area).toEqual({ x1: "2026-09-03", x2: "2026-09-03" });
+  });
+
+  it("shades only the last day when the freshness date is the last day", () => {
+    render(<OverviewChart days={days} incompleteFrom="2026-09-03" />);
+
+    expect(received.area).toEqual({ x1: "2026-09-03", x2: "2026-09-03" });
+  });
+
+  it("uses a band axis (so shading covers whole days) and whole-number ticks", () => {
+    render(<OverviewChart days={days} incompleteFrom={null} />);
+
+    expect(received.xScale).toBe("band");
+    expect(received.yDecimals).toBe(false);
+  });
+
+  it("formats ticks and tooltips for calls", () => {
+    render(<OverviewChart days={days} incompleteFrom={null} />);
+
+    expect(received.tick!(1200)).toBe("1,200");
+    expect(received.tooltip!(1200)).toBe("1,200");
+  });
+
+  it("formats revenue ticks as whole dollars and tooltips with cents", () => {
+    render(<OverviewChart days={days} incompleteFrom={null} />);
+    fireEvent.click(screen.getByRole("button", { name: "Revenue" }));
+
+    expect(received.tick!(125.5)).toBe("$126");
+    expect(received.tooltip!(125.5)).toBe("$125.50");
   });
 });
