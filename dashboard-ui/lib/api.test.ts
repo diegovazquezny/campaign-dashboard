@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ApiRequestError,
+  getCalls,
   getCampaignDaily,
   getAccountDaily,
   getCampaignMetrics,
@@ -237,5 +238,27 @@ describe("getAccountDaily", () => {
     expect(fetchMock.mock.calls[1][0]).toBe(
       "http://api.test:3001/api/daily?from=2026-09-01&to=2026-09-02&location_id=loc_03",
     );
+  });
+});
+
+describe("getCalls", () => {
+  const args = { from: "2026-07-01", to: "2026-09-30", campaignId: "a" };
+  const body = { page: 1, page_size: 25, total: 0, calls: [] };
+
+  it("calls /api/calls with the filters and no page for page 1", async () => {
+    fetchMock.mockResolvedValue(json(body));
+    expect(await getCalls({ ...args, page: 1 })).toEqual(body);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "http://api.test:3001/api/calls?from=2026-07-01&to=2026-09-30&campaign_id=a",
+    );
+  });
+
+  it("adds location and page, and passes campaign none through", async () => {
+    fetchMock.mockResolvedValue(json(body));
+    await getCalls({ ...args, campaignId: "none", locationId: "loc1", page: 3 });
+    const url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.searchParams.get("campaign_id")).toBe("none");
+    expect(url.searchParams.get("location_id")).toBe("loc1");
+    expect(url.searchParams.get("page")).toBe("3");
   });
 });

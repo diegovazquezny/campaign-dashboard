@@ -1,5 +1,7 @@
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { BackLink } from "../../../components/back-link";
+import { CallsSection } from "../../../components/calls-section";
 import { DailyChart } from "../../../components/daily-chart";
 import { DailyTable } from "../../../components/daily-table";
 import { FilterBar } from "../../../components/filter-bar";
@@ -12,7 +14,8 @@ import type { DailyResponse, Meta } from "../../../lib/api-types";
 import { formatDateSpan } from "../../../lib/badges";
 import { dailyTableKey, hasActivity } from "../../../lib/daily";
 import { resolveRange, type SearchParams } from "../../../lib/date-ranges";
-import { buildQuery } from "../../../lib/filters";
+import { isPastEnd, loadCalls, pageCount } from "../../../lib/calls";
+import { buildQuery, pageHref, parsePage } from "../../../lib/filters";
 
 function first(value: string | string[] | undefined): string | undefined {
   return (Array.isArray(value) ? value[0] : value) || undefined;
@@ -56,9 +59,21 @@ export default async function CampaignDetail({
           (err: unknown) => ({ err }),
         )
       : null;
-  const [metaOutcome, dailyOutcome] = await Promise.all([
+  const page = parsePage(query.page);
+  const callsResult =
+    range.error === undefined
+      ? loadCalls({
+          from: range.from,
+          to: range.to,
+          campaignId: id,
+          locationId: location,
+          page,
+        })
+      : null;
+  const [metaOutcome, dailyOutcome, calls] = await Promise.all([
     metaResult,
     dailyResult,
+    callsResult,
   ]);
 
   let daily: DailyResponse | null = null;
@@ -68,15 +83,18 @@ export default async function CampaignDetail({
     else daily = dailyOutcome.value;
   }
 
-  const backQuery = buildQuery(
-    {
-      preset: first(query.preset),
-      from: first(query.from),
-      to: first(query.to),
-      location,
-    },
-    {},
-  );
+  const filters = {
+    preset: first(query.preset),
+    from: first(query.from),
+    to: first(query.to),
+    location,
+  };
+  const backQuery = buildQuery(filters, {});
+
+  // A hand-edited page past the last one: go to the last page instead of an empty list.
+  if (calls?.data && isPastEnd(calls.data)) {
+    redirect(pageHref(`/campaigns/${encodeURIComponent(id)}`, filters, pageCount(calls.data)));
+  }
 
   if ("err" in metaOutcome) {
     return (
@@ -129,6 +147,7 @@ export default async function CampaignDetail({
             days={daily.days}
             locationSelected={Boolean(location)}
           />
+          {calls && <CallsSection result={calls} />}
         </>
       ) : null}
     </PageShell>

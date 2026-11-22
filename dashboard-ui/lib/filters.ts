@@ -5,6 +5,8 @@ export interface FilterState {
   from?: string;
   to?: string;
   location?: string;
+  /** 1-based page of a paged list; only kept above 1. */
+  page?: number;
 }
 
 export type FilterChange = Partial<{
@@ -12,14 +14,19 @@ export type FilterChange = Partial<{
   from: string;
   to: string;
   location: string;
+  page: number;
 }>;
+
+const FILTER_KEYS = ['preset', 'from', 'to', 'location'] as const;
 
 /**
  * Build the query string (no leading "?") after applying `change` to `current`.
  * Params in `extra` (a query string) other than preset/from/to/location are kept.
  * Params at their default are dropped: the default preset and an
  * empty location. A preset change clears from/to unless it is `custom`, and
- * from/to are only kept while the preset is `custom`.
+ * from/to are only kept while the preset is `custom`. Changing any filter
+ * resets `page` to 1 (drops it); `page` is kept only when `change` sets it, and
+ * page 1 is the default so it is dropped too.
  */
 export function buildQuery(
   current: FilterState,
@@ -27,6 +34,7 @@ export function buildQuery(
   extra = '',
 ): string {
   const next: FilterState = { ...current };
+  if (FILTER_KEYS.some((k) => change[k] !== undefined)) delete next.page;
   if (change.preset !== undefined) {
     next.preset = change.preset;
     if (change.preset !== 'custom') {
@@ -37,9 +45,10 @@ export function buildQuery(
   if (change.from !== undefined) next.from = change.from;
   if (change.to !== undefined) next.to = change.to;
   if (change.location !== undefined) next.location = change.location;
+  if (change.page !== undefined) next.page = change.page;
 
   const params = new URLSearchParams(extra);
-  for (const k of ['preset', 'from', 'to', 'location']) params.delete(k);
+  for (const k of [...FILTER_KEYS, 'page']) params.delete(k);
   if (next.preset && next.preset !== DEFAULT_PRESET) {
     params.set('preset', next.preset);
   }
@@ -48,6 +57,7 @@ export function buildQuery(
     if (next.to) params.set('to', next.to);
   }
   if (next.location) params.set('location', next.location);
+  if (next.page && next.page > 1) params.set('page', String(next.page));
   return params.toString();
 }
 
@@ -63,4 +73,15 @@ export function detailHref(campaignId: string, query: string): string {
 /** `/?<query>`; the query is used as is. */
 export function overviewHref(query: string): string {
   return withQuery('/', query);
+}
+
+/** A 1-based page number from a `page` search param; anything else is page 1. */
+export function parsePage(value: string | string[] | undefined): number {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return raw && /^[1-9]\d{0,8}$/.test(raw) ? Number(raw) : 1;
+}
+
+/** `pathname` with `current`'s filters and `page`; used to leave a page past the end. */
+export function pageHref(pathname: string, current: FilterState, page: number): string {
+  return withQuery(pathname, buildQuery(current, { page }));
 }
