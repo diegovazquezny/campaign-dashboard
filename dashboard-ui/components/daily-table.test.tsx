@@ -1,4 +1,10 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Day } from "../lib/daily";
 import { DailyTable } from "./daily-table";
@@ -71,9 +77,24 @@ describe("DailyTable", () => {
     render(
       <DailyTable
         days={[
-          day("2025-10-01", { calls: 2, booked: 1, revenue_cents: 10000, spend_cents: 5000 }),
-          day("2025-10-02", { calls: 3, booked: 2, revenue_cents: 20000, spend_cents: null }),
-          day("2025-10-03", { calls: 5, booked: 0, revenue_cents: 5000, spend_cents: 2500 }),
+          day("2025-10-01", {
+            calls: 2,
+            booked: 1,
+            revenue_cents: 10000,
+            spend_cents: 5000,
+          }),
+          day("2025-10-02", {
+            calls: 3,
+            booked: 2,
+            revenue_cents: 20000,
+            spend_cents: null,
+          }),
+          day("2025-10-03", {
+            calls: 5,
+            booked: 0,
+            revenue_cents: 5000,
+            spend_cents: 2500,
+          }),
         ]}
       />,
     );
@@ -98,5 +119,83 @@ describe("DailyTable", () => {
   it("renders nothing when there are no days", () => {
     const { container } = render(<DailyTable days={[]} />);
     expect(container.querySelector("table")).toBeNull();
+  });
+
+  describe("paging", () => {
+    // n consecutive days starting 2025-01-01; calls = day number so totals differ per page.
+    const run = (n: number): Day[] =>
+      Array.from({ length: n }, (_, i) => {
+        const d = new Date(Date.UTC(2025, 0, 1 + i));
+        return day(d.toISOString().slice(0, 10), { calls: i + 1 });
+      });
+    const firstAndLast = () => {
+      const r = bodyRows();
+      const date = (row: HTMLElement) =>
+        within(row).getByRole("rowheader").textContent;
+      return [r.length, date(r[0]), date(r[r.length - 1])] as const;
+    };
+    const next = () =>
+      fireEvent.click(screen.getByRole("button", { name: "Next 30 days" }));
+    const prev = () =>
+      fireEvent.click(screen.getByRole("button", { name: "Previous 30 days" }));
+
+    it("pages 90 days into 3 pages of 30", () => {
+      render(<DailyTable days={run(90)} />);
+      expect(firstAndLast()).toEqual([30, "2025-01-01", "2025-01-30"]);
+      expect(screen.getByText("Days 1–30 of 90")).toBeTruthy();
+      next();
+      next();
+      expect(firstAndLast()).toEqual([30, "2025-03-02", "2025-03-31"]);
+      expect(screen.getByText("Days 61–90 of 90")).toBeTruthy();
+    });
+
+    it("shows no pager for 30 days or fewer", () => {
+      render(<DailyTable days={run(30)} />);
+      expect(screen.queryByRole("navigation")).toBeNull();
+      expect(bodyRows()).toHaveLength(30);
+    });
+
+    it("shows the remainder on an uneven last page", () => {
+      render(<DailyTable days={run(45)} />);
+      next();
+      expect(bodyRows()).toHaveLength(15);
+      expect(screen.getByText("Days 31–45 of 45")).toBeTruthy();
+    });
+
+    it("disables Previous on the first page and Next on the last", () => {
+      render(<DailyTable days={run(45)} />);
+      const p = screen.getByRole("button", {
+        name: "Previous 30 days",
+      }) as HTMLButtonElement;
+      const n = screen.getByRole("button", {
+        name: "Next 30 days",
+      }) as HTMLButtonElement;
+      expect([p.disabled, n.disabled]).toEqual([true, false]);
+      next();
+      expect([p.disabled, n.disabled]).toEqual([false, true]);
+      prev();
+      expect([p.disabled, n.disabled]).toEqual([true, false]);
+    });
+
+    it("keeps the totals row covering all days on every page", () => {
+      render(<DailyTable days={run(45)} />);
+      const before = cellTexts(screen.getByTestId("totals-row"));
+      // 1 + 2 + ... + 45 = 1035 calls
+      expect(
+        within(screen.getByTestId("totals-row")).getByRole("rowheader")
+          .textContent,
+      ).toBe("Totals (all 45 days)");
+      expect(before[0]).toBe("1,035");
+      next();
+      expect(cellTexts(screen.getByTestId("totals-row"))).toEqual(before);
+    });
+
+    it("resets to page 1 when remounted with a new key", () => {
+      const { rerender } = render(<DailyTable key="a" days={run(90)} />);
+      next();
+      expect(screen.getByText("Days 31–60 of 90")).toBeTruthy();
+      rerender(<DailyTable key="b" days={run(90)} />);
+      expect(screen.getByText("Days 1–30 of 90")).toBeTruthy();
+    });
   });
 });

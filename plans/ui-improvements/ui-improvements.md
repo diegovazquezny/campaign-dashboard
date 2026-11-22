@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 merged (PR #65). T2 in review. Everything else not started.
+T1 (PR #65) and T2 (PR #67) merged. T3 in review. Everything else not started.
 
 ## PR rules
 
@@ -39,13 +39,13 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** font sizes, font styles and spacing are identical in both themes (verified by comparing computed styles light vs dark); colours differ per theme on overview and detail; toggle flips `data-theme` and persists with no white flash; title is "Campaign Dashboard"; no bare-element styling remains except the shared focus ring in `globals.css`; `npm test`, lint and `tsc` pass.
 
 ### T2 — Loading states + toggle test (U0)
-**Status:** in review · **Depends on:** T1
+**Status:** merged (PR #67) · **Depends on:** T1
 - Style `app/loading.tsx` and `app/campaigns/[id]/loading.tsx` (wrap in `<main>`, Tailwind utilities).
 - Add `components/theme-toggle.test.tsx`: label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
 - **Acceptance:** loading and error states look right in both themes; new tests pass.
 
 ### T3 — Pager + daily-table pagination (U0b)
-**Status:** not started · **Depends on:** T1
+**Status:** in review · **Depends on:** T1
 - `components/pager.tsx` (`page`, `pageCount`, `onChange`; `<nav aria-label>`, live range label, Tailwind styles) and paging in `components/daily-table.tsx` per PLAN.md §4b (30 rows, oldest first, totals row covers all days, resets on range/office change).
 - **Tests:** the six cases listed in §4b (`daily-table.test.tsx`) plus a small `pager.test.tsx`.
 - **Acceptance:** 90- and 366-day ranges page correctly; totals match the chart on every page.

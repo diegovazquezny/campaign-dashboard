@@ -124,7 +124,11 @@ export default async function CampaignDetail({
       ) : daily ? (
         <>
           <DailyChart days={daily.days} locationSelected={Boolean(location)} />
-          <DailyTable days={daily.days} locationSelected={Boolean(location)} />
+          <DailyTable
+            key={`${range.from}|${range.to}|${location ?? ""}`}
+            days={daily.days}
+            locationSelected={Boolean(location)}
+          />
         </>
       ) : null}
     </PageShell>
