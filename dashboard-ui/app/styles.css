@@ -1,0 +1,12 @@
+/*
+ * Light ("Clarity", default) and dark ("Midnight") themes, selected via <html data-theme="light|dark">.
+ * Pure CSS on the existing semantic markup. Import order is the cascade order: structure first, then
+ * each theme swaps tokens and adds a few extras. New components should use CSS Modules instead.
+ */
+@import "./styles/base.css";
+@import "./styles/filters.css";
+@import "./styles/tables.css";
+@import "./styles/chart.css";
+@import "./styles/toggle.css";
+@import "./styles/theme-light.css";
+@import "./styles/theme-dark.css";

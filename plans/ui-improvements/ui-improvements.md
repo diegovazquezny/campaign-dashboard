@@ -6,7 +6,7 @@
 
 ## Status
 
-Not started. T1 uses the U0 code that is **uncommitted in the main checkout** (`dashboard-ui/app/themes.css`, `dashboard-ui/components/theme-toggle.tsx`, `dashboard-ui/app/layout.tsx`). That code must be kept, not rewritten.
+Not started. T1 uses the U0 code that is **uncommitted in the main checkout** (`dashboard-ui/app/styles.css` + `app/styles/*.css`, `dashboard-ui/components/theme-toggle.tsx`, `dashboard-ui/app/layout.tsx`). That code must be kept, not rewritten.
 
 ## PR rules
 

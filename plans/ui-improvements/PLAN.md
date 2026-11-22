@@ -69,7 +69,7 @@ Existing API: `GET /api/meta`, `GET /api/campaigns/metrics`, `GET /api/campaigns
 
 ### Design tokens
 
-`dashboard-ui/app/themes.css` is the source of truth; this table is a summary so the plan stands alone.
+`dashboard-ui/app/styles/theme-light.css` and `theme-dark.css` are the source of truth; this table is a summary so the plan stands alone.
 
 | Token | Clarity (light) | Midnight (dark) |
 |---|---|---|
@@ -95,7 +95,7 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 
 ### Files (in the working tree, uncommitted)
 
-- `dashboard-ui/app/themes.css` — tokens per theme on `html[data-theme="light|dark"]`, plus element styling for the existing semantic markup (no component changes).
+- `dashboard-ui/app/styles.css` (imports `app/styles/*.css`: `base`, `filters`, `tables`, `chart`, `toggle`, `theme-light`, `theme-dark`) — tokens per theme on `html[data-theme="light|dark"]`, plus element styling for the existing semantic markup (no component changes).
 - `dashboard-ui/components/theme-toggle.tsx` — pill button (bottom right) that flips `data-theme` and saves the choice to `localStorage`.
 - `dashboard-ui/app/layout.tsx` — loads the CSS, renders the toggle, runs an inline pre-paint script so a saved dark choice causes no white flash, sets the title to "Campaign Dashboard".
 
@@ -112,8 +112,8 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 ### Rules for U1–U3 components
 
 - Use theme tokens only; no hard-coded colours. Verify every new component in both themes.
-- `themes.css` currently styles **bare elements** (e.g. `main > p:not([role])`, `main > table`, `figure`). New widgets must use class-scoped styles (e.g. `.card`, `.kpi`) so they don't inherit those rules by accident, and should not be bare `<p>`/`<table>` children of `<main>`.
-- New tokens are added to `themes.css` in the phase that needs them (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
+- `app/styles/*.css` currently style **bare elements** (e.g. `main > p:not([role])`, `main > table`, `figure`). New widgets must use class-scoped styles in a **CSS Module next to the component** (e.g. `kpi-cards.module.css`) so they don't inherit those rules by accident, and should not be bare `<p>`/`<table>` children of `<main>`.
+- New tokens are added to `app/styles/theme-light.css` and `theme-dark.css` in the phase that needs them (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
 
 ## 4b. U0b — Daily table pagination
 
