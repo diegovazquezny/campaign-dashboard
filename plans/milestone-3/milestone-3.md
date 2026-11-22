@@ -30,7 +30,7 @@ Same as M0–M2:
 ## PRs
 
 ### PR 1 — API types and fetch client
-**Status:** not started
+**Status:** in review (PR open)
 - `lib/api-types.ts`: `Meta`, `CampaignMetricsResponse`, `CampaignRow`, `Totals` (with `paid`), `ChannelBreakdown`, `ApiError`, mirroring §8 (also `DailyResponse`, so M4 doesn't touch this file). `Totals` has no `campaign_id`, `name`, `channel` or `channel_breakdown`, and no top-level `revenue_per_spend` or `spend_per_booking_cents` (those live in `paid`); `channel_breakdown` exists only on the "No campaign" row; `spend_cents` and the ratio fields are nullable.
 - `lib/api.ts`: `getMeta()` and `getCampaignMetrics({ from, to, locationId })`, server-side `fetch` against `API_URL` with `cache: 'no-store'` and `AbortSignal.timeout(5000)`, so a hung API becomes an error instead of a hang. A non-2xx response throws `ApiRequestError` carrying `status` and the API's `error.code`/`message`; a network failure throws the same type with `status: 0`.
 - **Tests:** a mocked `fetch` covers the query string (including omitting `location_id` when unset), a parsed success body, a 400 with the error shape, a 404, a network failure and a timeout.
