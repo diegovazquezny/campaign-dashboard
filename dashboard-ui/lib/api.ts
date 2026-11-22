@@ -1,4 +1,5 @@
 import type {
+  AccountDailyResponse,
   ApiError,
   CampaignMetricsResponse,
   DailyResponse,
@@ -94,4 +95,14 @@ export function getCampaignDaily(
     `/api/campaigns/${encodeURIComponent(id)}/daily`,
     params,
   );
+}
+
+export function getAccountDaily(args: {
+  from: string;
+  to: string;
+  locationId?: string | null;
+}): Promise<AccountDailyResponse> {
+  const params = new URLSearchParams({ from: args.from, to: args.to });
+  if (args.locationId) params.set("location_id", args.locationId);
+  return request<AccountDailyResponse>("/api/daily", params);
 }

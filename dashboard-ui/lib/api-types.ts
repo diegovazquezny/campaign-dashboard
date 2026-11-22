@@ -67,3 +67,13 @@ export type DailyResponse = {
     spend_cents: number | null;
   }[];
 };
+
+export type AccountDailyResponse = {
+  range: { from: string; to: string };
+  days: {
+    date: string;
+    calls: number;
+    booked: number;
+    revenue_cents: number;
+  }[];
+};

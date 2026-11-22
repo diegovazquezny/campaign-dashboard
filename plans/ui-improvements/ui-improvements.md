@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 (PR #65), T2 (PR #67), T3 (PR #68) and T4 (PR #73) merged. T5 in review. Everything else not started.
+T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73) and T5 (PR #74) merged. T6 in review. Everything else not started.
 
 ## PR rules
 
@@ -57,13 +57,13 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** endpoint matches PLAN.md §6 U1. Base-plan §8 is updated in T13, not here (docs stay stale until then, deliberately, so each API PR stays small).
 
 ### T5 — KPI cards (U1)
-**Status:** in review · **Depends on:** M5, T1
+**Status:** merged (PR #74) · **Depends on:** M5, T1
 - `components/kpi-cards.tsx`: Calls, Booked, Booking rate, Revenue, Revenue ÷ spend (paid only), from `totals`/`totals.paid` already fetched. Null → "—". "May be incomplete" marker when the range reaches `outcomes_may_be_incomplete_from`. Mount above the table in `app/page.tsx`; keep the existing "No calls in this range" message for an empty range.
 - **Tests:** values, nulls, empty range, freshness marker.
 - **Acceptance:** KPI values equal the table's totals row; both themes checked.
 
 ### T6 — Overview chart + page wiring (U1)
-**Status:** not started · **Depends on:** T4, T5
+**Status:** in review · **Depends on:** T4, T5
 - `getAccountDaily()` in `lib/api.ts`, `AccountDailyResponse` in `lib/api-types.ts`, `components/overview-chart.tsx` (calls line, revenue toggle, `role="img"`, caption, screen-reader summary, `--series-calls` token, shaded/noted incomplete days). Page order: header → filters → KPIs → chart → table; empty range keeps the existing message. Resolves open question 1.
 - **Tests:** chart component (series, toggle, empty, freshness).
 - **Acceptance:** chart day sums equal KPI totals; both respond to filters; both themes checked.
