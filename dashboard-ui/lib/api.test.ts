@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiRequestError, getCampaignMetrics, getMeta } from "./api";
+import {
+  ApiRequestError,
+  getCampaignDaily,
+  getCampaignMetrics,
+  getMeta,
+} from "./api";
 import type { CampaignMetricsResponse } from "./api-types";
 
 const fetchMock = vi.fn();
@@ -154,5 +159,56 @@ describe("getMeta", () => {
       status: 500,
       code: "http_error",
     });
+  });
+});
+
+describe("getCampaignDaily", () => {
+  const range = { from: "2026-09-01", to: "2026-09-02" };
+  const body = { campaign: { id: "cmp_11", name: "X" }, days: [] };
+
+  it("builds the path and query, omitting location_id when unset", async () => {
+    fetchMock.mockResolvedValue(json(body));
+    await getCampaignDaily("cmp_11", range);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "http://api.test:3001/api/campaigns/cmp_11/daily?from=2026-09-01&to=2026-09-02",
+    );
+    expect(fetchMock.mock.calls[0][1].cache).toBe("no-store");
+  });
+
+  it("maps locationId to location_id", async () => {
+    fetchMock.mockResolvedValue(json(body));
+    await getCampaignDaily("cmp_11", { ...range, locationId: "loc_03" });
+    expect(fetchMock.mock.calls[0][0]).toContain("&location_id=loc_03");
+  });
+
+  it("encodes the id in the path", async () => {
+    fetchMock.mockResolvedValue(json(body));
+    await getCampaignDaily("a/b c", range);
+    expect(fetchMock.mock.calls[0][0]).toContain("/api/campaigns/a%2Fb%20c/daily?");
+  });
+
+  it("throws the API error for a 404 and a 400", async () => {
+    fetchMock.mockResolvedValueOnce(
+      json({ error: { code: "not_found", message: "record not found" } }, 404),
+    );
+    await expect(getCampaignDaily("nope", range)).rejects.toMatchObject({
+      status: 404,
+      code: "not_found",
+      message: "record not found",
+    });
+    fetchMock.mockResolvedValueOnce(
+      json({ error: { code: "invalid_range", message: "bad range" } }, 400),
+    );
+    await expect(getCampaignDaily("cmp_11", range)).rejects.toMatchObject({
+      status: 400,
+      code: "invalid_range",
+    });
+  });
+
+  it("turns a network failure into status 0", async () => {
+    fetchMock.mockRejectedValue(new TypeError("fetch failed"));
+    const err = await getCampaignDaily("cmp_11", range).catch((e) => e);
+    expect(err).toBeInstanceOf(ApiRequestError);
+    expect(err.status).toBe(0);
   });
 });

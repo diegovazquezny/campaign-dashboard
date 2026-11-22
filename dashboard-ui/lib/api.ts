@@ -1,4 +1,9 @@
-import type { ApiError, CampaignMetricsResponse, Meta } from "./api-types";
+import type {
+  ApiError,
+  CampaignMetricsResponse,
+  DailyResponse,
+  Meta,
+} from "./api-types";
 
 export class ApiRequestError extends Error {
   readonly status: number;
@@ -77,4 +82,16 @@ export function getCampaignMetrics(args: {
   const params = new URLSearchParams({ from: args.from, to: args.to });
   if (args.locationId) params.set("location_id", args.locationId);
   return request<CampaignMetricsResponse>("/api/campaigns/metrics", params);
+}
+
+export function getCampaignDaily(
+  id: string,
+  args: { from: string; to: string; locationId?: string | null },
+): Promise<DailyResponse> {
+  const params = new URLSearchParams({ from: args.from, to: args.to });
+  if (args.locationId) params.set("location_id", args.locationId);
+  return request<DailyResponse>(
+    `/api/campaigns/${encodeURIComponent(id)}/daily`,
+    params,
+  );
 }
