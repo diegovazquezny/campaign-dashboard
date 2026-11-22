@@ -1,12 +1,13 @@
 ---
 name: pr-review
 description: >
-  Quality review of a change: is the logic right, is it safe, does it hold
-  under real load, is risky code tested, is it fast enough, and is every line
-  needed. Reads the connected code, not only the diff. Each finding is
-  explained in plain English. Use for "review this", "code review", "review
-  the last commit", "review my PR", "is this over-engineered", /ponytail-review.
+  Plain-English review of a change for correctness, safety, load, tests, speed
+  and over-engineering. Reads the connected code, not only the diff. Use for
+  "review my PR", "review the last commit", "is this over-engineered". Use
+  /code-review instead for a bug-only pass.
 ---
+
+# PR Review
 
 Review a change like the senior developer who will be paged when it breaks.
 Order of importance: correct, safe, holds under load, tested, fast, lean.
@@ -15,12 +16,18 @@ This is a report the user asked for, so give it in full.
 
 ## 0. Always review in a subagent with fresh context.
 - Never review in the main thread. Always start a subagent with the repo and branch, and the diff or PR link.
+- Tell the subagent to return the report in the exact format of section 4. When it
+  returns, show that report to the user unchanged. Do not summarize or reword it.
+- If you are already running as a subagent, you cannot start another. Review directly.
 
 ## 1. Understand first
 
 - Review what the user names: uncommitted or staged changes, a branch, a PR
-  link, or files. Nothing named: the uncommitted changes, or the last commit
-  if there are none.
+  link, or files. Get the diff with `git diff` (uncommitted), `git diff
+  main...HEAD` (a branch), or `gh pr diff <link>` (a PR).
+- Nothing named: on a non-main branch with commits ahead, use `git diff
+  main...HEAD`. Otherwise the uncommitted changes, or the last commit if there
+  are none.
 - Read the diff, then the code it touches: callers of every changed function,
   the functions it calls, the tests, the README.
 - Trace the real flow: where data comes in, what is stored, what goes out.
@@ -63,20 +70,18 @@ This is a report the user asked for, so give it in full.
   wrong result". No case, no finding.
 - Re-read the lines and confirm: the caller exists, the value can really be
   empty, the code really is unused.
-- A shortcut marked with a `shortcut:` (or older `ponytail:`) comment that names its limit is a
-  decision, not a finding, unless the expected load already crosses it.
 - Propose the smallest fix that works. Prefer fixes that delete code. Never
   add layers, frameworks or config the problem does not need.
 - No style taste, no "consider", no vague worries.
 
 ## 4. Output
 
-Post the findings as comments in the PR, inline in the code.
-
-Also show the findings in the AI harness output.
+Show the findings in the chat. Post them as inline PR comments only when the
+user gives a PR link or number and asks for comments.
 
 Very simple English: short sentences, everyday words. Explain a technical
 term the first time you use it. The reader may never have seen this code.
+Keep each part short, but always include the concrete case.
 
 Start with `What this change does:` in two or three sentences.
 
@@ -89,7 +94,9 @@ Then the findings in three groups, skip empty groups:
 Number findings across all groups, so the user can say "fix 2 and 5".
 Every finding has all four parts, each one or two short sentences:
 
-2. **Orders land on the wrong day** (`billing/close_day.py:L40-52`)
+Format example only (not a real finding):
+
+1. **Orders land on the wrong day** (`billing/close_day.py:L40-52`)
    - **What this is:** At midnight this job closes the day and bills all orders of that day.
    - **Problem:** It takes "today" from the server clock, which runs in UTC. An order placed
      at 00:30 in Berlin is billed on the day before.
@@ -99,10 +106,10 @@ Every finding has all four parts, each one or two short sentences:
 
 End with:
 - `Verdict: Ship.` or `Verdict: fix 1 and 3 first.`
-- `Lean: -<N> lines possible.` when lean findings exist.
+- `Lean: about -<N> lines possible.` (an estimate) when lean findings exist.
 - `Not checked:` one line, if something mattered and you could not check it.
 
-Nothing found: `What this change does:`, then `Looks good. Ship.` and one line
-on what you checked.
+Nothing found: `What this change does:`, then `Looks good.`, one line on what
+you checked, and `Verdict: Ship.`
 
 Lists findings, changes no code.
