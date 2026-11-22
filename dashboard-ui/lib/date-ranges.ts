@@ -5,12 +5,23 @@ export type Preset =
   | 'last_90_days'
   | 'custom';
 
-export interface ResolvedRange {
+/** A usable range: always has both dates and no error. */
+export interface ValidRange {
   preset: Preset;
+  from: string;
+  to: string;
+  error?: undefined;
+}
+
+/** An invalid custom range: whatever dates were given are echoed back. */
+export interface InvalidRange {
+  preset: 'custom';
   from?: string;
   to?: string;
-  error?: string;
+  error: string;
 }
+
+export type ResolvedRange = ValidRange | InvalidRange;
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -42,8 +53,10 @@ function toDayNumber(s: string): number | null {
   const y = Number(match[1]);
   const m = Number(match[2]);
   const d = Number(match[3]);
-  const ms = Date.UTC(y, m - 1, d);
-  const dt = new Date(ms);
+  // Date.UTC maps years 0-99 to 1900-1999, so set the full year explicitly.
+  const dt = new Date(0);
+  dt.setUTCFullYear(y, m - 1, d);
+  const ms = dt.getTime();
   if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) {
     return null;
   }
@@ -90,7 +103,9 @@ function presetRange(
 
 /**
  * Resolve URL params into a date range. `today` is a YYYY-MM-DD UTC date.
- * Never throws for bad params; bad custom ranges return `error`.
+ * Never throws for bad URL params; bad custom ranges return `error`.
+ * `today` is trusted caller input (not a URL param): an invalid value is a
+ * programming error and throws.
  */
 export function resolveRange(params: SearchParams, today: string): ResolvedRange {
   const rawPreset = first(params.preset);
@@ -102,7 +117,9 @@ export function resolveRange(params: SearchParams, today: string): ResolvedRange
 
   const from = first(params.from) || undefined;
   const to = first(params.to) || undefined;
-  const echoed: ResolvedRange = { preset: 'custom' };
+  const echoed: { preset: 'custom'; from?: string; to?: string } = {
+    preset: 'custom',
+  };
   if (from !== undefined) echoed.from = from;
   if (to !== undefined) echoed.to = to;
 

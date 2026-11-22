@@ -152,3 +152,15 @@ describe('resolveRange custom', () => {
     ).toBeTruthy();
   });
 });
+
+describe('resolveRange edge cases', () => {
+  it('accepts well-formed dates in years 0000-0099', () => {
+    expect(
+      resolveRange({ preset: 'custom', from: '0099-01-01', to: '0099-01-31' }, '2026-11-22'),
+    ).toEqual({ preset: 'custom', from: '0099-01-01', to: '0099-01-31' });
+  });
+
+  it('throws on an invalid today (caller bug, not a URL param)', () => {
+    expect(() => resolveRange({}, '2026-1-5')).toThrow(/Invalid today/);
+  });
+});
