@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -18,7 +19,16 @@ type Props = { days: Day[]; locationSelected?: boolean };
 const dollars = (v: unknown) =>
   typeof v === "number" ? formatMoney(v * 100) : "—";
 
+const exactFormat = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+export const dollarsExact = (v: unknown) =>
+  typeof v === "number" ? exactFormat.format(v) : "—";
+
 export function DailyChart({ days, locationSelected = false }: Props) {
+  const descId = useId();
+  const captionId = useId();
   const data = toChartData(days);
   const totals = sumDays(days);
   const spendName = locationSelected
@@ -32,13 +42,13 @@ export function DailyChart({ days, locationSelected = false }: Props) {
 
   return (
     <figure className="my-4">
-      <figcaption className="mb-2 text-sm font-medium">
+      <figcaption id={captionId} className="mb-2 text-sm font-medium">
         Revenue vs spend by day
       </figcaption>
       <div
         role="img"
-        aria-label="Revenue vs spend by day"
-        aria-describedby="daily-chart-desc"
+        aria-labelledby={captionId}
+        aria-describedby={descId}
         className="h-72 w-full"
       >
         <ResponsiveContainer width="100%" height="100%">
@@ -51,9 +61,9 @@ export function DailyChart({ days, locationSelected = false }: Props) {
               strokeOpacity={0.12}
               vertical={false}
             />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} minTickGap={24} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={dollars} width={64} />
-            <Tooltip formatter={(v) => dollars(v)} />
+            <XAxis dataKey="date" tick={{ fontSize: 12, fill: "currentColor" }} minTickGap={24} />
+            <YAxis tick={{ fontSize: 12, fill: "currentColor" }} tickFormatter={dollars} width={64} />
+            <Tooltip formatter={(v) => dollarsExact(v)} />
             <Legend />
             <Line
               type="monotone"
@@ -71,13 +81,13 @@ export function DailyChart({ days, locationSelected = false }: Props) {
               stroke="var(--series-spend)"
               strokeWidth={2}
               strokeDasharray="6 3"
-              dot={false}
+              dot={{ r: 2 }}
               connectNulls={false}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <p id="daily-chart-desc" className="sr-only">
+      <p id={descId} className="sr-only">
         {description}
       </p>
     </figure>
