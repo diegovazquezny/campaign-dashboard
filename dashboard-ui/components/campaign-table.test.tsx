@@ -173,4 +173,24 @@ describe("CampaignTable", () => {
       }),
     ).toBeTruthy();
   });
+
+  it("links ranked rows to the detail page with the query carried", () => {
+    render(
+      <CampaignTable
+        rows={rows}
+        totals={totals}
+        detailQuery="preset=last_30_days&location=loc1"
+      />,
+    );
+    const link = screen.getByRole("link", { name: "Beta" });
+    expect(link.getAttribute("href")).toMatch(
+      /^\/campaigns\/.+\?preset=last_30_days&location=loc1$/,
+    );
+  });
+
+  it("does not link the No campaign row", () => {
+    render(<CampaignTable rows={rows} totals={totals} />);
+    const cell = screen.getByTestId("no-campaign-row");
+    expect(cell.querySelector("a")).toBeNull();
+  });
 });
