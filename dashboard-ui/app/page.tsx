@@ -21,13 +21,9 @@ import type {
   Meta,
 } from "../lib/api-types";
 import { formatDateSpan } from "../lib/badges";
-import { resolveRange, type SearchParams } from "../lib/date-ranges";
+import { first, resolveRange, type SearchParams } from "../lib/date-ranges";
 import { aggregateChannels } from "../lib/channels";
 import { buildQuery } from "../lib/filters";
-
-function first(value: string | string[] | undefined): string | undefined {
-  return (Array.isArray(value) ? value[0] : value) || undefined;
-}
 
 function errorMessage(err: unknown): string {
   if (err instanceof ApiRequestError) return err.message;

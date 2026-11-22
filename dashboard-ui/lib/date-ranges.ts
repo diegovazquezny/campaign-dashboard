@@ -68,8 +68,9 @@ function fromDayNumber(n: number): string {
   return format(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
 }
 
-function first(v: string | string[] | undefined): string | undefined {
-  return Array.isArray(v) ? v[0] : v;
+/** The first value of a search param; an empty string counts as missing. */
+export function first(v: string | string[] | undefined): string | undefined {
+  return (Array.isArray(v) ? v[0] : v) || undefined;
 }
 
 function quarterStartMonth(m: number): number {
@@ -118,8 +119,8 @@ export function resolveRange(
     return { preset, ...presetRange(preset, today) };
   }
 
-  const from = first(params.from) || undefined;
-  const to = first(params.to) || undefined;
+  const from = first(params.from);
+  const to = first(params.to);
   const echoed: { preset: "custom"; from?: string; to?: string } = {
     preset: "custom",
   };

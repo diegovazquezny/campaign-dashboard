@@ -13,13 +13,9 @@ import { ApiRequestError, getCampaignDaily, getMeta } from "../../../lib/api";
 import type { DailyResponse, Meta } from "../../../lib/api-types";
 import { formatDateSpan } from "../../../lib/badges";
 import { dailyTableKey, hasActivity } from "../../../lib/daily";
-import { resolveRange, type SearchParams } from "../../../lib/date-ranges";
+import { first, resolveRange, type SearchParams } from "../../../lib/date-ranges";
 import { isPastEnd, loadCalls, pageCount } from "../../../lib/calls";
 import { buildQuery, pageHref, parsePage } from "../../../lib/filters";
-
-function first(value: string | string[] | undefined): string | undefined {
-  return (Array.isArray(value) ? value[0] : value) || undefined;
-}
 
 function errorMessage(err: unknown): string {
   if (err instanceof ApiRequestError) return err.message;
