@@ -12,7 +12,11 @@ API=http://localhost:3001
 WEB=http://localhost:3000
 TIMEOUT="${SMOKE_TIMEOUT:-300}"
 DOWN=0
-[ "${1:-}" = "--down" ] && DOWN=1
+case "${1:-}" in
+  "") ;;
+  --down) DOWN=1 ;;
+  *) echo "usage: scripts/smoke.sh [--down]" >&2; exit 2 ;;
+esac
 
 fail() { echo "SMOKE FAIL: $*" >&2; exit 1; }
 step() { echo "==> $*"; }
@@ -55,11 +59,16 @@ name=$(echo "$metrics" | json 'next((r["name"] for r in d["rows"] if r["campaign
   || fail "/api/campaigns/metrics returned an unexpected shape"
 [ -n "$name" ] || fail "/api/campaigns/metrics has no campaign with calls > 0 for $from to $to"
 echo "    campaign with calls: $name"
+# The page is server-rendered HTML, so the name appears escaped (e.g. & as &amp;).
+escaped=$(printf '%s' "$name" | python3 -I -c 'import html,sys; print(html.escape(sys.stdin.read()))')
 
-step "GET $WEB/"
+# Ask for the same dates as the API check: the default range (last quarter) moves with today's date.
+page="$WEB/?preset=custom&from=$from&to=$to"
+step "GET $page"
 body=$(mktemp)
-code=$(curl -sS -o "$body" -w '%{http_code}' "$WEB/") || fail "could not reach $WEB/"
-[ "$code" = 200 ] || fail "GET $WEB/ returned HTTP $code, expected 200"
-grep -qF -- "$name" "$body" || fail "GET $WEB/ returned 200 but the page does not contain campaign name '$name'"
+# The web container has no health check, so retry while it starts listening.
+code=$(curl -sS --retry 10 --retry-connrefused --retry-delay 2 -o "$body" -w '%{http_code}' "$page") || fail "could not reach $page"
+[ "$code" = 200 ] || fail "GET $page returned HTTP $code, expected 200"
+grep -qF -- "$escaped" "$body" || fail "GET $page returned 200 but the page does not contain campaign name '$name'"
 
 echo "SMOKE OK: API and dashboard are serving data."
