@@ -36,6 +36,8 @@ module Metrics
           ) ELSE FALSE END) AS is_new,
           (c.outcome IS NOT DISTINCT FROM 'booked') AS booked,
           (NOT c.answered) AS unanswered,
+          (c.outcome IS NOT DISTINCT FROM 'missed') AS missed,
+          (c.outcome IS NOT DISTINCT FROM 'voicemail') AS voicemail,
           (c.answered AND c.outcome IS NULL) AS awaiting,
           COALESCE(c.revenue_cents, 0)::bigint AS revenue_cents
         FROM calls c

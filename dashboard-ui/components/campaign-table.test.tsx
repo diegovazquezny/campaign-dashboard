@@ -45,8 +45,8 @@ const rows: CampaignRow[] = [
     spend_per_booking_cents: null,
     revenue_cents: 999999999,
     channel_breakdown: [
-      { channel: "organic", calls: 7 },
-      { channel: "direct", calls: 3 },
+      { channel: "organic", calls: 7, booked: 0, revenue_cents: 0 },
+      { channel: "direct", calls: 3, booked: 0, revenue_cents: 0 },
     ],
   }),
 ];
@@ -58,6 +58,8 @@ const totals: Totals = {
   booked: 9,
   booking_rate: 0.5,
   unanswered_rate: 0.1,
+  missed: 0,
+  voicemail: 0,
   awaiting_outcome: 2,
   revenue_cents: 500000,
   spend_cents: 250000,

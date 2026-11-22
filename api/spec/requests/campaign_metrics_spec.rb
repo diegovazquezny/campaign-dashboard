@@ -10,7 +10,7 @@ RSpec.describe "GET /api/campaigns/metrics", type: :request do
        awaiting_outcome revenue_cents spend_cents revenue_per_spend spend_per_booking_cents]
   end
   let(:total_fields) do
-    %w[calls unique_callers new_callers booked booking_rate unanswered_rate awaiting_outcome
+    %w[calls unique_callers new_callers booked booking_rate unanswered_rate missed voicemail awaiting_outcome
        revenue_cents spend_cents paid]
   end
 
@@ -50,7 +50,8 @@ RSpec.describe "GET /api/campaigns/metrics", type: :request do
 
     it "includes channel_breakdown only on the No campaign row" do
       expect(body["rows"].last).to include("name" => "No campaign",
-                                           "channel_breakdown" => [ { "channel" => "organic", "calls" => 1 } ])
+                                           "channel_breakdown" => [ { "channel" => "organic", "calls" => 1, "booked" => 0,
+                                                                    "revenue_cents" => 0 } ])
       expect(body["rows"].first(2)).to all(satisfy { |r| !r.key?("channel_breakdown") })
     end
 

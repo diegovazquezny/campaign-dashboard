@@ -72,7 +72,7 @@ RSpec.describe Metrics::CampaignMetrics do
 
       expect(last).to include(campaign_id: nil, name: "No campaign", spend_cents: nil,
                               revenue_per_spend: nil, spend_per_booking_cents: nil)
-      expect(last[:channel_breakdown]).to eq([ { "channel" => "organic", "calls" => 1 } ])
+      expect(last[:channel_breakdown]).to eq([ { "channel" => "organic", "calls" => 1, "booked" => 1, "revenue_cents" => 7_000 } ])
       expect(result.first).not_to have_key(:channel_breakdown)
     end
   end
@@ -159,7 +159,7 @@ RSpec.describe Metrics::CampaignMetrics do
       expect(result[:range]).to eq(from: from, to: to)
       expect(result[:rows].pluck(:campaign_id)).to eq(%w[cmp_01 cmp_02])
       expect(result[:totals].keys).to eq(%i[calls unique_callers new_callers booked booking_rate unanswered_rate
-                                            awaiting_outcome revenue_cents spend_cents paid])
+                                            missed voicemail awaiting_outcome revenue_cents spend_cents paid])
       expect(result[:totals][:paid].keys).to eq(%i[revenue_cents booked spend_cents revenue_per_spend spend_per_booking_cents])
     end
 
@@ -169,6 +169,35 @@ RSpec.describe Metrics::CampaignMetrics do
 
       expect(totals).to include(calls: 2, unique_callers: 1, new_callers: 1)
       expect(rows.sum { |r| r[:unique_callers] }).to eq(2)
+    end
+
+    it "splits unanswered into missed and voicemail in totals, including No campaign" do
+      build_call(campaign: paid, caller_number: "a", started_at: day(1), answered: false, outcome: "missed")
+      build_call(campaign: paid, caller_number: "b", started_at: day(2), answered: false, outcome: "voicemail")
+      build_call(campaign: nil, caller_number: "c", started_at: day(3), answered: false, outcome: "voicemail")
+      build_call(campaign: free, caller_number: "d", started_at: day(4), answered: false, outcome: "missed")
+      build_call(campaign: free, caller_number: "e", started_at: day(5))
+
+      expect(totals).to include(missed: 2, voicemail: 2, calls: 5)
+      expect(totals[:missed] + totals[:voicemail]).to eq((totals[:unanswered_rate] * totals[:calls]).round)
+      expect(rows.first).not_to have_key(:missed)
+    end
+
+    it "extends the No campaign channel_breakdown so it sums to the row totals" do
+      build_call(campaign: nil, caller_number: "a", started_at: day(1), marketing_channel: "organic",
+                 outcome: "booked", revenue_cents: 7_000)
+      build_call(campaign: nil, caller_number: "b", started_at: day(2), marketing_channel: "organic")
+      build_call(campaign: nil, caller_number: "c", started_at: day(3), marketing_channel: "direct",
+                 outcome: "booked", revenue_cents: 3_000)
+
+      row = rows.last
+      expect(row[:channel_breakdown]).to eq([
+        { "channel" => "organic", "calls" => 2, "booked" => 1, "revenue_cents" => 7_000 },
+        { "channel" => "direct", "calls" => 1, "booked" => 1, "revenue_cents" => 3_000 }
+      ])
+      expect(row[:channel_breakdown].sum { |b| b["calls"] }).to eq(row[:calls])
+      expect(row[:channel_breakdown].sum { |b| b["booked"] }).to eq(row[:booked])
+      expect(row[:channel_breakdown].sum { |b| b["revenue_cents"] }).to eq(row[:revenue_cents])
     end
 
     it "recomputes rates from summed counts rather than averaging" do

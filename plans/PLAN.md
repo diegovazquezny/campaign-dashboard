@@ -13,7 +13,7 @@
 | M4 — Campaign detail page | complete | §12, [milestone-4](archive/milestone-4/milestone-4.md) |
 | M5 — Docs + clean-checkout smoke test | complete | §12, [milestone-5](milestone-5/milestone-5.md) |
 | M6 — Stretch | not started | §12 |
-| UI improvements (after M5) | in progress (13 tasks); T1–T5 merged, T6 in review | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
+| UI improvements (after M5) | in progress (13 tasks); T1–T6 merged, T7 in review | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
 
 Update this table when a milestone's status changes. Statuses: `not started`, `in progress`, `complete`.
 
@@ -230,12 +230,12 @@ All dates `YYYY-MM-DD`; money in cents; errors as `{ "error": { "code", "message
       "revenue_cents": 2365700, "spend_cents": 240000,
       "revenue_per_spend": 9.86, "spend_per_booking_cents": 3478 }
   ],
-  "totals": { "...same fields...",
+  "totals": { "...same fields, plus missed and voicemail (missed + voicemail = unanswered)...",
     "paid": { "revenue_cents": 0, "booked": 0, "spend_cents": 0,
               "revenue_per_spend": 0.0, "spend_per_booking_cents": 0 } }
 }
 ```
-Unattributed calls appear as a row with `campaign_id: null`, `name: "No campaign"`, plus `channel_breakdown: [{ "channel": "organic", "calls": 63 }, …]` for the tooltip. `totals` include this row in counts and revenue; `totals.paid` holds the spend ratios over paid campaigns only (§7).
+Unattributed calls appear as a row with `campaign_id: null`, `name: "No campaign"`, plus `channel_breakdown: [{ "channel": "organic", "calls": 63, "booked": 20, "revenue_cents": 512000 }, …]` for the tooltip and the channel chart. `totals` include this row in counts and revenue; `totals.paid` holds the spend ratios over paid campaigns only (§7).
 
 ### `GET /api/campaigns/:id/daily?from=&to=&location_id=`
 ```json

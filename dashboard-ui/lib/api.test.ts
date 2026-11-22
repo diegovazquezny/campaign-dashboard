@@ -37,6 +37,8 @@ describe("getCampaignMetrics", () => {
       booked: 0,
       booking_rate: null,
       unanswered_rate: null,
+      missed: 0,
+      voicemail: 0,
       awaiting_outcome: 0,
       revenue_cents: 0,
       spend_cents: null,

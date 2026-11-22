@@ -22,8 +22,8 @@ module Metrics
 
     ROW_KEYS = %i[campaign_id name channel calls unique_callers new_callers booked booking_rate unanswered_rate
                   awaiting_outcome revenue_cents spend_cents revenue_per_spend spend_per_booking_cents].freeze
-    TOTAL_KEYS = %i[calls unique_callers new_callers booked booking_rate unanswered_rate awaiting_outcome
-                    revenue_cents spend_cents].freeze
+    TOTAL_KEYS = %i[calls unique_callers new_callers booked booking_rate unanswered_rate missed voicemail
+                    awaiting_outcome revenue_cents spend_cents].freeze
 
     def call(from:, to:, location_id: nil)
       rows, totals = fetch_all(from:, to:, location_id:)
@@ -77,7 +77,7 @@ module Metrics
         ),
         combined AS (
           SELECT FALSE AS is_total, campaign_id, name, channel, calls, unique_callers, new_callers, booked,
-            unanswered, awaiting_outcome, revenue_cents, spend_cents,
+            unanswered, missed, voicemail, awaiting_outcome, revenue_cents, spend_cents,
             revenue_cents AS ratio_revenue_cents, booked AS ratio_booked, channel_breakdown,
             NULL::bigint AS paid_revenue_cents, NULL::bigint AS paid_booked
           FROM spent
@@ -86,7 +86,8 @@ module Metrics
             COALESCE(sum(calls), 0)::bigint,
             (#{distinct_callers(from:, to:, location_id:)}),
             COALESCE(sum(new_callers), 0)::bigint, COALESCE(sum(booked), 0)::bigint,
-            COALESCE(sum(unanswered), 0)::bigint, COALESCE(sum(awaiting_outcome), 0)::bigint,
+            COALESCE(sum(unanswered), 0)::bigint, COALESCE(sum(missed), 0)::bigint,
+            COALESCE(sum(voicemail), 0)::bigint, COALESCE(sum(awaiting_outcome), 0)::bigint,
             COALESCE(sum(revenue_cents), 0)::bigint, sum(spend_cents)::bigint,
             COALESCE(sum(revenue_cents) FILTER (WHERE spend_cents IS NOT NULL), 0)::bigint,
             COALESCE(sum(booked) FILTER (WHERE spend_cents IS NOT NULL), 0)::bigint,
@@ -99,7 +100,7 @@ module Metrics
           is_total, campaign_id, name, channel, calls, unique_callers, new_callers, booked,
           booked::float8 / NULLIF(calls, 0) AS booking_rate,
           unanswered::float8 / NULLIF(calls, 0) AS unanswered_rate,
-          awaiting_outcome, revenue_cents, spend_cents,
+          missed, voicemail, awaiting_outcome, revenue_cents, spend_cents,
           ratio_revenue_cents::float8 / NULLIF(spend_cents, 0) AS revenue_per_spend,
           spend_cents::float8 / NULLIF(ratio_booked, 0) AS spend_per_booking_cents,
           channel_breakdown, paid_revenue_cents, paid_booked
