@@ -11,4 +11,4 @@ fi
 git config core.hooksPath .githooks
 chmod +x .githooks/*
 [ -f .env ] || cp .env.example .env
-echo "Git hooks enabled (pre-commit: api + dashboard-ui tests, pre-push: blocks pushes to main)."
+echo "Git hooks enabled (pre-commit: rubocop + eslint, pre-push: blocks pushes to main)."
