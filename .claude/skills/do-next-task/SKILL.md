@@ -10,7 +10,7 @@ This skill checks the ./plans/PLAN.md, determines which milestone is in progress
 
 ## Workflow
 1. **Gather context:** 
-   - Read only the `## Status` section of `./plans/PLAN.md`. Do not read the full file. It has a `**Current milestone:**` line and a status table. The current milestone is the one named there; its status should be `in progress` or `not started`. If the status table and the current-milestone line disagree, stop and report the mismatch.
+   - Read only the first 20 lines of `./plans/PLAN.md` (the `## Status` section). Do not read the full file. It has a `**Current milestone:**` line and a status table. The current milestone is the one named there; its status should be `in progress` or `not started`. If the status table and the current-milestone line disagree, stop and report the mismatch.
    - Read `./plans/milestone-<n>/milestone-<n>.md` for the current milestone only. Read the other sections of PLAN.md (for example §6, §7, §10) only when the task needs them, and then read only the relevant section by line range.
    - Do not read other milestone folders unless the task depends on them.
 2. **Execute task:** Follow these rules:
