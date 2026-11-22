@@ -1,6 +1,8 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { CampaignRow } from "./api-types";
-import { aggregateChannels } from "./channels";
+import { aggregateChannels, CHANNELS } from "./channels";
 
 function row(over: Partial<CampaignRow>): CampaignRow {
   return {
@@ -75,5 +77,18 @@ describe("aggregateChannels", () => {
 
   it("returns nothing for no calls", () => {
     expect(aggregateChannels([])).toEqual([]);
+  });
+});
+
+describe("CHANNELS colours", () => {
+  it.each(["light", "dark"])("defines every token in the %s theme", (theme) => {
+    const css = readFileSync(
+      join(__dirname, `../app/styles/theme-${theme}.css`),
+      "utf8",
+    );
+    for (const { color } of CHANNELS) {
+      const name = color.slice(4, -1); // var(--x) -> --x
+      expect(css).toContain(`${name}:`);
+    }
   });
 });
