@@ -85,3 +85,34 @@ export type AccountDailyResponse = {
     revenue_cents: number;
   }[];
 };
+
+// GET /api/calls (U3a). `outcome: null` with `answered: true` means awaiting outcome.
+export type CallRow = {
+  call_id: string;
+  started_at: string;
+  ended_at: string;
+  local_date: string;
+  timezone: string;
+  duration_seconds: number;
+  answered: boolean;
+  outcome:
+    | "booked"
+    | "qualified_lead"
+    | "not_qualified"
+    | "missed"
+    | "voicemail"
+    | null;
+  revenue_cents: number | null;
+  agent_id: string | null;
+  tracking_number: string;
+  campaign: { id: string; name: string } | null;
+  channel: string;
+  location: { id: string; name: string };
+};
+
+export type CallsResponse = {
+  page: number;
+  page_size: number;
+  total: number;
+  calls: CallRow[];
+};

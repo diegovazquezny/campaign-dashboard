@@ -1,6 +1,7 @@
 import type {
   AccountDailyResponse,
   ApiError,
+  CallsResponse,
   CampaignMetricsResponse,
   DailyResponse,
   Meta,
@@ -105,4 +106,22 @@ export function getAccountDaily(args: {
   const params = new URLSearchParams({ from: args.from, to: args.to });
   if (args.locationId) params.set("location_id", args.locationId);
   return request<AccountDailyResponse>("/api/daily", params);
+}
+
+/** `campaignId` is a campaign id or "none" (calls with no campaign). */
+export function getCalls(args: {
+  from: string;
+  to: string;
+  campaignId: string;
+  locationId?: string | null;
+  page?: number;
+}): Promise<CallsResponse> {
+  const params = new URLSearchParams({
+    from: args.from,
+    to: args.to,
+    campaign_id: args.campaignId,
+  });
+  if (args.locationId) params.set("location_id", args.locationId);
+  if (args.page && args.page > 1) params.set("page", String(args.page));
+  return request<CallsResponse>("/api/calls", params);
 }

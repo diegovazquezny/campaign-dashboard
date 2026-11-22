@@ -72,3 +72,30 @@ const exactFormat = new Intl.NumberFormat("en-US", {
 // Whole-dollar-and-cents amount for chart tooltips, e.g. 125.5 -> "$125.50".
 export const dollarsExact = (v: unknown) =>
   typeof v === "number" ? exactFormat.format(v) : EMPTY;
+
+// Seconds as "45s", "2m 05s" or "1h 02m".
+export function formatDuration(seconds: Maybe): string {
+  if (!isUsable(seconds) || seconds < 0) return EMPTY;
+  const total = Math.round(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const two = (n: number) => String(n).padStart(2, "0");
+  if (h > 0) return `${h}h ${two(m)}m`;
+  if (m > 0) return `${m}m ${two(s)}s`;
+  return `${s}s`;
+}
+
+// An ISO instant in the given IANA zone, with its abbreviation: "Sep 2, 10:00 AM CDT".
+export function formatCallTime(iso: string, timeZone: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return EMPTY;
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(date);
+}

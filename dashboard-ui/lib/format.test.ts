@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { formatCallTime, formatDuration } from "./format";
 import { formatCount, formatMoney, formatPercent, formatRatio } from "./format";
 
 const formatters = [formatCount, formatMoney, formatPercent, formatRatio];
@@ -71,5 +72,37 @@ describe("rounding of half values", () => {
     expect(formatRatio(1.005)).toBe("1.01×");
     expect(formatRatio(-0.001)).toBe("0.00×");
     expect(formatPercent(-0.00001)).toBe("0.0%");
+  });
+});
+
+describe("formatDuration", () => {
+  it("formats seconds, minutes and hours", () => {
+    expect(formatDuration(0)).toBe("0s");
+    expect(formatDuration(45)).toBe("45s");
+    expect(formatDuration(125)).toBe("2m 05s");
+    expect(formatDuration(3720)).toBe("1h 02m");
+  });
+  it("shows a dash for missing or negative input", () => {
+    expect(formatDuration(null)).toBe("—");
+    expect(formatDuration(-1)).toBe("—");
+  });
+});
+
+describe("formatCallTime", () => {
+  it("uses the office zone and shows its abbreviation", () => {
+    expect(formatCallTime("2026-09-02T15:00:00Z", "America/Chicago")).toBe(
+      "Sep 2, 10:00 AM CDT",
+    );
+    expect(formatCallTime("2026-09-02T15:00:00Z", "America/Los_Angeles")).toBe(
+      "Sep 2, 8:00 AM PDT",
+    );
+  });
+  it("can land on the previous local day", () => {
+    expect(formatCallTime("2026-09-02T02:00:00Z", "America/New_York")).toBe(
+      "Sep 1, 10:00 PM EDT",
+    );
+  });
+  it("shows a dash for an invalid instant", () => {
+    expect(formatCallTime("nope", "America/Chicago")).toBe("—");
   });
 });
