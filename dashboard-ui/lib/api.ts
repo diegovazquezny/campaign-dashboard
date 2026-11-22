@@ -12,9 +12,26 @@ export class ApiRequestError extends Error {
   }
 }
 
+function transportError(
+  err: unknown,
+  fallbackCode: string,
+  status = 0,
+): ApiRequestError {
+  if ((err as { name?: string } | null)?.name === "TimeoutError") {
+    return new ApiRequestError(0, "timeout", "API request timed out");
+  }
+  return new ApiRequestError(
+    status,
+    fallbackCode,
+    status === 0
+      ? "Could not reach the API"
+      : "API returned an invalid response",
+  );
+}
+
 async function request<T>(path: string, params?: URLSearchParams): Promise<T> {
   // Read at call time, not module load, so runtime env is honored.
-  const apiUrl = process.env.API_URL ?? "http://localhost:3001";
+  const apiUrl = process.env.API_URL || "http://localhost:3001";
   const query = params ? `?${params}` : "";
 
   let res: Response;
@@ -24,12 +41,7 @@ async function request<T>(path: string, params?: URLSearchParams): Promise<T> {
       signal: AbortSignal.timeout(5000),
     });
   } catch (err) {
-    const timedOut = (err as { name?: string } | null)?.name === "TimeoutError";
-    throw new ApiRequestError(
-      0,
-      timedOut ? "timeout" : "network_error",
-      timedOut ? "API request timed out" : "Could not reach the API",
-    );
+    throw transportError(err, "network_error");
   }
 
   if (!res.ok) {
@@ -45,7 +57,12 @@ async function request<T>(path: string, params?: URLSearchParams): Promise<T> {
     throw new ApiRequestError(res.status, code, message);
   }
 
-  return (await res.json()) as T;
+  try {
+    return (await res.json()) as T;
+  } catch (err) {
+    // Timeout mid-body, or a 200 whose body is not valid JSON.
+    throw transportError(err, "invalid_response", res.status);
+  }
 }
 
 export function getMeta(): Promise<Meta> {

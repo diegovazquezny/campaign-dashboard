@@ -70,15 +70,42 @@ describe("getCampaignMetrics", () => {
 
   it("throws ApiRequestError with the API error shape on 400", async () => {
     fetchMock.mockResolvedValue(
-      json({ error: { code: "invalid_range", message: "from after to" } }, 400),
+      json({ error: { code: "bad_request", message: "from after to" } }, 400),
     );
     const err = await getCampaignMetrics(range).catch((e) => e);
     expect(err).toBeInstanceOf(ApiRequestError);
     expect(err).toMatchObject({
       status: 400,
-      code: "invalid_range",
+      code: "bad_request",
       message: "from after to",
     });
+  });
+
+  it("throws invalid_response on a 200 with a non-JSON body", async () => {
+    fetchMock.mockResolvedValue(new Response("<html>", { status: 200 }));
+    const err = await getCampaignMetrics(range).catch((e) => e);
+    expect(err).toBeInstanceOf(ApiRequestError);
+    expect(err).toMatchObject({ status: 200, code: "invalid_response" });
+  });
+
+  it("throws status 0 timeout when the body read times out", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.reject(new DOMException("signal timed out", "TimeoutError")),
+    });
+    const err = await getCampaignMetrics(range).catch((e) => e);
+    expect(err).toBeInstanceOf(ApiRequestError);
+    expect(err).toMatchObject({ status: 0, code: "timeout" });
+  });
+
+  it("falls back to localhost when API_URL is empty", async () => {
+    vi.stubEnv("API_URL", "");
+    fetchMock.mockResolvedValue(json(body));
+    await getCampaignMetrics(range);
+    expect(fetchMock.mock.calls[0][0]).toMatch(/^http:\/\/localhost:3001\//);
+    vi.unstubAllEnvs();
   });
 
   it("throws ApiRequestError on 404", async () => {
