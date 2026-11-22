@@ -77,6 +77,41 @@ describe("resolveRange presets", () => {
     );
   });
 
+  it("last_month is the previous calendar month", () => {
+    const lm = (today: string) => resolveRange({ preset: "last_month" }, today);
+    expect(lm("2026-11-22")).toEqual({
+      preset: "last_month",
+      from: "2026-10-01",
+      to: "2026-10-31",
+    });
+    // First day of a month still means the month before.
+    expect(lm("2026-12-01")).toMatchObject({
+      from: "2026-11-01",
+      to: "2026-11-30",
+    });
+    // January rolls back to December of the previous year.
+    expect(lm("2026-01-15")).toMatchObject({
+      from: "2025-12-01",
+      to: "2025-12-31",
+    });
+    // February length, leap and non-leap.
+    expect(lm("2024-03-01")).toMatchObject({
+      from: "2024-02-01",
+      to: "2024-02-29",
+    });
+    expect(lm("2026-03-31")).toMatchObject({
+      from: "2026-02-01",
+      to: "2026-02-28",
+    });
+    // Ignores from/to.
+    expect(
+      resolveRange(
+        { preset: "last_month", from: "2020-01-01", to: "2020-01-02" },
+        "2026-11-22",
+      ),
+    ).toEqual({ preset: "last_month", from: "2026-10-01", to: "2026-10-31" });
+  });
+
   it("last_30_days and last_90_days are inclusive", () => {
     expect(resolveRange({ preset: "last_30_days" }, "2026-11-22")).toEqual({
       preset: "last_30_days",

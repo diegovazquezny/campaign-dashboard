@@ -64,6 +64,17 @@ test('preset click pushes the query and keeps the location', () => {
   expect(push).toHaveBeenCalledWith('/?preset=last_30_days&location=l1');
 });
 
+test('Last month sits after This quarter and pushes preset=last_month', () => {
+  search = 'location=l1';
+  render(<FilterBar meta={meta} range={quarter} />);
+  const names = screen
+    .getAllByRole('button')
+    .map((b) => b.textContent);
+  expect(names.indexOf('Last month')).toBe(names.indexOf('This quarter') + 1);
+  fireEvent.click(screen.getByRole('button', { name: 'Last month' }));
+  expect(push).toHaveBeenCalledWith('/?preset=last_month&location=l1');
+});
+
 test('location change pushes the query', () => {
   render(<FilterBar meta={meta} range={quarter} />);
   fireEvent.change(screen.getByLabelText('Office'), {
