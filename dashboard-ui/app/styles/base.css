@@ -1,5 +1,5 @@
 /* ---------- Shared structure ---------- */
-html[data-theme] body {
+body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-body);
@@ -7,7 +7,7 @@ html[data-theme] body {
   line-height: 1.5;
 }
 
-html[data-theme] main {
+main {
   width: 100%;
   max-width: 1480px;
   margin: 0 auto;
@@ -17,7 +17,7 @@ html[data-theme] main {
   gap: 16px;
 }
 
-html[data-theme] h1 {
+h1 {
   font-family: var(--font-heading);
   font-size: var(--h1-size);
   font-weight: var(--h1-weight);
@@ -27,32 +27,32 @@ html[data-theme] h1 {
 }
 
 /* data-coverage + status messages */
-html[data-theme] header {
+header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
 }
-html[data-theme] header > p {
+header > p {
   margin: 0;
   font-size: 13px;
   color: var(--muted);
 }
-html[data-theme] header > p:first-child {
+header > p:first-child {
   background: var(--chip-bg);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 3px 12px;
 }
-html[data-theme] header > p[role="status"] {
+header > p[role="status"] {
   background: var(--warn-bg);
   color: var(--warn-fg);
   border: 1px solid var(--warn-border);
   border-radius: 999px;
   padding: 3px 12px;
 }
-html[data-theme] main > p[role="alert"],
-html[data-theme] main > p:not([role]) {
+main > p[role="alert"],
+main > p:not([role]) {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -60,20 +60,20 @@ html[data-theme] main > p:not([role]) {
   color: var(--muted);
   margin: 0;
 }
-html[data-theme] main > p[role="alert"] {
+main > p[role="alert"] {
   color: var(--bad);
   border-color: var(--bad);
 }
 
 /* back link */
-html[data-theme] main > a {
+main > a {
   align-self: flex-start;
   color: var(--muted);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
 }
-html[data-theme] main > a:hover {
+main > a:hover {
   color: var(--accent);
 }
 

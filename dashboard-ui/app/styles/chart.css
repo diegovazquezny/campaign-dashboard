@@ -1,5 +1,5 @@
 /* ---------- Chart ---------- */
-html[data-theme] figure {
+figure {
   margin: 0;
   background: var(--card);
   border: 1px solid var(--border);
@@ -7,19 +7,19 @@ html[data-theme] figure {
   box-shadow: var(--shadow);
   padding: 20px 20px 8px;
 }
-html[data-theme] figcaption {
+figcaption {
   font-family: var(--font-heading);
   font-size: 15px;
   font-weight: 600;
   color: var(--fg);
 }
-html[data-theme] .recharts-default-tooltip {
+.recharts-default-tooltip {
   background: var(--card) !important;
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
   box-shadow: var(--shadow) !important;
 }
-html[data-theme] .recharts-legend-item-text {
+.recharts-legend-item-text {
   color: var(--muted) !important;
 }
 

@@ -1,5 +1,5 @@
 /* ---------- Tables ---------- */
-html[data-theme] main > table {
+main > table {
   width: 100%;
   background: var(--card);
   border: 1px solid var(--border);
@@ -10,19 +10,19 @@ html[data-theme] main > table {
 }
 /* Round the corners on the cells, not with overflow:hidden, which would
    clip wide tables and stop the sticky header from sticking. */
-html[data-theme] main > table > :first-child > tr:first-child > :first-child {
+main > table > :first-child > tr:first-child > :first-child {
   border-top-left-radius: var(--radius-lg);
 }
-html[data-theme] main > table > :first-child > tr:first-child > :last-child {
+main > table > :first-child > tr:first-child > :last-child {
   border-top-right-radius: var(--radius-lg);
 }
-html[data-theme] main > table > :last-child > tr:last-child > :first-child {
+main > table > :last-child > tr:last-child > :first-child {
   border-bottom-left-radius: var(--radius-lg);
 }
-html[data-theme] main > table > :last-child > tr:last-child > :last-child {
+main > table > :last-child > tr:last-child > :last-child {
   border-bottom-right-radius: var(--radius-lg);
 }
-html[data-theme] thead th {
+thead th {
   position: sticky;
   top: 0;
   background: var(--thead-bg);
@@ -37,11 +37,11 @@ html[data-theme] thead th {
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
-html[data-theme] thead th:first-child,
-html[data-theme] thead tr:has(th:nth-child(13)) th:nth-child(2) {
+thead th:first-child,
+thead tr:has(th:nth-child(13)) th:nth-child(2) {
   text-align: left;
 }
-html[data-theme] thead th button {
+thead th button {
   appearance: none;
   border: 0;
   background: transparent;
@@ -56,62 +56,62 @@ html[data-theme] thead th button {
   white-space: normal;
   line-height: 1.25;
 }
-html[data-theme] thead th button:hover {
+thead th button:hover {
   color: var(--fg);
 }
-html[data-theme] thead th[aria-sort="ascending"],
-html[data-theme] thead th[aria-sort="descending"] {
+thead th[aria-sort="ascending"],
+thead th[aria-sort="descending"] {
   color: var(--accent);
 }
-html[data-theme] thead th:not(:has(button)) {
+thead th:not(:has(button)) {
   padding: var(--cell-y) var(--cell-x);
 }
 
-html[data-theme] td,
-html[data-theme] tbody th,
-html[data-theme] tfoot th {
+td,
+tbody th,
+tfoot th {
   padding: var(--cell-y) var(--cell-x);
   text-align: right;
   font-variant-numeric: tabular-nums;
   border-bottom: 1px solid var(--row-border);
 }
-html[data-theme] tbody th[scope="row"] {
+tbody th[scope="row"] {
   text-align: left;
   font-weight: 500;
 }
-html[data-theme] tbody tr > td:first-child,
-html[data-theme] tbody tr > td:first-child + td {
+tbody tr > td:first-child,
+tbody tr > td:first-child + td {
   text-align: left;
 }
 /* detail table: second column is numeric, not a label */
-html[data-theme] tbody tr > th + td {
+tbody tr > th + td {
   text-align: right;
 }
-html[data-theme] tbody tr:hover {
+tbody tr:hover {
   background: var(--row-hover);
 }
-html[data-theme] tbody tr > td:first-child a {
+tbody tr > td:first-child a {
   color: var(--fg);
   font-weight: 600;
   text-decoration: none;
 }
-html[data-theme] tbody tr > td:first-child a:hover {
+tbody tr > td:first-child a:hover {
   color: var(--accent);
   text-decoration: underline;
 }
 /* channel as a pill */
-html[data-theme] tbody tr > td:first-child + td {
+tbody tr > td:first-child + td {
   color: var(--muted);
   font-size: 12px;
 }
-html[data-theme] tfoot th,
-html[data-theme] tfoot td {
+tfoot th,
+tfoot td {
   background: var(--thead-bg);
   font-weight: 700;
   border-bottom: 0;
   border-top: 1px solid var(--border);
 }
-html[data-theme] tfoot th {
+tfoot th {
   text-align: left;
   color: var(--muted);
   font-weight: 600;
