@@ -58,3 +58,8 @@ export function formatRatio(ratio: Maybe): string {
   if (!isUsable(ratio)) return EMPTY;
   return `${ratioFormat.format(ratio)}×`;
 }
+
+// Header text for the spend column, shared by the overview and daily tables.
+export const SPEND_LABEL = "Budgeted spend (est.)";
+export const SPEND_LOCATION_LABEL =
+  "Budgeted spend (est.), allocated by call share";

@@ -7,6 +7,8 @@ import {
   formatMoney,
   formatPercent,
   formatRatio,
+  SPEND_LABEL,
+  SPEND_LOCATION_LABEL,
 } from "../lib/format";
 import {
   isTextSortKey,
@@ -27,9 +29,6 @@ type Column = {
   tip?: string;
   cell: (row: CampaignRow) => string;
 };
-
-const SPEND_LABEL = "Budgeted spend (est.)";
-const SPEND_LOCATION_LABEL = "Budgeted spend (est.), allocated by call share";
 
 const COLUMNS: Column[] = [
   { key: "name", label: "Campaign", cell: (r) => r.name },
