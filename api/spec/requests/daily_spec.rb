@@ -31,6 +31,15 @@ RSpec.describe "GET /api/daily", type: :request do
     expect(body["days"].third["calls"]).to eq(1)
   end
 
+  it "buckets by the office's local date, not the UTC date" do
+    # 02:00 UTC on 09-02 is 22:00 on 09-01 in New York.
+    build_call(caller_number: "late", started_at: Time.utc(2026, 9, 2, 2))
+    get path, params: params
+
+    expect(body["days"].first["calls"]).to eq(2)
+    expect(body["days"].second["calls"]).to eq(0)
+  end
+
   it "applies the office filter" do
     get path, params: params.merge(location_id: "loc_02")
 
