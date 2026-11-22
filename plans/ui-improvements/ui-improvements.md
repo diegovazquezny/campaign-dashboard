@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 in review (PR #65). Everything else not started.
+T1 merged (PR #65). T2 in review. Everything else not started.
 
 ## PR rules
 
@@ -31,7 +31,7 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 ## Tasks
 
 ### T1 — Theme, styled with Tailwind (U0)
-**Status:** in review · **Depends on:** nothing
+**Status:** merged (PR #65) · **Depends on:** nothing
 - Light ("Clarity") and dark ("Midnight") themes with a toggle, **styled entirely with Tailwind utilities** (decision: Tailwind-first everywhere, no CSS Modules, no bare-element CSS). Started from the uncommitted U0 code, then converted.
 - Tokens: `app/styles/typography.css` (type and spacing, **identical in both themes**) plus `theme-light.css` and `theme-dark.css` (colours, radius, shadow; variables on `html[data-theme]`), imported via `app/styles.css`, and mapped to utilities in `app/globals.css` (`@theme inline`, plus a `dark:` variant tied to `data-theme`).
 - Components converted to utilities: `campaign-table`, `daily-table`, `daily-chart` (Recharts styles passed as props), `filter-bar`, `page-header`, `back-link`, `theme-toggle`, page shells. New shared pieces: `components/table-styles.ts`, `page-shell.tsx`, `page-title.tsx`, `notice.tsx`.
@@ -39,7 +39,7 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** font sizes, font styles and spacing are identical in both themes (verified by comparing computed styles light vs dark); colours differ per theme on overview and detail; toggle flips `data-theme` and persists with no white flash; title is "Campaign Dashboard"; no bare-element styling remains except the shared focus ring in `globals.css`; `npm test`, lint and `tsc` pass.
 
 ### T2 — Loading states + toggle test (U0)
-**Status:** not started · **Depends on:** T1
+**Status:** in review · **Depends on:** T1
 - Style `app/loading.tsx` and `app/campaigns/[id]/loading.tsx` (wrap in `<main>`, Tailwind utilities).
 - Add `components/theme-toggle.test.tsx`: label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
 - **Acceptance:** loading and error states look right in both themes; new tests pass.
