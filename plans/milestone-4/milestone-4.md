@@ -28,7 +28,7 @@ Same as M0–M3:
 ## PRs
 
 ### PR 1 — Daily fetch client and helpers
-**Status:** not started
+**Status:** complete (#53)
 - `lib/api.ts`: `getCampaignDaily(id, { from, to, locationId })`, same pattern as `getCampaignMetrics` (`cache: 'no-store'`, 5 s timeout, `ApiRequestError`). The id is `encodeURIComponent`ed. PR 5 must confirm in the bundled Next docs whether `params.id` arrives decoded, so ids with special characters are not double-encoded; PR 1/PR 2 tests cover the encoded path and PR 5 covers the page.
 - `lib/daily.ts` (pure): `sumDays(days)` → `{ calls, booked, revenue_cents, spend_cents }` (`spend_cents` null only when every day is null), `hasActivity(days)` (any call), and `toChartData(days)` (adds `revenue_dollars` and `spend_dollars`, where a null spend stays null so the chart shows a gap rather than 0).
 - **Tests:** query string (omits `location_id` when unset), the encoded path, a 404 and 400 error shape, a network failure; `sumDays` with all-null, mixed and empty input; `toChartData` keeps null; `hasActivity`.
@@ -36,7 +36,7 @@ Same as M0–M3:
 - Depends on M3 only.
 
 ### PR 2 — Detail link helper and back link
-**Status:** not started
+**Status:** in progress
 - `lib/filters.ts`: `detailHref(campaignId, query)` → `/campaigns/<id>?<query>` (id encoded; the given query string is used as is, empty query gives no `?`; callers build it with `buildQuery`) and `overviewHref(query)`. `components/back-link.tsx`: "← All campaigns" using `overviewHref`.
 - **Tests:** both helpers (ids with special characters, empty query, preserved `preset`/`from`/`to`/`location`); the back link renders the right `href`.
 - **Check:** `npm test`.

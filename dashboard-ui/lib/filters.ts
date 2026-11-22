@@ -50,3 +50,17 @@ export function buildQuery(
   if (next.location) params.set('location', next.location);
   return params.toString();
 }
+
+function withQuery(path: string, query: string): string {
+  return query ? `${path}?${query}` : path;
+}
+
+/** `/campaigns/<id>?<query>`; the id is encoded, the query is used as is. */
+export function detailHref(campaignId: string, query: string): string {
+  return withQuery(`/campaigns/${encodeURIComponent(campaignId)}`, query);
+}
+
+/** `/?<query>`; the query is used as is. */
+export function overviewHref(query: string): string {
+  return withQuery('/', query);
+}
