@@ -1,9 +1,10 @@
-// A message card: empty states, loading and errors. role="alert" renders in the error colour.
+// A message card: empty states, loading and errors. role="alert" renders in the error colour;
+// role="status" announces loading to screen readers without it.
 export function Notice({
   role,
   children,
 }: {
-  role?: "alert";
+  role?: "alert" | "status";
   children: React.ReactNode;
 }) {
   return (

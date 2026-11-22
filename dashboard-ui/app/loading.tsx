@@ -4,7 +4,7 @@ import { PageShell } from "../components/page-shell";
 export default function Loading() {
   return (
     <PageShell>
-      <Notice>Loading…</Notice>
+      <Notice role="status">Loading…</Notice>
     </PageShell>
   );
 }
