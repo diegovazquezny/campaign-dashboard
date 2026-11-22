@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { sumDays, toChartData, type Day } from "../lib/daily";
-import { formatMoney } from "../lib/format";
+import { formatMoney, SPEND_LABEL, SPEND_LOCATION_LABEL } from "../lib/format";
 
 type Props = { days: Day[]; locationSelected?: boolean };
 
@@ -31,9 +31,7 @@ export function DailyChart({ days, locationSelected = false }: Props) {
   const captionId = useId();
   const data = toChartData(days);
   const totals = sumDays(days);
-  const spendName = locationSelected
-    ? "Budgeted spend (est.), allocated by call share"
-    : "Budgeted spend (est.)";
+  const spendName = locationSelected ? SPEND_LOCATION_LABEL : SPEND_LABEL;
   const first = days[0]?.date;
   const last = days[days.length - 1]?.date;
   const description = `Daily revenue and budgeted spend in dollars${
