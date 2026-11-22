@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 (PR #65), T2 (PR #67) and T3 (PR #68) merged. T4 in review. Everything else not started.
+T1 (PR #65), T2 (PR #67), T3 (PR #68) and T4 (PR #73) merged. T5 in review. Everything else not started.
 
 ## PR rules
 
@@ -51,13 +51,13 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** 90- and 366-day ranges page correctly; totals match the chart on every page.
 
 ### T4 — `GET /api/daily` (U1 backend)
-**Status:** in review · **Depends on:** M5
+**Status:** merged (PR #73) · **Depends on:** M5
 - Extract the date-series + `CallFacts` aggregation out of `campaign_daily.rb` into a shared helper used by both; add the endpoint, route and controller. Response `{ range, days: [{ date, calls, booked, revenue_cents }] }`, zero-filled, includes "No campaign", no spend.
 - **Specs:** zero-fill, office filter, "No campaign" included, day sums = metrics `totals`, invalid range 400, unknown location 404; existing `campaign_daily` specs still pass.
 - **Acceptance:** endpoint matches PLAN.md §6 U1. Base-plan §8 is updated in T13, not here (docs stay stale until then, deliberately, so each API PR stays small).
 
 ### T5 — KPI cards (U1)
-**Status:** not started · **Depends on:** M5, T1
+**Status:** in review · **Depends on:** M5, T1
 - `components/kpi-cards.tsx`: Calls, Booked, Booking rate, Revenue, Revenue ÷ spend (paid only), from `totals`/`totals.paid` already fetched. Null → "—". "May be incomplete" marker when the range reaches `outcomes_may_be_incomplete_from`. Mount above the table in `app/page.tsx`; keep the existing "No calls in this range" message for an empty range.
 - **Tests:** values, nulls, empty range, freshness marker.
 - **Acceptance:** KPI values equal the table's totals row; both themes checked.
