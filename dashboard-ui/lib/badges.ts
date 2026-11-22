@@ -30,11 +30,42 @@ const MONTHS = [
   "Dec",
 ];
 
-// "2026-09-01" -> "Sep 1"; string parsing only, no Date/local time.
-export function formatShortDate(iso: string): string {
+// "2026-09-01" -> "Sep 1" (or "Sep 1, 2026" with includeYear); string parsing
+// only, no Date/local time. Invalid months/days are returned unchanged.
+export function formatShortDate(iso: string, includeYear = false): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
   if (!m) return iso;
-  const month = MONTHS[Number(m[2]) - 1];
+  const year = Number(m[1]);
+  const monthIdx = Number(m[2]) - 1;
+  const day = Number(m[3]);
+  const month = MONTHS[monthIdx];
   if (!month) return iso;
-  return `${month} ${Number(m[3])}`;
+  const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  const daysInMonth = [
+    31,
+    leap ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ][monthIdx];
+  if (day < 1 || day > daysInMonth) return iso;
+  return includeYear ? `${month} ${day}, ${year}` : `${month} ${day}`;
+}
+
+// Years are shown when the span crosses years or isn't in the current year.
+export function formatDateSpan(
+  from: string,
+  to: string,
+  currentYear: number,
+): string {
+  const fy = from.slice(0, 4);
+  const withYear = fy !== to.slice(0, 4) || fy !== String(currentYear);
+  return `${formatShortDate(from, withYear)} – ${formatShortDate(to, withYear)}`;
 }

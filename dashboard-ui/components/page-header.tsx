@@ -1,33 +1,43 @@
 import type { Meta } from "../lib/api-types";
-import { formatShortDate, freshnessWarning, partialRange } from "../lib/badges";
+import {
+  formatDateSpan,
+  formatShortDate,
+  freshnessWarning,
+  partialRange,
+} from "../lib/badges";
 
 type Props = {
   coverage: Meta["data_coverage"];
   freshness: Meta["freshness"];
   range: { from: string; to: string };
+  // Used only to decide whether to show years; defaults to now.
+  today?: Date;
 };
 
-export function PageHeader({ coverage, freshness, range }: Props) {
+// The page (app/page.tsx) owns the single <h1>; this header renders none.
+export function PageHeader({
+  coverage,
+  freshness,
+  range,
+  today = new Date(),
+}: Props) {
   const coverageText = coverage
-    ? `${formatShortDate(coverage.from)} – ${formatShortDate(coverage.to)}`
+    ? formatDateSpan(coverage.from, coverage.to, today.getFullYear())
     : null;
   return (
     <header>
-      <h1>Campaign dashboard</h1>
-      {coverageText ? (
-        <p>Data covers {coverageText}</p>
-      ) : (
-        <p>No data loaded</p>
-      )}
-      {freshness && freshnessWarning(range, freshness) && (
+      {coverageText ? <p>Data covers {coverageText}</p> : <p>No data loaded</p>}
+      {coverageText && freshness && freshnessWarning(range, freshness) && (
         <p role="status">
-          Outcomes can take up to 3 days to arrive; bookings and revenue after{" "}
-          {formatShortDate(freshness.outcomes_may_be_incomplete_from)} may be
-          incomplete.
+          Bookings and revenue from{" "}
+          {formatShortDate(freshness.outcomes_may_be_incomplete_from)} onward
+          may be incomplete.
         </p>
       )}
       {coverageText && partialRange(range, coverage) && (
-        <p role="status">Data covers {coverageText}.</p>
+        <p role="status">
+          Selected range extends outside available data (covers {coverageText}).
+        </p>
       )}
     </header>
   );

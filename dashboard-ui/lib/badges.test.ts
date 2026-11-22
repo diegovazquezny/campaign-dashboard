@@ -7,6 +7,16 @@ const fresh = {
   outcomes_may_be_incomplete_from: "2026-10-29",
 };
 
+describe("formatShortDate year and day validation", () => {
+  it("includes year on request and rejects impossible days", () => {
+    expect(formatShortDate("2026-09-01", true)).toBe("Sep 1, 2026");
+    expect(formatShortDate("2026-02-31")).toBe("2026-02-31");
+    expect(formatShortDate("2024-02-29")).toBe("Feb 29");
+    expect(formatShortDate("2026-02-29")).toBe("2026-02-29");
+    expect(formatShortDate("2026-04-00")).toBe("2026-04-00");
+  });
+});
+
 describe("formatShortDate", () => {
   it("formats without local time", () => {
     expect(formatShortDate("2026-09-01")).toBe("Sep 1");
