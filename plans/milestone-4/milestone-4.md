@@ -58,7 +58,7 @@ Same as M0–M3:
 - Depends on PR 1 (`toChartData`). Parallel with PR 3.
 
 ### PR 5 — Detail page
-**Status:** in progress
+**Status:** complete (#58)
 - `app/campaigns/[id]/page.tsx` (server component): `resolveRange` → if valid, `getMeta()` and `getCampaignDaily()` run independently, each wrapped as `{value}|{err}` as in `app/page.tsx`, so a daily 404 keeps the filter bar and does not refetch meta. The page calls `await connection()`. If `getMeta()` fails, render the `<h1>` plus an alert only, as M3 does. An invalid custom range passes `freshness={null}` and the meta coverage to `PageHeader`, as M3 does → `BackLink`, the page's own `<h1>{daily.campaign.name}</h1>` (`PageHeader` has no title prop and renders no `<h1>`; on an error or 404 there is no name, so use a generic "Campaign" heading), `PageHeader`, `FilterBar`, `DailyChart`, `DailyTable`.
 - States, as on `/`: an invalid custom range renders the filter bar with its error and makes no API call; an `ApiRequestError` (404 unknown campaign or office, 400) renders `error.message` inline with the filter bar usable; no calls in range (`!hasActivity`) shows (consistent with the overview's `totals.calls === 0`, so a campaign with spend but no calls also shows it) "No calls in this range — data covers ⟨from⟩ – ⟨to⟩" in place of the chart and table. `app/campaigns/[id]/loading.tsx`. The generic `app/error.tsx` covers the rest.
 - **Tests:** page-level, as in M3 (`await Page({ params: Promise.resolve({ id }), searchParams: Promise.resolve({...}) })`, API functions mocked): default range from the fake clock; filters and the `location` param reach the API call; empty state; API error inline; invalid custom range makes no call.
@@ -66,7 +66,7 @@ Same as M0–M3:
 - Depends on PR 1, PR 2, PR 3, PR 4.
 
 ### PR 6 — Row links from the overview
-**Status:** not started
+**Status:** in progress
 - `components/campaign-table.tsx`: campaign names become links built with `detailHref` (the "No campaign" row stays plain text). `app/page.tsx` builds the query with `buildQuery({ preset, from, to, location }, {})` (so the default preset is dropped and `from`/`to` are kept only for `custom`) and passes the string to `CampaignTable` as a prop; the table calls `detailHref` itself. Keyboard-accessible (a real `<a>`/`Link`); row-wide click is optional.
 - **Tests:** each ranked row links to `/campaigns/<id>` with the current `preset`/`from`/`to`/`location` carried; "No campaign" has no link; existing table tests still pass; the page test checks the query reaches the table.
 - **Check:** `npm test`; in the running app, click a row and land on the detail page with the same filters in the URL and filter bar.

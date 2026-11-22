@@ -6,6 +6,7 @@ import { ApiRequestError, getCampaignMetrics, getMeta } from "../lib/api";
 import type { CampaignMetricsResponse, Meta } from "../lib/api-types";
 import { formatDateSpan } from "../lib/badges";
 import { resolveRange, type SearchParams } from "../lib/date-ranges";
+import { buildQuery } from "../lib/filters";
 
 function first(value: string | string[] | undefined): string | undefined {
   return (Array.isArray(value) ? value[0] : value) || undefined;
@@ -67,6 +68,16 @@ export default async function Home({
     else metrics = metricsOutcome.value;
   }
 
+  const detailQuery = buildQuery(
+    {
+      preset: first(params.preset),
+      from: first(params.from),
+      to: first(params.to),
+      location,
+    },
+    {},
+  );
+
   const coverageText = meta.data_coverage
     ? formatDateSpan(
         meta.data_coverage.from,
@@ -103,6 +114,7 @@ export default async function Home({
           rows={metrics.rows}
           totals={metrics.totals}
           locationSelected={Boolean(location)}
+          detailQuery={detailQuery}
         />
       ) : null}
     </main>

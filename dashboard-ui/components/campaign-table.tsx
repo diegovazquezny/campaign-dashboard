@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { CampaignRow, Totals } from "../lib/api-types";
+import { detailHref } from "../lib/filters";
 import {
   formatCount,
   formatMoney,
@@ -21,6 +23,8 @@ type Props = {
   rows: CampaignRow[];
   totals: Totals;
   locationSelected?: boolean;
+  /** Query string (no "?") carried to each campaign's detail page. */
+  detailQuery?: string;
 };
 
 type Column = {
@@ -111,7 +115,12 @@ const visuallyHidden: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-export function CampaignTable({ rows, totals, locationSelected }: Props) {
+export function CampaignTable({
+  rows,
+  totals,
+  locationSelected,
+  detailQuery = "",
+}: Props) {
   const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({
     key: "revenue_cents",
     direction: "desc",
@@ -169,7 +178,15 @@ export function CampaignTable({ rows, totals, locationSelected }: Props) {
         {ranked.map((row, i) => (
           <tr key={row.campaign_id ?? `null-${i}`}>
             {COLUMNS.map((c) => (
-              <td key={c.key}>{c.cell(row)}</td>
+              <td key={c.key}>
+                {c.key === "name" && row.campaign_id ? (
+                  <Link href={detailHref(row.campaign_id, detailQuery)}>
+                    {c.cell(row)}
+                  </Link>
+                ) : (
+                  c.cell(row)
+                )}
+              </td>
             ))}
           </tr>
         ))}

@@ -92,6 +92,13 @@ describe("Home", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
+  it("carries the filters to the row links", async () => {
+    await renderHome({ preset: "last_30_days", location: "loc1" });
+    expect(
+      screen.getByRole("link", { name: "Alpha" }).getAttribute("href"),
+    ).toBe("/campaigns/a?preset=last_30_days&location=loc1");
+  });
+
   it("passes the location param to the API", async () => {
     await renderHome({ location: "loc1" });
     expect(getCampaignMetrics).toHaveBeenCalledWith(
