@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74), T6 (PR #75), T7 (PR #76) T8 (PR #77), T9 (PR #78), T10 (PR #79) and T11 (PR #80, calls list on the campaign page) and T11b (PR #81, the `/campaigns/none` page, split from T11) merged. T12 (call detail page) in review. Everything else not started.
+T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74), T6 (PR #75), T7 (PR #76) T8 (PR #77), T9 (PR #78), T10 (PR #79) and T11 (PR #80, calls list on the campaign page) and T11b (PR #81, the `/campaigns/none` page, split from T11) merged. T12 (PR #82, call detail page) merged. T13 in review.
 
 ## PR rules
 
@@ -99,16 +99,17 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Tests:** list rendering, empty state, paging, reset on filter change, `buildQuery`.
 
 ### T12 — Call detail page (U3c)
-**Status:** in review · **Depends on:** T10, T11
+**Status:** merged (PR #82) · **Depends on:** T10, T11
 - `app/calls/[id]/page.tsx` with About This Call, Caller Data, Marketing Data cards; times in the call's office timezone with zone abbreviation; back link preserving filters and page (new `listHref(campaignId | "none", query)` helper and a `BackLink` prop; the existing `detailHref` in `lib/filters.ts` stays as is); not-found page; rows in T11 link here.
 - If this exceeds 500 lines, split the not-found page and back-link change into a follow-up.
 - **Tests:** each card incl. null outcome, null revenue, no campaign, first vs repeat caller; back link; not found.
 - **Acceptance:** no caller hash anywhere in UI or network responses.
 
 ### T13 — Base-plan amendments + exit check
-**Status:** not started · **Depends on:** T2, T6, T8, T12
+**Status:** in review · **Depends on:** T2, T6, T8, T12
 - Apply PLAN.md §7: `../PLAN.md` §1 and D6 notes, §8 docs for `/api/daily`, new totals fields, extended `channel_breakdown`, `/api/calls*`; mention the theme in README if relevant. Update statuses in both plans. Check every relative link.
 - Walk the app in both themes and record the result here. Docs only.
+- **Exit check result:** not yet walked in a browser; to be recorded by the reviewer before marking the plan complete.
 
 ## Dependencies
 

@@ -13,7 +13,7 @@
 | M4 — Campaign detail page | complete | §12, [milestone-4](archive/milestone-4/milestone-4.md) |
 | M5 — Docs + clean-checkout smoke test | complete | §12, [milestone-5](milestone-5/milestone-5.md) |
 | M6 — Stretch | not started | §12 |
-| UI improvements (after M5) | in progress (13 tasks); T1–T11b merged, T12 in review | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
+| UI improvements (after M5) | in progress (13 tasks); T1–T12 merged, T13 (docs) in review | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
 
 Update this table when a milestone's status changes. Statuses: `not started`, `in progress`, `complete`.
 
@@ -23,7 +23,7 @@ Update this table when a milestone's status changes. Statuses: `not started`, `i
 **Question the product answers:** *Which campaigns turn calls into revenue, and at what cost?*
 **Slice:** one screen — a sortable campaign table with date-range and location filters, plus a per-campaign daily revenue-vs-spend chart.
 
-Out of scope (per brief): auth, multi-tenancy, cloud deploy, polished UI, scale. No AI features in v1 (a chatbot may come later — see §9).
+Out of scope (per brief): auth, multi-tenancy, cloud deploy, scale. Polished UI was out of scope for the base slice and is now covered by [ui-improvements/PLAN.md](ui-improvements/PLAN.md) (themes, KPI cards, charts, calls list and call detail). No AI features in v1 (a chatbot may come later — see §9).
 
 ## 2. Stack
 
@@ -70,7 +70,7 @@ Profiled from `calls.csv`, `campaigns.csv`, `locations.csv`:
 | D3 | Spend is estimated from budget at query time: `daily_budget_cents` × days in the selected range that fall within data coverage. No spend table; $0-budget campaigns and "No campaign" have spend `null` | The data has no actual spend, and "at what cost?" is half the question, so budget is the only available proxy. It assumes every campaign spends its full budget daily, so cost is overstated and revenue ÷ spend understated (labelled "Budgeted spend (est.)"; limitation noted in DECISIONS.md). Coverage starts on Aug 31 local, a partial day (the first call is Sep 1 00:39Z, a few hours before local midnight), but is charged a full day's budget: ~1.7% extra over 60 days, accepted and documented alongside the full-spend assumption rather than dropping the day and its calls. A table would only copy the budget once per day; if actual spend arrives (§13), add storage then behind the same spend calculation |
 | D4 | Days bucket in each office's timezone (`local_date` stored) | "Tuesday" means Tuesday at the office. No hour-of-day view in v1, so no `local_hour`; adding one later is a column plus a backfill |
 | D5 | Booking rate = booked ÷ all calls; also show unanswered rate and awaiting-outcome count | Consistent with revenue and spend per booking (full funnel); rankings identical to booked ÷ dispositioned in this data |
-| D6 | One screen + two data endpoints; aggregation in SQL | Thin, focused slice |
+| D6 | One screen + two data endpoints (plus meta); aggregation in SQL. The UI-improvements plan adds `/api/daily`, `/api/calls` and `/api/calls/:id` (§8) | Thin, focused slice |
 | D7 | Docker Compose for the one command | Reviewer needs only Docker |
 | D8 | No AI features in v1 | Focus on core slice; core must work without a model anyway |
 | D9 | Default range = previous calendar quarter (Q1 Jan–Mar … Q4 Oct–Dec), with presets and a data-coverage header | Matches how marketers report |
@@ -246,6 +246,30 @@ Every date in range is present (zero-filled) so charts have no gaps. Each day's 
 
 Validation: `from`/`to` required and valid; `from <= to`; range ≤ 366 days; unknown `location_id`/campaign → 404.
 
+### `GET /api/daily?from=&to=&location_id=`
+```json
+{ "range": { "from": "2026-09-01", "to": "2026-09-30" },
+  "days": [{ "date": "2026-09-01", "calls": 4, "booked": 1, "revenue_cents": 29900 }] }
+```
+Account-wide daily series, zero-filled, bucketed by `local_date`. Includes "No campaign" calls, so day sums equal `/api/campaigns/metrics` `totals` for the same filters. No spend. Validation as for the campaign daily endpoint (400 invalid range, 404 unknown `location_id`).
+
+### `GET /api/calls?from=&to=&location_id=&campaign_id=&outcome=&page=`
+Paged call list. `campaign_id` is a campaign id or `none` (unattributed calls); `outcome` is one of the five outcomes or `awaiting` (no outcome yet), anything else is 400. Offset paging: `page` is 1-based, page size 25, out-of-range page returns empty `calls` with the right `total`. A bad `page` (not a whole number of 1 or more) is 400. An unknown `campaign_id` is not an error: it returns an empty list with `total: 0`. Order: `started_at DESC, call_id DESC`.
+```json
+{ "total": 198, "page": 1, "page_size": 25, "calls": [{
+  "call_id": "c_003866", "started_at": "2026-09-01T14:02:00Z", "ended_at": "2026-09-01T14:05:10Z",
+  "local_date": "2026-09-01", "timezone": "America/New_York", "duration_seconds": 190,
+  "answered": true, "outcome": "booked", "revenue_cents": 29900, "agent_id": "agt_01",
+  "tracking_number": "+1-555-0100", "campaign": { "id": "cmp_11", "name": "…" },
+  "channel": "referral", "location": { "id": "loc_01", "name": "Northside Office" } }] }
+```
+`outcome` is null while awaiting; `campaign` is null for unattributed calls.
+
+### `GET /api/calls/:id`
+The same row fields plus `is_first_call`, `caller_call_count` and `caller_first_seen` (date). `is_first_call` uses the `new_callers` definition (§7, D2), ignoring filters. Unknown id → 404.
+
+`caller_number_hash` is never returned by any endpoint: the hashes are short and could be brute-forced, so only derived caller facts are exposed.
+
 Health: `GET /up`.
 
 ## 9. Frontend (Next.js + TypeScript)
@@ -254,7 +278,10 @@ Health: `GET /up`.
 - **Shared types:** `dashboard-ui/lib/api-types.ts` mirrors §8.
 - **Pages**
   - `/` — header (data coverage, freshness / partial-range badges), filter bar (presets: Last quarter (default), This quarter, Last 30 days, Last 90 days, Custom; location select), sortable campaign table with totals row; "No campaign" row always pinned below the ranked campaigns, above totals, muted styling (D12), with a channel-breakdown tooltip. "—" for null metrics; null values sort last in both ascending and descending order. Spend columns labelled "Budgeted spend (est.)". "New callers" header tooltip: "First seen since data starts (Sep 1)".
-  - `/campaigns/[id]` — same filters, daily revenue-vs-spend chart (Recharts) and daily table.
+  - `/campaigns/[id]` — same filters, daily revenue-vs-spend chart (Recharts), paged daily table and a paged calls list.
+  - `/campaigns/none` — calls-only page for unattributed calls.
+  - `/calls/[id]` — call detail (About This Call, Caller Data, Marketing Data).
+  - Light and dark themes with a toggle; `/` also has KPI cards, an account daily chart, a channel chart and a missed-calls card (see [ui-improvements/PLAN.md](ui-improvements/PLAN.md)).
 - **Badges:** *freshness* — shown when the selected range ends on or after `outcomes_may_be_incomplete_from`: "Outcomes can take up to 3 days to arrive; bookings and revenue after ⟨date⟩ may be incomplete." *Partial range* — shown when the selected range extends beyond data coverage: "Data covers ⟨from⟩ – ⟨to⟩."
 - **Date presets:** pure functions in `dashboard-ui/lib/date-ranges.ts` (quarter math, Q1 = Jan–Mar), unit-tested. "Today" = current UTC date.
 - **States:** loading, empty range ("No calls in this range — data covers Sep 1 – Oct 29"), API error.

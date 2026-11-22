@@ -4,13 +4,13 @@
 
 | Phase | Status | Summary |
 |---|---|---|
-| U0 — Visual theme (light + dark) | in progress (T1 in review) | "Clarity" light theme (default) and "Midnight" dark mode with a toggle |
-| U0b — Daily table pagination | not started | Page the campaign page's daily table (client-side, 30 rows) |
-| U1 — Overview KPI cards + daily chart | not started | Invoca-style summary row and an account-wide daily trend |
-| U2 — Channel breakdown + missed-calls card | not started | Calls/revenue by channel; missed vs voicemail split |
-| U3a — Calls API | not started | `GET /api/calls`, `GET /api/calls/:id` |
-| U3b — Calls list | not started | Calls list on the campaign page (and for "No campaign") |
-| U3c — Call detail page | not started | About This Call / Caller / Marketing cards |
+| U0 — Visual theme (light + dark) | complete | "Clarity" light theme (default) and "Midnight" dark mode with a toggle |
+| U0b — Daily table pagination | complete | Page the campaign page's daily table (client-side, 30 rows) |
+| U1 — Overview KPI cards + daily chart | complete | Invoca-style summary row and an account-wide daily trend |
+| U2 — Channel breakdown + missed-calls card | complete | Calls/revenue by channel; missed vs voicemail split |
+| U3a — Calls API | complete | `GET /api/calls`, `GET /api/calls/:id` |
+| U3b — Calls list | complete | Calls list on the campaign page (and for "No campaign") |
+| U3c — Call detail page | complete | About This Call / Caller / Marketing cards |
 | Skipped | — | Transcript, audio player, signals, appointments, drag-and-drop widgets (§8) |
 
 Task breakdown (T1–T13) and dependency diagram: [ui-improvements.md](ui-improvements.md).
@@ -102,9 +102,9 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 
 ### Remaining work
 
-1. ~~Commit the theme and convert it to Tailwind~~ In review (T1, PR #65; large on purpose, see [ui-improvements.md](ui-improvements.md)).
-2. Style the route loading states (`app/loading.tsx`, `app/campaigns/[id]/loading.tsx`): they render a bare `<p>` outside `<main>` and are unstyled today (T2; use `PageShell` and `Notice`).
-3. Add `components/theme-toggle.test.tsx`: renders the right label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
+1. ~~Commit the theme and convert it to Tailwind~~ Merged (T1, PR #65; large on purpose, see [ui-improvements.md](ui-improvements.md)).
+2. ~~Style the route loading states (`app/loading.tsx`, `app/campaigns/[id]/loading.tsx`): they render a bare `<p>` outside `<main>` and are unstyled today (T2; use `PageShell` and `Notice`)~~ Merged (T2, PR #67).
+3. ~~Add `components/theme-toggle.test.tsx`: renders the right label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.~~ Merged (T2, PR #67).
 4. ~~Rebuild the `web` image and check both themes on :3000.~~ Done 2026-11-22 (the screenshots in §2 are from that build).
 
 **Done when:** both themes render correctly on the overview, detail, loading and error states; the toggle persists across reloads; `npm test`, `npm run lint`, `npx tsc --noEmit` pass.
