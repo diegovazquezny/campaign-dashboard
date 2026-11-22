@@ -10,7 +10,7 @@
 | M1 — Data model + import | complete | §12, [milestone-1](archive/milestone-1/milestone-1.md) |
 | M2 — Metrics engine + API | complete | §12, [milestone-2](archive/milestone-2/milestone-2.md) |
 | M3 — Dashboard overview page | complete | §12, [milestone-3](archive/milestone-3/milestone-3.md) |
-| M4 — Campaign detail page | not started | §12, [milestone-4](milestone-4/milestone-4.md) |
+| M4 — Campaign detail page | in progress | §12, [milestone-4](milestone-4/milestone-4.md) |
 | M5 — Docs + clean-checkout smoke test | not started | §12 |
 | M6 — Stretch | not started | §12 |
 

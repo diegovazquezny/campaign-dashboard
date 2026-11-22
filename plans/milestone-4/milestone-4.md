@@ -6,7 +6,7 @@
 
 ## Status
 
-Planned, not started. Seven PRs. Builds on M3 (overview page, filter bar, header, formatters) and the M2 endpoint `GET /api/campaigns/:id/daily` (merged). Same architecture as M3: a server component fetches, all filter state lives in the URL.
+In progress. Seven PRs. Builds on M3 (overview page, filter bar, header, formatters) and the M2 endpoint `GET /api/campaigns/:id/daily` (merged). Same architecture as M3: a server component fetches, all filter state lives in the URL.
 
 ## PR rules
 
