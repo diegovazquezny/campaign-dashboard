@@ -2,14 +2,14 @@
 
 ## Status
 
-**Current milestone:** M3
+**Current milestone:** M4
 
 | Milestone | Status | Details |
 |---|---|---|
 | M0 — Working skeleton | complete | §12, [milestone-0](archive/milestone-0/milestone-0.md) |
 | M1 — Data model + import | complete | §12, [milestone-1](archive/milestone-1/milestone-1.md) |
 | M2 — Metrics engine + API | complete | §12, [milestone-2](archive/milestone-2/milestone-2.md) |
-| M3 — Dashboard overview page | in progress | §12, [milestone-3](milestone-3/milestone-3.md) |
+| M3 — Dashboard overview page | complete | §12, [milestone-3](archive/milestone-3/milestone-3.md) |
 | M4 — Campaign detail page | not started | §12 |
 | M5 — Docs + clean-checkout smoke test | not started | §12 |
 | M6 — Stretch | not started | §12 |
@@ -338,7 +338,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M3 — Dashboard overview page (§9 `/`; D9, D12)
 **Goal:** a marketer can rank campaigns for any range or office.
-**Plan:** eight PRs; task breakdown and dependency diagram: [milestone-3/milestone-3.md](milestone-3/milestone-3.md).
+**Plan:** eight PRs; task breakdown and dependency diagram: [archive/milestone-3/milestone-3.md](archive/milestone-3/milestone-3.md).
 
 - `lib/api-types.ts` (mirrors §8) and `lib/date-ranges.ts` (presets, quarter math), unit-tested.
 - URL-driven filter bar: presets, custom range, location select.
