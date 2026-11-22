@@ -10,7 +10,11 @@ import { PageTitle } from "../../../components/page-title";
 import { ApiRequestError, getMeta } from "../../../lib/api";
 import type { Meta } from "../../../lib/api-types";
 import { isPastEnd, loadCalls, pageCount } from "../../../lib/calls";
-import { first, resolveRange, type SearchParams } from "../../../lib/date-ranges";
+import {
+  first,
+  resolveRange,
+  type SearchParams,
+} from "../../../lib/date-ranges";
 import { buildQuery, pageHref, parsePage } from "../../../lib/filters";
 
 // Calls with no campaign. A static route, so it wins over /campaigns/[id]. There is
@@ -82,7 +86,12 @@ export default async function NoCampaignCalls({
         today={now}
       />
       <FilterBar meta={meta} range={range} />
-      {calls && <CallsSection result={calls} />}
+      {calls && (
+        <CallsSection
+          result={calls}
+          query={buildQuery({ ...filters, page }, {})}
+        />
+      )}
     </PageShell>
   );
 }

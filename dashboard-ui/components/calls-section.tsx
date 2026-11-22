@@ -1,5 +1,12 @@
-import { isPastEnd, outcomeLabel, pageCount, type CallsResult } from "../lib/calls";
+import {
+  isPastEnd,
+  outcomeLabel,
+  pageCount,
+  type CallsResult,
+} from "../lib/calls";
 import { formatCallTime, formatDuration, formatMoney } from "../lib/format";
+import Link from "next/link";
+import { callHref } from "../lib/filters";
 import { CallsPager } from "./calls-pager";
 import { Notice } from "./notice";
 import {
@@ -14,7 +21,14 @@ import {
 
 // The "Calls" list on the campaign pages. Times are in each call's office zone.
 // Pages that render this redirect first when the page is past the end (isPastEnd).
-export function CallsSection({ result }: { result: CallsResult }) {
+export function CallsSection({
+  result,
+  query,
+}: {
+  result: CallsResult;
+  /** The page's filters and page, carried to the call detail page's back link. */
+  query: string;
+}) {
   const { data, error } = result;
   return (
     <section aria-labelledby="calls-heading" className="flex flex-col gap-3">
@@ -26,13 +40,19 @@ export function CallsSection({ result }: { result: CallsResult }) {
       ) : !data || data.total === 0 ? (
         <Notice>No calls in this range.</Notice>
       ) : (
-        <CallsTable data={data} />
+        <CallsTable data={data} query={query} />
       )}
     </section>
   );
 }
 
-function CallsTable({ data }: { data: NonNullable<CallsResult["data"]> }) {
+function CallsTable({
+  data,
+  query,
+}: {
+  data: NonNullable<CallsResult["data"]>;
+  query: string;
+}) {
   if (isPastEnd(data)) return null;
   const start = (data.page - 1) * data.page_size;
   return (
@@ -61,7 +81,12 @@ function CallsTable({ data }: { data: NonNullable<CallsResult["data"]> }) {
           {data.calls.map((c) => (
             <tr key={c.call_id} className={rowHover}>
               <th scope="row" className={`${labelCell} font-medium`}>
-                {formatCallTime(c.started_at, c.timezone)}
+                <Link
+                  href={callHref(c.call_id, query)}
+                  className="hover:text-accent hover:underline"
+                >
+                  {formatCallTime(c.started_at, c.timezone)}
+                </Link>
               </th>
               <td className={labelCell}>{outcomeLabel(c.outcome)}</td>
               <td className={numCell}>{formatDuration(c.duration_seconds)}</td>

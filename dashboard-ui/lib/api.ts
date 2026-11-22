@@ -1,6 +1,7 @@
 import type {
   AccountDailyResponse,
   ApiError,
+  CallDetail,
   CallsResponse,
   CampaignMetricsResponse,
   DailyResponse,
@@ -124,4 +125,8 @@ export function getCalls(args: {
   if (args.locationId) params.set("location_id", args.locationId);
   if (args.page && args.page > 1) params.set("page", String(args.page));
   return request<CallsResponse>("/api/calls", params);
+}
+
+export function getCall(id: string): Promise<CallDetail> {
+  return request<CallDetail>(`/api/calls/${encodeURIComponent(id)}`);
 }

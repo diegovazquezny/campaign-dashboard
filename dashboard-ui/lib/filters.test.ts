@@ -1,5 +1,13 @@
 import { describe, expect, test } from 'vitest';
-import { buildQuery, detailHref, overviewHref, pageHref, parsePage } from './filters';
+import {
+  buildQuery,
+  callHref,
+  detailHref,
+  listHref,
+  overviewHref,
+  pageHref,
+  parsePage,
+} from './filters';
 
 describe('buildQuery', () => {
   test('drops default preset and empty location', () => {
@@ -100,5 +108,18 @@ describe('detailHref / overviewHref', () => {
     expect(q).toContain('preset=custom');
     expect(q).toContain('location=o1');
     expect(overviewHref(q)).toBe(`/?${q}`);
+  });
+});
+
+describe('listHref / callHref', () => {
+  test('listHref goes to the campaign page, or /campaigns/none without a campaign', () => {
+    expect(listHref('c 1', 'page=2')).toBe('/campaigns/c%201?page=2');
+    expect(listHref(null, 'location=o1&page=3')).toBe('/campaigns/none?location=o1&page=3');
+    expect(listHref('none', '')).toBe('/campaigns/none');
+  });
+
+  test('callHref encodes the id and carries the query', () => {
+    expect(callHref('a/b', 'page=2')).toBe('/calls/a%2Fb?page=2');
+    expect(callHref('x', '')).toBe('/calls/x');
   });
 });

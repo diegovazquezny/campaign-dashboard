@@ -116,3 +116,11 @@ export type CallsResponse = {
   total: number;
   calls: CallRow[];
 };
+
+// GET /api/calls/:id (U3a): the row plus facts about the caller. Never carries the caller hash.
+export type CallDetail = CallRow & {
+  is_first_call: boolean;
+  caller_call_count: number;
+  /** `YYYY-MM-DD`: the local date of the caller's earliest call. */
+  caller_first_seen: string;
+};

@@ -70,6 +70,18 @@ export function detailHref(campaignId: string, query: string): string {
   return withQuery(`/campaigns/${encodeURIComponent(campaignId)}`, query);
 }
 
+/** The calls list a call came from: `/campaigns/<id>` or, with no campaign, `/campaigns/none`. */
+export function listHref(campaignId: string | null, query: string): string {
+  return campaignId === null || campaignId === 'none'
+    ? withQuery('/campaigns/none', query)
+    : detailHref(campaignId, query);
+}
+
+/** `/calls/<id>?<query>`; the id is encoded, the query (filters and page) is used as is. */
+export function callHref(callId: string, query: string): string {
+  return withQuery(`/calls/${encodeURIComponent(callId)}`, query);
+}
+
 /** `/?<query>`; the query is used as is. */
 export function overviewHref(query: string): string {
   return withQuery('/', query);
@@ -82,6 +94,10 @@ export function parsePage(value: string | string[] | undefined): number {
 }
 
 /** `pathname` with `current`'s filters and `page`; used to leave a page past the end. */
-export function pageHref(pathname: string, current: FilterState, page: number): string {
+export function pageHref(
+  pathname: string,
+  current: FilterState,
+  page: number,
+): string {
   return withQuery(pathname, buildQuery(current, { page }));
 }
