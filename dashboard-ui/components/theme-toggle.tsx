@@ -1,29 +1,16 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-
-type Theme = "light" | "dark";
-
 // The <html data-theme> attribute is the source of truth (set before paint by
-// the inline script in layout.tsx); this component just reads and flips it.
-const listeners = new Set<() => void>();
-const subscribe = (cb: () => void) => {
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-};
-const read = (): Theme =>
-  document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-
+// the inline script in layout.tsx). Both labels are always rendered and CSS
+// shows the one for the active theme, so there is no label flash on load.
 export function ThemeToggle() {
-  const theme = useSyncExternalStore<Theme>(subscribe, read, () => "light");
-  const next: Theme = theme === "dark" ? "light" : "dark";
-
   function toggle() {
+    const next =
+      document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     try {
       localStorage.setItem("theme", next);
     } catch {}
-    listeners.forEach((cb) => cb());
   }
 
   return (
@@ -31,10 +18,10 @@ export function ThemeToggle() {
       type="button"
       className="theme-toggle"
       onClick={toggle}
-      aria-label={`Switch to ${next} mode`}
+      aria-label="Toggle dark mode"
     >
-      <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
-      {theme === "dark" ? "Light" : "Dark"}
+      <span className="theme-toggle-to-dark">☾ Dark</span>
+      <span className="theme-toggle-to-light">☀ Light</span>
     </button>
   );
 }

@@ -137,7 +137,6 @@ html[data-theme] input[type="date"] {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 6px 10px;
-  color-scheme: var(--scheme);
 }
 html[data-theme] select:focus-visible,
 html[data-theme] input:focus-visible,
@@ -160,7 +159,20 @@ html[data-theme] main > table {
   box-shadow: var(--shadow);
   border-collapse: separate;
   border-spacing: 0;
-  overflow: hidden;
+}
+/* Round the corners on the cells, not with overflow:hidden, which would
+   clip wide tables and stop the sticky header from sticking. */
+html[data-theme] main > table > :first-child > tr:first-child > :first-child {
+  border-top-left-radius: var(--radius-lg);
+}
+html[data-theme] main > table > :first-child > tr:first-child > :last-child {
+  border-top-right-radius: var(--radius-lg);
+}
+html[data-theme] main > table > :last-child > tr:last-child > :first-child {
+  border-bottom-left-radius: var(--radius-lg);
+}
+html[data-theme] main > table > :last-child > tr:last-child > :last-child {
+  border-bottom-right-radius: var(--radius-lg);
 }
 html[data-theme] thead th {
   position: sticky;
@@ -301,6 +313,13 @@ html[data-theme] .recharts-legend-item-text {
   cursor: pointer;
   box-shadow: var(--shadow);
 }
+.theme-toggle-to-light,
+html[data-theme="dark"] .theme-toggle-to-dark {
+  display: none;
+}
+html[data-theme="dark"] .theme-toggle-to-light {
+  display: inline;
+}
 .theme-toggle:hover {
   border-color: var(--accent);
 }
@@ -313,7 +332,7 @@ html[data-theme] .recharts-legend-item-text {
    LIGHT — "Clarity": airy, indigo accent
    ===================================================== */
 html[data-theme="light"] {
-  --scheme: light;
+  color-scheme: light;
   --bg: #f6f7fb;
   --fg: #0f172a;
   --muted: #5b6478;
@@ -344,14 +363,14 @@ html[data-theme="light"] {
   --cell-y: 12px;
   --cell-x: 10px;
   --series-revenue: #4f46e5;
-  --series-spend: #f59e0b;
+  --series-spend: #d97706;
 }
 
 /* =====================================================
    DARK — "Midnight": dense, teal accent
    ===================================================== */
 html[data-theme="dark"] {
-  --scheme: dark;
+  color-scheme: dark;
   --bg: #0b0e14;
   --fg: #e6e9ef;
   --muted: #8a93a6;
