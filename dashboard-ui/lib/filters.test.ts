@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { buildQuery } from './filters';
+import { buildQuery, detailHref, overviewHref } from './filters';
 
 describe('buildQuery', () => {
   test('drops default preset and empty location', () => {
@@ -39,5 +39,25 @@ describe('buildQuery', () => {
     expect(
       buildQuery({ preset: 'custom', from: '2026-01-01', to: '2026-02-01' }, { to: '' }),
     ).toBe('preset=custom&from=2026-01-01');
+  });
+});
+
+describe('detailHref / overviewHref', () => {
+  test('encodes the id', () => {
+    expect(detailHref('a b/c?', '')).toBe('/campaigns/a%20b%2Fc%3F');
+  });
+  test('empty query gives no "?"', () => {
+    expect(detailHref('x', '')).toBe('/campaigns/x');
+    expect(overviewHref('')).toBe('/');
+  });
+  test('preserves preset/from/to/location', () => {
+    const q = buildQuery(
+      { preset: 'custom', from: '2026-09-01', to: '2026-09-30', location: 'o1' },
+      {},
+    );
+    expect(detailHref('x', q)).toBe(`/campaigns/x?${q}`);
+    expect(q).toContain('preset=custom');
+    expect(q).toContain('location=o1');
+    expect(overviewHref(q)).toBe(`/?${q}`);
   });
 });
