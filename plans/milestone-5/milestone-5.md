@@ -36,7 +36,7 @@ Same as M0–M4:
 - Depends on M4 only. Parallel with PR 1.
 
 ### PR 3 — TECHNICAL.md
-**Status:** not started
+**Status:** in review
 - Mermaid architecture diagram (browser → Next.js server component → Rails API → Postgres; import from `data/` CSVs at seed time). Sections: import pipeline and messy-data handling (versions by `updated_at`, rejected rows, timezones), metric definitions and the query-time spend/new-caller approach, API endpoints and error shape, data freshness (3-day outcome lag, `outcomes_may_be_incomplete_from`, partial-range badge), testing approach, scaling path (§7).
 - **Check:** the Mermaid block renders (GitHub preview or `mmdc`); endpoint paths, params and error codes match `api/` routes and specs.
 - Depends on M4 only. Parallel with PR 1 and PR 2.
