@@ -82,7 +82,12 @@ export default async function NoCampaignCalls({
         today={now}
       />
       <FilterBar meta={meta} range={range} />
-      {calls && <CallsSection result={calls} />}
+      {calls && (
+        <CallsSection
+          result={calls}
+          query={buildQuery({ ...filters, page }, {})}
+        />
+      )}
     </PageShell>
   );
 }

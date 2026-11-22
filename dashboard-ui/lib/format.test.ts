@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCallTime, formatDuration } from "./format";
+import { formatCallTime, formatDuration, formatLocalDate } from "./format";
 import { formatCount, formatMoney, formatPercent, formatRatio } from "./format";
 
 const formatters = [formatCount, formatMoney, formatPercent, formatRatio];
@@ -104,5 +104,16 @@ describe("formatCallTime", () => {
   });
   it("shows a dash for an invalid instant", () => {
     expect(formatCallTime("nope", "America/Chicago")).toBe("—");
+  });
+});
+
+describe("formatLocalDate", () => {
+  it("formats a calendar date without shifting the day", () => {
+    expect(formatLocalDate("2026-08-31")).toBe("Aug 31, 2026");
+    expect(formatLocalDate("2026-01-01")).toBe("Jan 1, 2026");
+  });
+  it("shows a dash for anything else", () => {
+    expect(formatLocalDate("nope")).toBe("—");
+    expect(formatLocalDate("2026-09-02T10:00:00Z")).toBe("—");
   });
 });

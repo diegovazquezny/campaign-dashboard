@@ -130,6 +130,12 @@ describe("NoCampaignCalls", () => {
     );
   });
 
+  it("links each call to its detail page, carrying the filters and page", async () => {
+    await renderPage({ location: "loc1", page: "1" });
+    const link = screen.getByRole("link", { name: /Sep 2/ });
+    expect(link.getAttribute("href")).toBe("/calls/n1?location=loc1");
+  });
+
   it("makes no calls request for an invalid custom range", async () => {
     await renderPage({ preset: "custom", from: "2026-09-10", to: "2026-09-01" });
     expect(getCalls).not.toHaveBeenCalled();

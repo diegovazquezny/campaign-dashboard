@@ -99,3 +99,17 @@ export function formatCallTime(iso: string, timeZone: string): string {
     timeZoneName: "short",
   }).format(date);
 }
+
+// A `YYYY-MM-DD` calendar date as "Aug 31, 2026". Read as UTC parts so no zone can shift the day.
+export function formatLocalDate(date: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!m) return EMPTY;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  if (Number.isNaN(d.getTime())) return EMPTY;
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(d);
+}

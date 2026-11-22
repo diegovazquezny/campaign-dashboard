@@ -143,7 +143,12 @@ export default async function CampaignDetail({
             days={daily.days}
             locationSelected={Boolean(location)}
           />
-          {calls && <CallsSection result={calls} />}
+          {calls && (
+            <CallsSection
+              result={calls}
+              query={buildQuery({ ...filters, page }, {})}
+            />
+          )}
         </>
       ) : null}
     </PageShell>
