@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. Seven PRs. Builds on M3 (overview page, filter bar, header, formatters) and the M2 endpoint `GET /api/campaigns/:id/daily` (merged). Same architecture as M3: a server component fetches, all filter state lives in the URL.
+Complete. Seven PRs. Builds on M3 (overview page, filter bar, header, formatters) and the M2 endpoint `GET /api/campaigns/:id/daily` (merged). Same architecture as M3: a server component fetches, all filter state lives in the URL.
 
 ## PR rules
 
@@ -66,14 +66,14 @@ Same as M0–M3:
 - Depends on PR 1, PR 2, PR 3, PR 4.
 
 ### PR 6 — Row links from the overview
-**Status:** in progress
+**Status:** complete (#59)
 - `components/campaign-table.tsx`: campaign names become links built with `detailHref` (the "No campaign" row stays plain text). `app/page.tsx` builds the query with `buildQuery({ preset, from, to, location }, {})` (so the default preset is dropped and `from`/`to` are kept only for `custom`) and passes the string to `CampaignTable` as a prop; the table calls `detailHref` itself. Keyboard-accessible (a real `<a>`/`Link`); row-wide click is optional.
 - **Tests:** each ranked row links to `/campaigns/<id>` with the current `preset`/`from`/`to`/`location` carried; "No campaign" has no link; existing table tests still pass; the page test checks the query reaches the table.
 - **Check:** `npm test`; in the running app, click a row and land on the detail page with the same filters in the URL and filter bar.
 - Depends on PR 5 (so the link target exists) and PR 2.
 
 ### PR 7 — M4 exit check and docs
-**Status:** not started
+**Status:** complete (this PR)
 
 No application code.
 - Against `docker compose up` on seeded data, record in this file: for two campaigns (one with a location filter, one without), the sum of the daily table's spend, revenue, calls and booked equals the overview row for the same range, compared with `curl` on `/api/campaigns/metrics` and `/api/campaigns/:id/daily`; a $0-budget campaign shows "—" spend; clicking a row carries the filters; an unknown id shows the API's error inline; an empty range shows the empty state. State clearly which items were checked live and which only by tests.
@@ -99,3 +99,23 @@ See [milestone-4-dag.drawio](milestone-4-dag.drawio).
 - `npm test`, `npm run lint` and `npx tsc --noEmit` pass.
 - With `docker compose up` and seeded data, clicking an overview row opens `/campaigns/[id]` with the filters carried over; its daily table sums match the overview row (spend, revenue, calls, booked); the chart shows the same days.
 - Location filter shows the "allocated by call share" label; invalid ranges, empty ranges and API errors show their states.
+
+## M4 exit check results
+
+Run on 2026-11-22 against `docker compose up --build` with the seeded data (coverage Aug 31 – Oct 29), range `from=2026-08-31&to=2026-10-29`.
+
+**Checked live** (`curl` on `/api/campaigns/metrics` and `/api/campaigns/:id/daily`, plus the rendered pages on :3000):
+- Daily sums (calls, booked, revenue, spend) equal the overview row, for all four cases:
+  - `cmp_02`, no location: 861 calls, 204 booked, $74,344 revenue, $24,000 spend.
+  - `cmp_01`, `loc_01`: 103 calls, 13 booked, $3,449 revenue, $1,462.15 spend.
+  - `cmp_12`, `loc_01`: 60 calls, 18 booked, $8,970 revenue, $1,653.06 spend.
+  - `cmp_08` ($0 budget): spend null in both.
+- `cmp_08` detail page: totals row shows "—" for spend.
+- With `location=loc_01` the detail page shows "allocated by call share"; without it, it does not.
+- Unknown id: the API returns 404 `record not found`; `/campaigns/nope` shows it inline under a generic "Campaign" heading, with no table.
+- Empty range (custom, Jan 2026): "No calls in this range — data covers Aug 31 – Oct 29", no table.
+- Overview rows link to `/campaigns/<id>?preset=last_30_days&location=loc_01`, carrying the filters.
+
+**Checked only by tests:** invalid custom range (no API call), meta failure, `FilterBar` on the detail route, the chart's rendered output (no browser check of the chart or of clicking a row).
+
+**Deviations:** none from the plan. Not run: `docker compose down` hit a read-only-filesystem error removing a container (Docker Desktop issue, not the app).
