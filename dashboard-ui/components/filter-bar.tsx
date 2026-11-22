@@ -14,6 +14,7 @@ import {
 const PRESET_LABELS: [Preset, string][] = [
   ["last_quarter", "Last quarter"],
   ["this_quarter", "This quarter"],
+  ["last_month", "Last month"],
   ["last_30_days", "Last 30 days"],
   ["last_90_days", "Last 90 days"],
   ["custom", "Custom"],

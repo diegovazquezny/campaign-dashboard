@@ -277,7 +277,7 @@ Health: `GET /up`.
 - **Data fetching:** server components call the API using `API_URL` (`http://api:3001` in Docker). Filters live in the URL (`?preset=last_quarter&location=loc_03`) → shareable links, no client state store, no CORS needed.
 - **Shared types:** `dashboard-ui/lib/api-types.ts` mirrors §8.
 - **Pages**
-  - `/` — header (data coverage, freshness / partial-range badges), filter bar (presets: Last quarter (default), This quarter, Last 30 days, Last 90 days, Custom; location select), sortable campaign table with totals row; "No campaign" row always pinned below the ranked campaigns, above totals, muted styling (D12), with a channel-breakdown tooltip. "—" for null metrics; null values sort last in both ascending and descending order. Spend columns labelled "Budgeted spend (est.)". "New callers" header tooltip: "First seen since data starts (Sep 1)".
+  - `/` — header (data coverage, freshness / partial-range badges), filter bar (presets: Last quarter (default), This quarter, Last month, Last 30 days, Last 90 days, Custom; location select), sortable campaign table with totals row; "No campaign" row always pinned below the ranked campaigns, above totals, muted styling (D12), with a channel-breakdown tooltip. "—" for null metrics; null values sort last in both ascending and descending order. Spend columns labelled "Budgeted spend (est.)". "New callers" header tooltip: "First seen since data starts (Sep 1)".
   - `/campaigns/[id]` — same filters, daily revenue-vs-spend chart (Recharts), paged daily table and a paged calls list.
   - `/campaigns/none` — calls-only page for unattributed calls.
   - `/calls/[id]` — call detail (About This Call, Caller Data, Marketing Data).

@@ -1,5 +1,10 @@
 export type Preset =
-  "last_quarter" | "this_quarter" | "last_30_days" | "last_90_days" | "custom";
+  | "last_quarter"
+  | "this_quarter"
+  | "last_month"
+  | "last_30_days"
+  | "last_90_days"
+  | "custom";
 
 /** A usable range: always has both dates and no error. */
 export interface ValidRange {
@@ -29,6 +34,7 @@ const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const PRESETS: readonly Preset[] = [
   "last_quarter",
   "this_quarter",
+  "last_month",
   "last_30_days",
   "last_90_days",
   "custom",
@@ -88,6 +94,14 @@ function presetRange(
   switch (preset) {
     case "this_quarter":
       return { from: format(y, qm, 1), to: today };
+    case "last_month": {
+      const m = Number(today.slice(5, 7));
+      const startY = m === 1 ? y - 1 : y;
+      const startM = m === 1 ? 12 : m - 1;
+      // The previous month ends the day before this month starts.
+      const endN = (toDayNumber(format(y, m, 1)) as number) - 1;
+      return { from: format(startY, startM, 1), to: fromDayNumber(endN) };
+    }
     case "last_30_days":
       return { from: fromDayNumber(todayN - 29), to: today };
     case "last_90_days":
