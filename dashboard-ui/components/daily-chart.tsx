@@ -12,19 +12,17 @@ import {
   YAxis,
 } from "recharts";
 import { sumDays, toChartData, type Day } from "../lib/daily";
-import { formatMoney, SPEND_LABEL, SPEND_LOCATION_LABEL } from "../lib/format";
+import {
+  dollarsExact,
+  formatMoney,
+  SPEND_LABEL,
+  SPEND_LOCATION_LABEL,
+} from "../lib/format";
 
 type Props = { days: Day[]; locationSelected?: boolean };
 
 const dollars = (v: unknown) =>
   typeof v === "number" ? formatMoney(v * 100) : "—";
-
-const exactFormat = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
-export const dollarsExact = (v: unknown) =>
-  typeof v === "number" ? exactFormat.format(v) : "—";
 
 // Recharts renders these as inline styles, so the theme tokens are passed as var()s.
 const TOOLTIP_STYLE = {

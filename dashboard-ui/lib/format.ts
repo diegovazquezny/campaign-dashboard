@@ -63,3 +63,12 @@ export function formatRatio(ratio: Maybe): string {
 export const SPEND_LABEL = "Budgeted spend (est.)";
 export const SPEND_LOCATION_LABEL =
   "Budgeted spend (est.), allocated by call share";
+
+const exactFormat = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
+// Whole-dollar-and-cents amount for chart tooltips, e.g. 125.5 -> "$125.50".
+export const dollarsExact = (v: unknown) =>
+  typeof v === "number" ? exactFormat.format(v) : EMPTY;

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ApiRequestError,
   getCampaignDaily,
+  getAccountDaily,
   getCampaignMetrics,
   getMeta,
 } from "./api";
@@ -218,5 +219,21 @@ describe("getCampaignDaily", () => {
     const err = await getCampaignDaily("cmp_11", range).catch((e) => e);
     expect(err).toBeInstanceOf(ApiRequestError);
     expect(err.status).toBe(0);
+  });
+});
+
+describe("getAccountDaily", () => {
+  const range = { from: "2026-09-01", to: "2026-09-02" };
+
+  it("calls /api/daily and maps locationId to location_id", async () => {
+    fetchMock.mockImplementation(async () => json({ range, days: [] }));
+    await getAccountDaily(range);
+    await getAccountDaily({ ...range, locationId: "loc_03" });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "http://api.test:3001/api/daily?from=2026-09-01&to=2026-09-02",
+    );
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      "http://api.test:3001/api/daily?from=2026-09-01&to=2026-09-02&location_id=loc_03",
+    );
   });
 });

@@ -2,12 +2,22 @@ import { connection } from "next/server";
 import { CampaignTable } from "../components/campaign-table";
 import { FilterBar } from "../components/filter-bar";
 import { KpiCards } from "../components/kpi-cards";
+import { OverviewChart } from "../components/overview-chart";
 import { PageHeader } from "../components/page-header";
 import { Notice } from "../components/notice";
 import { PageShell } from "../components/page-shell";
 import { PageTitle } from "../components/page-title";
-import { ApiRequestError, getCampaignMetrics, getMeta } from "../lib/api";
-import type { CampaignMetricsResponse, Meta } from "../lib/api-types";
+import {
+  ApiRequestError,
+  getAccountDaily,
+  getCampaignMetrics,
+  getMeta,
+} from "../lib/api";
+import type {
+  AccountDailyResponse,
+  CampaignMetricsResponse,
+  Meta,
+} from "../lib/api-types";
 import { formatDateSpan } from "../lib/badges";
 import { resolveRange, type SearchParams } from "../lib/date-ranges";
 import { buildQuery } from "../lib/filters";
@@ -51,9 +61,21 @@ export default async function Home({
           (err: unknown) => ({ err }),
         )
       : null;
-  const [metaOutcome, metricsOutcome] = await Promise.all([
+  const dailyResult =
+    range.error === undefined
+      ? getAccountDaily({
+          from: range.from,
+          to: range.to,
+          locationId: location,
+        }).then(
+          (value) => ({ value }),
+          (err: unknown) => ({ err }),
+        )
+      : null;
+  const [metaOutcome, metricsOutcome, dailyOutcome] = await Promise.all([
     metaResult,
     metricsResult,
+    dailyResult,
   ]);
 
   if ("err" in metaOutcome) {
@@ -70,6 +92,13 @@ export default async function Home({
   if (metricsOutcome) {
     if ("err" in metricsOutcome) apiError = errorMessage(metricsOutcome.err);
     else metrics = metricsOutcome.value;
+  }
+
+  let daily: AccountDailyResponse | null = null;
+  let dailyError: string | null = null;
+  if (dailyOutcome) {
+    if ("err" in dailyOutcome) dailyError = errorMessage(dailyOutcome.err);
+    else daily = dailyOutcome.value;
   }
 
   const detailQuery = buildQuery(
@@ -120,6 +149,16 @@ export default async function Home({
             range={metrics.range}
             freshness={meta.freshness}
           />
+          {dailyError ? (
+            <Notice role="alert">{dailyError}</Notice>
+          ) : daily ? (
+            <OverviewChart
+              days={daily.days}
+              incompleteFrom={
+                meta.freshness?.outcomes_may_be_incomplete_from ?? null
+              }
+            />
+          ) : null}
           <CampaignTable
             rows={metrics.rows}
             totals={metrics.totals}
