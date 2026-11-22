@@ -6,7 +6,7 @@
 
 ## Status
 
-Planned, not started. Five PRs. Four are independent of each other (three docs and a smoke script); the last verifies everything from a fresh clone. M0–M4 are archived.
+In progress (PR 1 started). Five PRs. Four are independent of each other (three docs and a smoke script); the last verifies everything from a fresh clone. M0–M4 are archived.
 
 ## PR rules
 
@@ -23,7 +23,7 @@ Same as M0–M4:
 ## PRs
 
 ### PR 1 — README.md
-**Status:** not started
+**Status:** in progress
 - One-command setup (`cp .env.example .env`, `docker compose up`), ports (web 3000, api 3001, db 5432, `DB_PORT` override), native development (`bin/setup`, `bin/dev`), how to run tests (`api` RSpec, `dashboard-ui` `npm test`, lint, `tsc`), where the data lives (`data/`, `DATA_DIR`) and how re-seeding/importing works, a short data-notes section (messy data handled, coverage Aug 31 – Oct 29), repo layout, links to the other docs.
 - **Check:** follow the README verbatim on a clean working tree; every command works as written.
 - Depends on M4 only.
