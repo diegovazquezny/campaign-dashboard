@@ -20,7 +20,7 @@ This skill checks the ./plans/PLAN.md, determines which milestone is in progress
    - Commit the changes with a clear and descriptive commit message.
    - Push the changes to the appropriate branch in the repository.
    - Open a pull request for review.
-   - PRs follow a pr-<n>-<slug> pattern (pr-7-hello-page, pr-9-compose-web)
+   - Branches and PR titles follow a `milestone-<m>-pr-<n>-<slug>` pattern, where <m> is the milestone number and <n> is the PR number within that milestone (milestone-2-pr-8-campaign-daily-endpoint, milestone-3-pr-1-api-types)
    - Use the `./plans/PLAN.md` and `./plans/milestone-<n>/milestone-<n>.md` files to track progress and update it accordingly.
 
 ## Constraints & Edge Cases
