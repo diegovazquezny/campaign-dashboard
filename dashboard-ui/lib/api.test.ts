@@ -181,10 +181,18 @@ describe("getCampaignDaily", () => {
     expect(fetchMock.mock.calls[0][0]).toContain("&location_id=loc_03");
   });
 
+  it("treats a null locationId as unset", async () => {
+    fetchMock.mockResolvedValue(json(body));
+    await getCampaignDaily("cmp_11", { ...range, locationId: null });
+    expect(fetchMock.mock.calls[0][0]).not.toContain("location_id");
+  });
+
   it("encodes the id in the path", async () => {
     fetchMock.mockResolvedValue(json(body));
     await getCampaignDaily("a/b c", range);
-    expect(fetchMock.mock.calls[0][0]).toContain("/api/campaigns/a%2Fb%20c/daily?");
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "http://api.test:3001/api/campaigns/a%2Fb%20c/daily?from=2026-09-01&to=2026-09-02",
+    );
   });
 
   it("throws the API error for a 404 and a 400", async () => {

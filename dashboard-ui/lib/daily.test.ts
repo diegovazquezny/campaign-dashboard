@@ -37,6 +37,18 @@ describe("sumDays", () => {
   });
 });
 
+describe("sumDays null and zero spend", () => {
+  it("skips a null day between non-null days", () => {
+    expect(
+      sumDays([day({ spend_cents: 10 }), day({ spend_cents: null }), day({ spend_cents: 5 })])
+        .spend_cents,
+    ).toBe(15);
+  });
+  it("keeps a zero spend as 0, not null", () => {
+    expect(sumDays([day({ spend_cents: 0 })]).spend_cents).toBe(0);
+  });
+});
+
 describe("hasActivity", () => {
   it("is false for empty or zero-call days, even with spend", () => {
     expect(hasActivity([])).toBe(false);
@@ -44,6 +56,14 @@ describe("hasActivity", () => {
   });
   it("is true when any day has calls", () => {
     expect(hasActivity([day(), day({ calls: 1 })])).toBe(true);
+  });
+});
+
+describe("toChartData non-round cents", () => {
+  it("divides cents by 100", () => {
+    const [p] = toChartData([day({ revenue_cents: 1999, spend_cents: 5 })]);
+    expect(p.revenue_dollars).toBe(19.99);
+    expect(p.spend_dollars).toBe(0.05);
   });
 });
 
