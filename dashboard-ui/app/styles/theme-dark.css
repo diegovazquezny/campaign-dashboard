@@ -25,4 +25,10 @@ html[data-theme="dark"] {
   --series-revenue: #2dd4bf;
   --series-spend: #fb923c;
   --series-calls: #38bdf8;
+  --channel-paid-search: #38bdf8;
+  --channel-social: #fb923c;
+  --channel-display: #a78bfa;
+  --channel-organic: #4ade80;
+  --channel-direct: #94a3b8;
+  --channel-referral: #f472b6;
 }

@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74) and T6 (PR #75) merged. T7 in review. Everything else not started.
+T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74) and T6 (PR #75) and T7 (PR #76) merged. T8 in review. Everything else not started.
 
 ## PR rules
 
@@ -69,13 +69,13 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** chart day sums equal KPI totals; both respond to filters; both themes checked.
 
 ### T7 — Totals missed/voicemail + extended `channel_breakdown` (U2 backend)
-**Status:** in review · **Depends on:** M5
+**Status:** merged (PR #76) · **Depends on:** M5
 - Add `missed` and `voicemail` flags to the facts in `call_facts.rb`, carry them through the per-campaign selects in `campaign_counts.rb` and `TOTAL_KEYS`/SQL in `campaign_metrics.rb`, and expose them in `totals`; add `booked` and `revenue_cents` to the "No campaign" row's `channel_breakdown`; update `Totals` in `lib/api-types.ts`. May conflict with T9 in `call_facts.rb` (rebase on whichever lands first).
 - **Specs:** new fields; `missed + voicemail = unanswered`; extended breakdown sums to the row totals; existing specs unchanged.
 - **Acceptance:** purely additive; existing clients and tests unaffected.
 
 ### T8 — Channel chart + missed-calls card (U2)
-**Status:** not started · **Depends on:** T7, T6 (both edit `app/page.tsx`)
+**Status:** in review · **Depends on:** T7, T6 (both edit `app/page.tsx`)
 - `--channel-*` six-colour tokens (contrast-checked in both themes), `components/channel-chart.tsx` (horizontal bars, calls/revenue switch, client-side aggregation), `components/missed-calls-card.tsx`.
 - **Tests:** aggregation (channel sums = totals), card values, both metrics.
 - **Acceptance:** bars sum to the totals row; card agrees with `unanswered_rate`; both themes checked.

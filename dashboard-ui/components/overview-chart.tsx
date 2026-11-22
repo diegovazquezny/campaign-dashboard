@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { AccountDailyResponse } from "../lib/api-types";
+import { MetricToggle, TOOLTIP_STYLE, type Metric } from "./metric-toggle";
 import { dollarsExact, formatCount, formatMoney } from "../lib/format";
 
 type Props = {
@@ -19,18 +20,6 @@ type Props = {
   // First day whose outcomes may still be arriving (meta.freshness), or null.
   incompleteFrom: string | null;
 };
-
-type Metric = "calls" | "revenue";
-
-const TOOLTIP_STYLE = {
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "var(--radius)",
-  boxShadow: "var(--shadow)",
-};
-
-const TOGGLE =
-  "cursor-pointer rounded-ctl border px-3 py-1 text-[13px] aria-pressed:border-accent aria-pressed:text-accent border-border text-muted";
 
 export function OverviewChart({ days, incompleteFrom }: Props) {
   const [metric, setMetric] = useState<Metric>("calls");
@@ -70,24 +59,11 @@ export function OverviewChart({ days, incompleteFrom }: Props) {
         >
           {isCalls ? "Calls by day" : "Revenue by day"}
         </figcaption>
-        <div role="group" aria-label="Chart metric" className="flex gap-2">
-          <button
-            type="button"
-            className={TOGGLE}
-            aria-pressed={isCalls}
-            onClick={() => setMetric("calls")}
-          >
-            Calls
-          </button>
-          <button
-            type="button"
-            className={TOGGLE}
-            aria-pressed={!isCalls}
-            onClick={() => setMetric("revenue")}
-          >
-            Revenue
-          </button>
-        </div>
+        <MetricToggle
+          label="Chart metric"
+          metric={metric}
+          onChange={setMetric}
+        />
       </div>
       <div
         role="img"
