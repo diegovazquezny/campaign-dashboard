@@ -72,7 +72,7 @@ Same as M0–M2:
 - Depends on PR 1 (types). Parallel with PR 3 and PR 4.
 
 ### PR 6 — Campaign table
-**Status:** not started
+**Status:** in review (PR open)
 - `components/campaign-table.tsx` (client component, receives `rows` and `totals` as props): sortable headers (the first click on a column sorts descending for metric columns and ascending for Campaign and Channel; a second click flips it; `aria-sort` set), columns Campaign, Channel, Calls, Unique callers, New callers, Booked, Booking rate, Unanswered rate, Awaiting outcome, Revenue, Budgeted spend (est.), Revenue ÷ spend, Spend per booking.
 - Order: ranked campaigns from `sortRows`, then the muted "No campaign" row (spend "—", a tooltip listing `channel_breakdown`), then the totals row. Tooltips are a `title` plus an `aria-describedby` target (visually hidden text), so they work for keyboard and screen-reader users, and tests find them by that description. The totals row shows `totals.unique_callers` (never a column sum) and `totals.spend_cents`; its revenue ÷ spend and spend per booking come from `totals.paid`, and the row is labelled "Totals (spend ratios: paid campaigns only)".
 - "New callers" header tooltip: "First seen since data starts (Sep 1)". The spend column header reads "Budgeted spend (est.)"; under a location filter (a `locationSelected` prop) the header reads exactly "Budgeted spend (est.), allocated by call share" (D11).
