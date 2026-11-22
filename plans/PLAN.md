@@ -11,7 +11,7 @@
 | M2 — Metrics engine + API | complete | §12, [milestone-2](archive/milestone-2/milestone-2.md) |
 | M3 — Dashboard overview page | complete | §12, [milestone-3](archive/milestone-3/milestone-3.md) |
 | M4 — Campaign detail page | complete | §12, [milestone-4](archive/milestone-4/milestone-4.md) |
-| M5 — Docs + clean-checkout smoke test | not started (planned) | §12, [milestone-5](milestone-5/milestone-5.md) |
+| M5 — Docs + clean-checkout smoke test | in progress | §12, [milestone-5](milestone-5/milestone-5.md) |
 | M6 — Stretch | not started | §12 |
 
 Update this table when a milestone's status changes. Statuses: `not started`, `in progress`, `complete`.
