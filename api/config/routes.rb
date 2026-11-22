@@ -10,6 +10,7 @@ Rails.application.routes.draw do
     get "meta" => "meta#show"
     get "daily" => "daily#show"
     get "calls" => "calls#index"
+    get "calls/:id" => "call_details#show"
     get "campaigns/metrics" => "campaign_metrics#index"
     get "campaigns/:id/daily" => "campaign_daily#show"
   end
