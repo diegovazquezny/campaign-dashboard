@@ -1,9 +1,5 @@
 export type Preset =
-  | 'last_quarter'
-  | 'this_quarter'
-  | 'last_30_days'
-  | 'last_90_days'
-  | 'custom';
+  "last_quarter" | "this_quarter" | "last_30_days" | "last_90_days" | "custom";
 
 /** A usable range: always has both dates and no error. */
 export interface ValidRange {
@@ -15,7 +11,7 @@ export interface ValidRange {
 
 /** An invalid custom range: whatever dates were given are echoed back. */
 export interface InvalidRange {
-  preset: 'custom';
+  preset: "custom";
   from?: string;
   to?: string;
   error: string;
@@ -25,21 +21,21 @@ export type ResolvedRange = ValidRange | InvalidRange;
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
-export const DEFAULT_PRESET: Preset = 'last_quarter';
+export const DEFAULT_PRESET: Preset = "last_quarter";
 const MAX_RANGE_DAYS = 366;
 const DAY_MS = 86_400_000;
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 const PRESETS: readonly Preset[] = [
-  'last_quarter',
-  'this_quarter',
-  'last_30_days',
-  'last_90_days',
-  'custom',
+  "last_quarter",
+  "this_quarter",
+  "last_30_days",
+  "last_90_days",
+  "custom",
 ];
 
 function pad(n: number, width: number): string {
-  return String(n).padStart(width, '0');
+  return String(n).padStart(width, "0");
 }
 
 function format(y: number, m: number, d: number): string {
@@ -57,7 +53,11 @@ function toDayNumber(s: string): number | null {
   const dt = new Date(0);
   dt.setUTCFullYear(y, m - 1, d);
   const ms = dt.getTime();
-  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) {
+  if (
+    dt.getUTCFullYear() !== y ||
+    dt.getUTCMonth() !== m - 1 ||
+    dt.getUTCDate() !== d
+  ) {
     return null;
   }
   return Math.round(ms / DAY_MS);
@@ -77,7 +77,7 @@ function quarterStartMonth(m: number): number {
 }
 
 function presetRange(
-  preset: Exclude<Preset, 'custom'>,
+  preset: Exclude<Preset, "custom">,
   today: string,
 ): { from: string; to: string } {
   const todayN = toDayNumber(today);
@@ -85,13 +85,13 @@ function presetRange(
   const y = Number(today.slice(0, 4));
   const qm = quarterStartMonth(Number(today.slice(5, 7)));
   switch (preset) {
-    case 'this_quarter':
+    case "this_quarter":
       return { from: format(y, qm, 1), to: today };
-    case 'last_30_days':
+    case "last_30_days":
       return { from: fromDayNumber(todayN - 29), to: today };
-    case 'last_90_days':
+    case "last_90_days":
       return { from: fromDayNumber(todayN - 89), to: today };
-    case 'last_quarter': {
+    case "last_quarter": {
       const startY = qm === 1 ? y - 1 : y;
       const startM = qm === 1 ? 10 : qm - 3;
       // The previous quarter ends the day before this quarter starts.
@@ -107,35 +107,47 @@ function presetRange(
  * `today` is trusted caller input (not a URL param): an invalid value is a
  * programming error and throws.
  */
-export function resolveRange(params: SearchParams, today: string): ResolvedRange {
+export function resolveRange(
+  params: SearchParams,
+  today: string,
+): ResolvedRange {
   const rawPreset = first(params.preset);
   const preset = PRESETS.find((p) => p === rawPreset) ?? DEFAULT_PRESET;
 
-  if (preset !== 'custom') {
+  if (preset !== "custom") {
     return { preset, ...presetRange(preset, today) };
   }
 
   const from = first(params.from) || undefined;
   const to = first(params.to) || undefined;
-  const echoed: { preset: 'custom'; from?: string; to?: string } = {
-    preset: 'custom',
+  const echoed: { preset: "custom"; from?: string; to?: string } = {
+    preset: "custom",
   };
   if (from !== undefined) echoed.from = from;
   if (to !== undefined) echoed.to = to;
 
   if (from === undefined || to === undefined) {
-    return { ...echoed, error: 'Custom range needs both a start and an end date.' };
+    return {
+      ...echoed,
+      error: "Custom range needs both a start and an end date.",
+    };
   }
   const fromN = toDayNumber(from);
   const toN = toDayNumber(to);
   if (fromN === null || toN === null) {
-    return { ...echoed, error: 'Dates must be valid and formatted as YYYY-MM-DD.' };
+    return {
+      ...echoed,
+      error: "Dates must be valid and formatted as YYYY-MM-DD.",
+    };
   }
   if (fromN > toN) {
-    return { ...echoed, error: 'Start date must not be after the end date.' };
+    return { ...echoed, error: "Start date must not be after the end date." };
   }
   if (toN - fromN + 1 > MAX_RANGE_DAYS) {
-    return { ...echoed, error: `Range must not exceed ${MAX_RANGE_DAYS} days.` };
+    return {
+      ...echoed,
+      error: `Range must not exceed ${MAX_RANGE_DAYS} days.`,
+    };
   }
-  return { preset: 'custom', from, to };
+  return { preset: "custom", from, to };
 }
