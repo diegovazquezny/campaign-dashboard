@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { CampaignTable } from "../components/campaign-table";
 import { FilterBar } from "../components/filter-bar";
+import { KpiCards } from "../components/kpi-cards";
 import { PageHeader } from "../components/page-header";
 import { Notice } from "../components/notice";
 import { PageShell } from "../components/page-shell";
@@ -113,12 +114,19 @@ export default async function Home({
             : "No data loaded"}
         </Notice>
       ) : metrics ? (
-        <CampaignTable
-          rows={metrics.rows}
-          totals={metrics.totals}
-          locationSelected={Boolean(location)}
-          detailQuery={detailQuery}
-        />
+        <>
+          <KpiCards
+            totals={metrics.totals}
+            range={metrics.range}
+            freshness={meta.freshness}
+          />
+          <CampaignTable
+            rows={metrics.rows}
+            totals={metrics.totals}
+            locationSelected={Boolean(location)}
+            detailQuery={detailQuery}
+          />
+        </>
       ) : null}
     </PageShell>
   );
