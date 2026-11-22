@@ -2,7 +2,7 @@
 
 ## Status
 
-**Current milestone:** M5
+**Current milestone:** UI improvements (M6 is stretch, not started)
 
 | Milestone | Status | Details |
 |---|---|---|
@@ -11,9 +11,9 @@
 | M2 — Metrics engine + API | complete | §12, [milestone-2](archive/milestone-2/milestone-2.md) |
 | M3 — Dashboard overview page | complete | §12, [milestone-3](archive/milestone-3/milestone-3.md) |
 | M4 — Campaign detail page | complete | §12, [milestone-4](archive/milestone-4/milestone-4.md) |
-| M5 — Docs + clean-checkout smoke test | in progress | §12, [milestone-5](milestone-5/milestone-5.md) |
+| M5 — Docs + clean-checkout smoke test | complete | §12, [milestone-5](milestone-5/milestone-5.md) |
 | M6 — Stretch | not started | §12 |
-| UI improvements (after M5) | planned (13 tasks); U0 code implemented, uncommitted in main checkout | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
+| UI improvements (after M5) | in progress (13 tasks); T1–T3 merged, T4 onward unblocked | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
 
 Update this table when a milestone's status changes. Statuses: `not started`, `in progress`, `complete`.
 
