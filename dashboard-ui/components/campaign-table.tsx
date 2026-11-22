@@ -108,6 +108,7 @@ const visuallyHidden: React.CSSProperties = {
   height: 1,
   overflow: "hidden",
   clip: "rect(0 0 0 0)",
+  margin: -1,
   whiteSpace: "nowrap",
 };
 
@@ -143,6 +144,7 @@ export function CampaignTable({ rows, totals, locationSelected }: Props) {
             return (
               <th
                 key={c.key}
+                style={{ position: "relative" }}
                 scope="col"
                 title={c.tip}
                 aria-describedby={tipId}
@@ -180,7 +182,7 @@ export function CampaignTable({ rows, totals, locationSelected }: Props) {
             aria-describedby={noCampaignTip ? "tip-no-campaign" : undefined}
           >
             {COLUMNS.map((c) => (
-              <td key={c.key}>
+              <td key={c.key} style={{ position: "relative" }}>
                 {c.key === "spend_cents" ? "—" : c.cell(noCampaign)}
                 {c.key === "name" && noCampaignTip && (
                   <Tip id="tip-no-campaign" text={noCampaignTip} />
