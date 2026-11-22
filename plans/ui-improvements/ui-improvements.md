@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74) and T6 (PR #75) and T7 (PR #76) merged. T8 in review. Everything else not started.
+T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74), T6 (PR #75), T7 (PR #76) and T8 (PR #77) merged. T9 in review. Everything else not started.
 
 ## PR rules
 
@@ -75,13 +75,13 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** purely additive; existing clients and tests unaffected.
 
 ### T8 — Channel chart + missed-calls card (U2)
-**Status:** in review · **Depends on:** T7, T6 (both edit `app/page.tsx`)
+**Status:** merged (PR #77) · **Depends on:** T7, T6 (both edit `app/page.tsx`)
 - `--channel-*` six-colour tokens (contrast-checked in both themes), `components/channel-chart.tsx` (horizontal bars, calls/revenue switch, client-side aggregation), `components/missed-calls-card.tsx`.
 - **Tests:** aggregation (channel sums = totals), card values, both metrics.
 - **Acceptance:** bars sum to the totals row; card agrees with `unanswered_rate`; both themes checked.
 
 ### T9 — `GET /api/calls` (U3a)
-**Status:** not started · **Depends on:** M5
+**Status:** in review · **Depends on:** M5
 - Route, controller, query service. Filters `from`, `to`, `location_id`, `campaign_id` (id or `none`), `outcome` (five values or `awaiting`, else 400), `page`; page size 25; order `started_at DESC, call_id DESC`; `total` in the response. Row fields per PLAN.md §6 U3a. Never return `caller_number_hash`.
 - Also extract the `NOT EXISTS` earlier-call probe from `call_facts.rb` into a shared fragment (`new_callers` uses it now; T10 adds the second consumer). No behaviour change.
 - **Specs:** each filter, `none`, `awaiting`, invalid outcome, pagination edges, tie ordering, no hash key; metrics specs still pass after the extraction.

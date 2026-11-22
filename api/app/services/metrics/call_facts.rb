@@ -29,11 +29,7 @@ module Metrics
           c.marketing_channel,
           c.caller_number_hash,
           (#{at_office}) AS at_office,
-          (CASE WHEN #{at_office} THEN NOT EXISTS (
-            SELECT 1 FROM calls prior
-            WHERE prior.caller_number_hash = c.caller_number_hash
-              AND (prior.started_at, prior.call_id) < (c.started_at, c.call_id)
-          ) ELSE FALSE END) AS is_new,
+          (CASE WHEN #{at_office} THEN #{EarlierCallProbe.no_earlier_call_sql("c")} ELSE FALSE END) AS is_new,
           (c.outcome IS NOT DISTINCT FROM 'booked') AS booked,
           (NOT c.answered) AS unanswered,
           (c.outcome IS NOT DISTINCT FROM 'missed') AS missed,
