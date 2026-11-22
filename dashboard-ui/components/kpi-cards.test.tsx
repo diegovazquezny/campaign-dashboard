@@ -60,7 +60,7 @@ describe("KpiCards", () => {
     expect(value("Revenue ÷ spend")).toBe("—");
   });
 
-  it("marks only the outcome cards when the range reaches the freshness date", () => {
+  it("marks the four outcome-based cards, not Calls, when the range reaches the freshness date", () => {
     render(
       <KpiCards
         totals={totals}
@@ -69,17 +69,33 @@ describe("KpiCards", () => {
       />,
     );
 
-    const marked = screen.getAllByText("May be incomplete");
-    expect(marked).toHaveLength(3);
+    expect(screen.getAllByText("May be incomplete")).toHaveLength(4);
     const calls = screen.getByText("Calls").parentElement!;
     expect(within(calls).queryByText("May be incomplete")).toBeNull();
     const ratio = screen.getByText("Revenue ÷ spend").parentElement!;
-    expect(within(ratio).queryByText("May be incomplete")).toBeNull();
+    expect(within(ratio).getByText("May be incomplete")).toBeTruthy();
   });
 
   it("shows no marker when the range ends before the freshness date", () => {
     render(<KpiCards totals={totals} range={range} freshness={freshness} />);
 
     expect(screen.queryByText("May be incomplete")).toBeNull();
+  });
+
+  // app/page.tsx renders the Notice instead of the cards when calls is 0.
+  it("renders zeros and — for an empty range's totals", () => {
+    const zero: Totals = {
+      ...totals,
+      calls: 0,
+      booked: 0,
+      booking_rate: null,
+      revenue_cents: 0,
+      paid: { ...totals.paid, revenue_per_spend: null },
+    };
+    render(<KpiCards totals={zero} range={range} freshness={null} />);
+
+    expect(value("Calls")).toBe("0");
+    expect(value("Booking rate")).toBe("—");
+    expect(value("Revenue ÷ spend")).toBe("—");
   });
 });

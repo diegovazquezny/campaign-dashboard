@@ -34,6 +34,7 @@ export function KpiCards({ totals, range, freshness }: Props) {
       label: "Revenue ÷ spend",
       value: formatRatio(totals.paid.revenue_per_spend),
       note: "paid campaigns only",
+      outcome: true,
     },
   ];
   return (
@@ -53,12 +54,12 @@ export function KpiCards({ totals, range, freshness }: Props) {
             {card.value}
           </dd>
           {card.note && (
-            <p className="m-0 mt-1 text-[13px] text-muted">{card.note}</p>
+            <dd className="m-0 mt-1 text-[13px] text-muted">{card.note}</dd>
           )}
           {card.outcome && incomplete && (
-            <p className="m-0 mt-1 text-[13px] text-warn-fg">
+            <dd className="m-0 mt-1 text-[13px] text-warn-fg">
               May be incomplete
-            </p>
+            </dd>
           )}
         </div>
       ))}
