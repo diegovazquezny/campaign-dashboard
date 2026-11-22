@@ -36,7 +36,7 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - Tokens: `app/styles/typography.css` (type and spacing, **identical in both themes**) plus `theme-light.css` and `theme-dark.css` (colours, radius, shadow; variables on `html[data-theme]`), imported via `app/styles.css`, and mapped to utilities in `app/globals.css` (`@theme inline`, plus a `dark:` variant tied to `data-theme`).
 - Components converted to utilities: `campaign-table`, `daily-table`, `daily-chart` (Recharts styles passed as props), `filter-bar`, `page-header`, `back-link`, `theme-toggle`, page shells. New shared pieces: `components/table-styles.ts`, `page-shell.tsx`, `page-title.tsx`, `notice.tsx`.
 - **Exception to the 500-line rule:** this PR is large on purpose (it replaces the 400-line bare-element stylesheet with utilities in one go).
-- **Acceptance:** font sizes, font styles and spacing are identical in both themes (verified by comparing computed styles light vs dark); colours differ per theme on overview and detail; toggle flips `data-theme` and persists with no white flash; title is "Campaign Dashboard"; no bare-element selectors remain; `npm test`, lint and `tsc` pass.
+- **Acceptance:** font sizes, font styles and spacing are identical in both themes (verified by comparing computed styles light vs dark); colours differ per theme on overview and detail; toggle flips `data-theme` and persists with no white flash; title is "Campaign Dashboard"; no bare-element styling remains except the shared focus ring in `globals.css`; `npm test`, lint and `tsc` pass.
 
 ### T2 — Loading states + toggle test (U0)
 **Status:** not started · **Depends on:** T1

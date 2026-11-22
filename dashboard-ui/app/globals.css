@@ -4,12 +4,12 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 /*
- * Theme tokens (app/styles/theme-*.css) exposed as Tailwind utilities.
+ * Theme tokens (app/styles/*.css) exposed as Tailwind utilities.
  * `inline` keeps them as live var() references, so they follow data-theme.
  */
 @theme inline {
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-num: var(--num-font);
+  --font-num: var(--font-geist-mono), ui-monospace, monospace;
 
   --color-bg: var(--bg);
   --color-fg: var(--fg);

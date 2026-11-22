@@ -83,7 +83,7 @@ Existing API: `GET /api/meta`, `GET /api/campaigns/metrics`, `GET /api/campaigns
 | `--warn-bg` / `--warn-fg` | `#fff7e6` / `#8a5a00` | `#2a2110` / `#f5c562` |
 | `--bad` (errors) | `#c62828` | `#ff6b6b` |
 | `--series-revenue` | `#4f46e5` | `#2dd4bf` |
-| `--series-spend` | `#f59e0b` | `#fb923c` |
+| `--series-spend` | `#d97706` | `#fb923c` |
 | `--radius` / `--radius-lg` | 8px / 14px | 6px / 10px |
 | Shadow | soft two-layer | none (borders only) |
 | Body font (**shared**) | Geist Sans 13px; table numbers in Geist Mono 12.5px | same |

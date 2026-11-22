@@ -7,7 +7,7 @@ export const table =
   "[&>tfoot>tr>:first-child]:rounded-bl-card [&>tfoot>tr>:last-child]:rounded-br-card";
 
 const th =
-  "sticky top-0 border-b border-border bg-thead align-bottom text-th font-semibold tracking-th whitespace-nowrap text-muted [text-transform:var(--th-transform)] " +
+  "sticky top-0 border-b border-border bg-thead align-bottom text-th font-semibold tracking-th whitespace-nowrap text-muted uppercase " +
   "aria-[sort=ascending]:text-accent aria-[sort=descending]:text-accent";
 export const thLeft = `${th} text-left`;
 export const thRight = `${th} text-right`;
