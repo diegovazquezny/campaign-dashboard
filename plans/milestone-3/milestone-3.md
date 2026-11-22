@@ -83,7 +83,7 @@ Same as M0–M2:
 - Depends on PR 3 (and its types from PR 1).
 
 ### PR 7 — Overview page
-**Status:** not started
+**Status:** in review (PR open)
 - `app/page.tsx` (server component): `resolveRange` → if the range is valid, `getMeta()` and `getCampaignMetrics()` in parallel → `PageHeader`, `FilterBar` and `CampaignTable`. An invalid custom range renders the filter bar with its error and skips the API call.
 - `app/loading.tsx` (skeleton or "Loading…"; covers the first load, while filter changes use PR 4's transition state). The page catches `ApiRequestError` itself and renders the API's `error.message` inline with the filter bar still usable (this covers a 404 for an unknown `location` and any 400 that slips through). It must not rely on `error.tsx` for that: in production Next.js replaces errors forwarded from Server Components with a generic message and a digest. `app/error.tsx` is only a generic fallback for unexpected failures, with a retry button (`unstable_retry`, which this Next.js version provides).
 - Empty state: when `totals.calls` is 0, "No calls in this range — data covers ⟨from⟩ – ⟨to⟩" (§9; "No data loaded" when `data_coverage` is null) replaces the table. It is based on `totals.calls === 0` for the filtered request, so an office with no calls shows the empty state rather than a table of zero rows; the filter bar stays so the user can change the range.

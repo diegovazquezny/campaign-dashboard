@@ -1,36 +1,104 @@
-import { Suspense } from "react";
 import { connection } from "next/server";
-import { ApiStatus } from "../components/api-status";
+import { CampaignTable } from "../components/campaign-table";
+import { FilterBar } from "../components/filter-bar";
+import { PageHeader } from "../components/page-header";
+import { ApiRequestError, getCampaignMetrics, getMeta } from "../lib/api";
+import type { CampaignMetricsResponse, Meta } from "../lib/api-types";
+import { formatDateSpan } from "../lib/badges";
+import { resolveRange, type SearchParams } from "../lib/date-ranges";
 
-async function checkApi(): Promise<boolean> {
-  // Opt into request-time rendering so API_URL is read at runtime and the
-  // fetch is never prerendered into the static shell.
+function first(value: string | string[] | undefined): string | undefined {
+  return (Array.isArray(value) ? value[0] : value) || undefined;
+}
+
+function errorMessage(err: unknown): string {
+  if (err instanceof ApiRequestError) return err.message;
+  throw err;
+}
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  // Request-time rendering: API_URL is read at runtime, nothing is prerendered.
   await connection();
-  const apiUrl = process.env.API_URL ?? "http://localhost:3001";
+  const params = await searchParams;
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const range = resolveRange(params, today);
+  const location = first(params.location);
+
+  let meta: Meta;
+  let metrics: CampaignMetricsResponse | null = null;
+  let apiError: string | null = null;
+
   try {
-    const res = await fetch(`${apiUrl}/up`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(3000),
-    });
-    return res.ok;
-  } catch {
-    return false;
+    if (range.error === undefined) {
+      [meta, metrics] = await Promise.all([
+        getMeta(),
+        getCampaignMetrics({
+          from: range.from,
+          to: range.to,
+          locationId: location,
+        }),
+      ]);
+    } else {
+      meta = await getMeta();
+    }
+  } catch (err) {
+    apiError = errorMessage(err);
+    // Metrics failed (e.g. unknown location): keep the filter bar usable.
+    try {
+      meta = await getMeta();
+    } catch {
+      return (
+        <main>
+          <h1>Campaign Dashboard</h1>
+          <p role="alert">{apiError}</p>
+        </main>
+      );
+    }
   }
-}
 
-async function ApiStatusLoader() {
-  return <ApiStatus ok={await checkApi()} />;
-}
+  const coverageText = meta.data_coverage
+    ? formatDateSpan(
+        meta.data_coverage.from,
+        meta.data_coverage.to,
+        now.getUTCFullYear(),
+      )
+    : null;
 
-export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-4 font-sans">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Campaign Dashboard
-      </h1>
-      <Suspense fallback={<p>API: checking...</p>}>
-        <ApiStatusLoader />
-      </Suspense>
+    <main>
+      <h1>Campaign Dashboard</h1>
+      <PageHeader
+        coverage={meta.data_coverage}
+        // An invalid custom range has no dates to compare, so show no badges.
+        freshness={range.error === undefined ? meta.freshness : null}
+        range={
+          range.error === undefined
+            ? range
+            : (meta.data_coverage ?? { from: "", to: "" })
+        }
+        today={now}
+      />
+      <FilterBar meta={meta} range={range} />
+      {apiError ? (
+        <p role="alert">{apiError}</p>
+      ) : metrics && metrics.totals.calls === 0 ? (
+        <p>
+          {coverageText
+            ? `No calls in this range — data covers ${coverageText}`
+            : "No data loaded"}
+        </p>
+      ) : metrics ? (
+        <CampaignTable
+          rows={metrics.rows}
+          totals={metrics.totals}
+          locationSelected={Boolean(location)}
+        />
+      ) : null}
     </main>
   );
 }
