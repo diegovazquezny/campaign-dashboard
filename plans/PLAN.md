@@ -338,7 +338,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M3 — Dashboard overview page (§9 `/`; D9, D12)
 **Goal:** a marketer can rank campaigns for any range or office.
-**Plan:** eight PRs; task breakdown and dependency diagram: [milestone-3/milestone-3.md](milestone-3/milestone-3.md).
+**Plan:** eight PRs; task breakdown and dependency diagram: [archive/milestone-3/milestone-3.md](archive/milestone-3/milestone-3.md).
 
 - `lib/api-types.ts` (mirrors §8) and `lib/date-ranges.ts` (presets, quarter math), unit-tested.
 - URL-driven filter bar: presets, custom range, location select.

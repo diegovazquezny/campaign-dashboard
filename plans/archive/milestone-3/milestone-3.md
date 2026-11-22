@@ -66,7 +66,7 @@ Same as M0–M2:
 ### PR 5 — Header with coverage and badges
 **Status:** merged
 - `lib/badges.ts`: `partialRange(range, coverage)` (the range extends before `from` or after `to`; `false` when coverage is `null`) and `freshnessWarning(range, freshness)` (the range ends on or after `outcomes_may_be_incomplete_from`; `false` when freshness is `null`), both pure. The range is the structural type `{ from: string; to: string }` (no import from PR 2). `lib/badges.ts` also exports `formatShortDate` (`2026-09-01` → `Sep 1`, no local-time parsing), which PR 7 reuses.
-- `components/page-header.tsx`: title, "Data covers ⟨from⟩ – ⟨to⟩", and the two badges with the §9 wording: freshness — "Outcomes can take up to 3 days to arrive; bookings and revenue after ⟨date⟩ may be incomplete."; partial range — "Data covers ⟨from⟩ – ⟨to⟩.". Dates are displayed with `formatShortDate`.
+- `components/page-header.tsx`: title, "Data covers ⟨from⟩ – ⟨to⟩", and the two badges with the §9 wording (the shipped wording differs, see Deviations): freshness — "Outcomes can take up to 3 days to arrive; bookings and revenue after ⟨date⟩ may be incomplete."; partial range — "Data covers ⟨from⟩ – ⟨to⟩.". Dates are displayed with `formatShortDate`.
 - **Tests:** `formatShortDate`; badge conditions at the boundary (range ends the day before / on / after the freshness date; range starts one day before coverage; range inside coverage); `null` coverage and freshness show no badges and a "No data loaded" header; the component renders each badge text.
 - **Check:** `npm test`.
 - Depends on PR 1 (types). Parallel with PR 3 and PR 4.
@@ -123,15 +123,16 @@ See [milestone-3-dag.drawio](milestone-3-dag.drawio).
 
 ## Exit check results (2026-11-22)
 
-Run against `docker compose up` on the seeded data.
+Run against `docker compose up` on the seeded data, using `curl` against `localhost:3001/api/meta`, `localhost:3001/api/campaigns/metrics?from=2026-07-01&to=2026-09-30` (with and without `location_id=loc_03`) and the rendered HTML of `localhost:3000/`, `/?location=loc_03`, `/?preset=custom&from=2026-09-01&to=2026-11-01`, `/?preset=custom&from=2025-01-01&to=2026-01-02` and `/?location=loc_99`. No browser was used.
 
 - `/api/meta`: coverage 2026-08-31..2026-10-29, `outcomes_may_be_incomplete_from` 2026-10-29.
 - Default view (2026-07-01..2026-09-30): the API returns 13 rows (12 campaigns plus "No campaign"); the page renders the same 13 rows plus a totals row, and shows 2,525 calls, matching `totals.calls`. The partial-range badge shows.
-- Location filter (`?location=loc_03`): the spend header reads "Budgeted spend (est.), allocated by call share" and the API totals differ (402 calls).
+- Location filter (`?location=loc_03`): the spend header reads "Budgeted spend (est.), allocated by call share" and the API totals differ (402 calls). The URL and table updating on a filter change was not checked live (see below).
 - Freshness badge shows for a range ending 2026-11-01 ("Bookings and revenue from Oct 29 onward may be incomplete.").
 - A 367-day custom range shows "Range must not exceed 366 days."; an unknown location shows the API's "record not found" inline.
-- Checked by unit/component tests only, not in a live browser: "No campaign" pinned under each sort (PR 6 tests); preset and office changes updating the URL (PR 4 tests).
+- The exit check was only partly done live. Checked by unit/component tests only, not in a live browser: "No campaign" pinned under each sort (PR 6 tests); preset and office changes updating the URL (PR 4 tests).
 
 ## Deviations
 
 - The freshness badge wording is "Bookings and revenue from ⟨date⟩ onward may be incomplete." rather than the §9 text ("Outcomes can take up to 3 days to arrive; ..."). Not changed here; decide whether to align the code or §9.
+- The partial-range badge reads "Selected range extends outside available data (covers ⟨from⟩ – ⟨to⟩)." (`components/page-header.tsx`) rather than the §9 text "Data covers ⟨from⟩ – ⟨to⟩.". Not changed here; decide whether to align the code or §9.
