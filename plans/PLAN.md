@@ -1,5 +1,21 @@
 # Call Performance Dashboard — Build Plan
 
+## Status
+
+**Current milestone:** M3
+
+| Milestone | Status | Details |
+|---|---|---|
+| M0 — Working skeleton | complete | §12, [milestone-0](milestone-0/milestone-0.md) |
+| M1 — Data model + import | complete | §12, [milestone-1](milestone-1/milestone-1.md) |
+| M2 — Metrics engine + API | complete | §12, [milestone-2](milestone-2/milestone-2.md) |
+| M3 — Dashboard overview page | not started | §12, [milestone-3](milestone-3/milestone-3.md) |
+| M4 — Campaign detail page | not started | §12 |
+| M5 — Docs + clean-checkout smoke test | not started | §12 |
+| M6 — Stretch | not started | §12 |
+
+Update this table when a milestone's status changes. Statuses: `not started`, `in progress`, `complete`.
+
 ## 1. Goal and user
 
 **User:** a marketer deciding which campaigns are worth their budget.
@@ -286,7 +302,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M0 — Working skeleton
 **Goal:** one command runs db + api + web from a clean checkout.
-**Status:** code complete. All PRs are merged to `main` (last: PR #15). The per-PR breakdown, deviations and unverified items are in [milestone-0/milestone-0.md](milestone-0/milestone-0.md).
+**Result:** all PRs are merged to `main` (last: PR #15). The per-PR breakdown, deviations and unverified items are in [milestone-0/milestone-0.md](milestone-0/milestone-0.md).
 
 - Remove the nested `api/.git` so the outer repo tracks `api/`.
 - Switch the API to PostgreSQL (`pg` gem, `database.yml` from env vars). Replace Minitest `test/` with `rspec-rails` (`api/spec/`).
@@ -298,7 +314,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M1 — Data model + import pipeline (§3, §5, §6; D1, D4, D10)
 **Goal:** the CSVs load correctly, idempotently and safely.
-**Status:** complete. All 8 PRs are merged to `main` (last: PR #25). Importing the real data reports `5,411 rows → 5,000 calls (411 older versions dropped, 0 rejected …)`; a re-import changes nothing. The per-PR breakdown, deviations and exit-check results are in
+**Result:** all 8 PRs are merged to `main` (last: PR #25). Importing the real data reports `5,411 rows → 5,000 calls (411 older versions dropped, 0 rejected …)`; a re-import changes nothing. The per-PR breakdown, deviations and exit-check results are in
 [milestone-1/milestone-1.md](milestone-1/milestone-1.md).
 
 - Migrations for `campaigns`, `locations`, `calls` with every check constraint and index from §5; shared channel constant defined once.
@@ -311,7 +327,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M2 — Metrics engine + API (§7, §8; D2, D3, D5, D11, D12)
 **Goal:** all three endpoints return correct numbers, proven by specs.
-**Status:** complete. All 10 PRs are merged to `main` (last: PR #37). Ten PRs, all metric and spend math in set-based SQL; task breakdown and dependency diagram: [milestone-2/milestone-2.md](milestone-2/milestone-2.md).
+**Result:** all 10 PRs are merged to `main` (last: PR #37). Ten PRs, all metric and spend math in set-based SQL; task breakdown and dependency diagram: [milestone-2/milestone-2.md](milestone-2/milestone-2.md).
 
 - Single spend calculation, as SQL, shared by both endpoints (set-based so it scales and can later run over a rollup): budget × covered days clipped to data coverage; null for $0-budget and "No campaign"; call-share allocation with cumulative daily rounding under a location filter.
 - Campaign metrics query in SQL: every campaign listed, "No campaign" row with `channel_breakdown`, `NOT EXISTS` probe for `new_callers`, null-safe ratios, totals and `totals.paid`.
@@ -322,7 +338,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M3 — Dashboard overview page (§9 `/`; D9, D12)
 **Goal:** a marketer can rank campaigns for any range or office.
-**Status:** planned, not started. Eight PRs; task breakdown and dependency diagram: [milestone-3/milestone-3.md](milestone-3/milestone-3.md).
+**Plan:** eight PRs; task breakdown and dependency diagram: [milestone-3/milestone-3.md](milestone-3/milestone-3.md).
 
 - `lib/api-types.ts` (mirrors §8) and `lib/date-ranges.ts` (presets, quarter math), unit-tested.
 - URL-driven filter bar: presets, custom range, location select.

@@ -10,8 +10,9 @@ This skill checks the ./plans/PLAN.md, determines which milestone is in progress
 
 ## Workflow
 1. **Gather context:** 
-   - Inspect `./plans/PLAN.md` before making changes to determine which milestone is in progress or needs to be done. This will be milestone-<n> where <n> is the milestone number.
-   - Inspect `./plans/milestone-<n>/milestone-<n>.md` for detailed information about the milestone.
+   - Read only the first 20 lines of `./plans/PLAN.md` (the `## Status` section). Do not read the full file. It has a `**Current milestone:**` line and a status table. The current milestone is the one named there; its status should be `in progress` or `not started`. If the status table and the current-milestone line disagree, stop and report the mismatch.
+   - Read `./plans/milestone-<n>/milestone-<n>.md` for the current milestone only. Read the other sections of PLAN.md (for example §6, §7, §10) only when the task needs them, and then read only the relevant section by line range.
+   - Do not read other milestone folders unless the task depends on them.
 2. **Execute task:** Follow these rules:
    - Determine the next task in the current milestone.
    - If tasks can be done in parallel, use subagents to implement them concurrently.
@@ -21,7 +22,7 @@ This skill checks the ./plans/PLAN.md, determines which milestone is in progress
    - Push the changes to the appropriate branch in the repository.
    - Open a pull request for review.
    - Branches and PR titles follow a `milestone-<m>-pr-<n>-<slug>` pattern, where <m> is the milestone number and <n> is the PR number within that milestone (milestone-2-pr-8-campaign-daily-endpoint, milestone-3-pr-1-api-types)
-   - Use the `./plans/PLAN.md` and `./plans/milestone-<n>/milestone-<n>.md` files to track progress and update it accordingly.
+   - Track progress in `./plans/PLAN.md` by updating the status table only: set the milestone to `in progress` when its first PR starts, and to `complete` when its last PR merges. Also update the `**Current milestone:**` line when a milestone completes. Keep the detail in `./plans/milestone-<n>/milestone-<n>.md`; do not add status text to PLAN.md §12.
 
 ## Constraints & Edge Cases
 - Never stack PRs.
