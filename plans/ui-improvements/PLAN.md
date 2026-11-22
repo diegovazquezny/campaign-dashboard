@@ -4,13 +4,13 @@
 
 | Phase | Status | Summary |
 |---|---|---|
-| U0 — Visual theme (light + dark) | in progress (T1 in review) | "Clarity" light theme (default) and "Midnight" dark mode with a toggle |
-| U0b — Daily table pagination | not started | Page the campaign page's daily table (client-side, 30 rows) |
-| U1 — Overview KPI cards + daily chart | not started | Invoca-style summary row and an account-wide daily trend |
-| U2 — Channel breakdown + missed-calls card | not started | Calls/revenue by channel; missed vs voicemail split |
-| U3a — Calls API | not started | `GET /api/calls`, `GET /api/calls/:id` |
-| U3b — Calls list | not started | Calls list on the campaign page (and for "No campaign") |
-| U3c — Call detail page | not started | About This Call / Caller / Marketing cards |
+| U0 — Visual theme (light + dark) | complete | "Clarity" light theme (default) and "Midnight" dark mode with a toggle |
+| U0b — Daily table pagination | complete | Page the campaign page's daily table (client-side, 30 rows) |
+| U1 — Overview KPI cards + daily chart | complete | Invoca-style summary row and an account-wide daily trend |
+| U2 — Channel breakdown + missed-calls card | complete | Calls/revenue by channel; missed vs voicemail split |
+| U3a — Calls API | complete | `GET /api/calls`, `GET /api/calls/:id` |
+| U3b — Calls list | complete | Calls list on the campaign page (and for "No campaign") |
+| U3c — Call detail page | complete | About This Call / Caller / Marketing cards |
 | Skipped | — | Transcript, audio player, signals, appointments, drag-and-drop widgets (§8) |
 
 Task breakdown (T1–T13) and dependency diagram: [ui-improvements.md](ui-improvements.md).
