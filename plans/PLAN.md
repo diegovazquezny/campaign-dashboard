@@ -10,8 +10,8 @@
 | M1 — Data model + import | complete | §12, [milestone-1](archive/milestone-1/milestone-1.md) |
 | M2 — Metrics engine + API | complete | §12, [milestone-2](archive/milestone-2/milestone-2.md) |
 | M3 — Dashboard overview page | complete | §12, [milestone-3](archive/milestone-3/milestone-3.md) |
-| M4 — Campaign detail page | complete | §12, [milestone-4](milestone-4/milestone-4.md) |
-| M5 — Docs + clean-checkout smoke test | not started | §12 |
+| M4 — Campaign detail page | complete | §12, [milestone-4](archive/milestone-4/milestone-4.md) |
+| M5 — Docs + clean-checkout smoke test | not started (planned) | §12, [milestone-5](milestone-5/milestone-5.md) |
 | M6 — Stretch | not started | §12 |
 
 Update this table when a milestone's status changes. Statuses: `not started`, `in progress`, `complete`.
@@ -351,7 +351,7 @@ Each milestone ends with something demonstrable. Do them in order.
 
 ### M4 — Campaign detail page (§9 `/campaigns/[id]`)
 **Goal:** see how one campaign's daily revenue compares with its spend.
-**Plan:** seven PRs; task breakdown and dependency diagram: [milestone-4/milestone-4.md](milestone-4/milestone-4.md).
+**Plan:** seven PRs; task breakdown and dependency diagram: [archive/milestone-4/milestone-4.md](archive/milestone-4/milestone-4.md).
 
 - Same filter bar, carried over from the overview link.
 - Add Recharts. Daily revenue-vs-spend chart (consult the `dataviz` skill first) and daily table.
@@ -364,6 +364,8 @@ Each milestone ends with something demonstrable. Do them in order.
 
 - `README.md` (one-command setup, tests, data notes), `DECISIONS.md` (incl. spend-estimate limitation and AI spend total), `TECHNICAL.md` (freshness, messy data, Mermaid architecture diagram), `AI_COST_LOG.md` (fold in existing `ai-spend.md`).
 - Smoke run: fresh clone → `docker compose up` → dashboard loads with imported data.
+
+**Plan:** five PRs; task breakdown and dependency diagram: [milestone-5/milestone-5.md](milestone-5/milestone-5.md).
 
 **Done when:** a fresh clone passes the smoke run and all docs exist.
 
