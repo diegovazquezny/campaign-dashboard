@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --series-revenue: #2a78d6;
+  --series-spend: #eb6834;
 }
 
 @theme inline {
@@ -16,6 +18,8 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --series-revenue: #3987e5;
+    --series-spend: #d95926;
   }
 }
 
