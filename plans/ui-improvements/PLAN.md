@@ -13,6 +13,8 @@
 | U3c — Call detail page | not started | About This Call / Caller / Marketing cards |
 | Skipped | — | Transcript, audio player, signals, appointments, drag-and-drop widgets (§8) |
 
+Task breakdown (T1–T13) and dependency diagram: [ui-improvements.md](ui-improvements.md).
+
 Statuses: `not started`, `in progress`, `implemented, uncommitted`, `complete`. Update as phases change.
 
 **Sequencing:** U0 and U0b can land any time (U0b after U0, as it uses the theme tokens). U1 onwards starts **after base-plan M5 (docs) is complete** ([../PLAN.md](../PLAN.md) §12), so the docs describe a stable app. Each phase is one PR, branched from `main`.
@@ -225,7 +227,7 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 ### U3b — Calls list
 
 - Campaign detail page: a "Calls" section under the daily chart/table — time (office-local), outcome (incl. "Awaiting outcome"), duration, agent, revenue; paged (25), reusing the `Pager` component from U0b.
-- "No campaign" row on the overview links to a calls list for `campaign_id=none` (new route, e.g. `/campaigns/none`, or a dedicated `/calls?campaign=none` page — decide in the PR).
+- "No campaign" row on the overview links to a calls list for `campaign_id=none` (new route, e.g. `/campaigns/none`, — settled: a calls-only page at `/campaigns/none` with no chart or table).
 - `page` joins the URL state: add it to `buildQuery` (`lib/filters.ts`); changing date or office **resets** `page` to 1.
 
 **Done when:** list is filtered by the page's date/office; paging works; filter changes reset paging; empty state shown.
@@ -234,18 +236,18 @@ Shared rules (both themes): segmented control for date presets; data-coverage an
 
 - New route `app/calls/[id]/page.tsx` with three cards: About This Call, Caller Data, Marketing Data (mapping in §5).
 - Times shown in the call's office timezone with the zone abbreviation (one campaign spans offices in five timezones).
-- **Back link:** `BackLink` only returns to the overview (`overviewHref`). Add a variant that returns to the source list — `detailHref(campaignId, query)` with the same filters **and page**, or the "No campaign" list. Plain text, not a link, when the call has no campaign in Marketing Data.
+- **Back link:** `BackLink` only returns to the overview (`overviewHref`). Add a variant that returns to the source list — a new `listHref(campaignId | "none", query)` (`detailHref` already exists for the campaign page) with the same filters **and page**, or the "No campaign" list. Plain text, not a link, when the call has no campaign in Marketing Data.
 
 **Tests:** each card (incl. null outcome, null revenue, no campaign, first vs repeat caller); not-found page; back link preserves filters and page.
 
 **Done when:** every list row opens a detail page; back returns to the same list position; no caller hash appears anywhere in the UI or network responses.
 
-## 7. Base-plan amendments (do with U1)
+## 7. Base-plan amendments (done in task T13, after the API tasks land)
 
 In [../PLAN.md](../PLAN.md):
 - §1: note that "polished UI" is now covered by this plan.
 - D6: amend "two data endpoints" to point here for the additional ones.
-- §8: document `/api/daily`, the new totals fields, the extended `channel_breakdown`, and `/api/calls*` as each lands.
+- §8: document `/api/daily`, the new totals fields, the extended `channel_breakdown`, and `/api/calls*` once they have all landed (see [ui-improvements.md](ui-improvements.md), T13).
 - Status table: link this plan (done).
 
 ## 8. Out of scope
@@ -266,7 +268,7 @@ Settle before the phase that needs them:
 | 1 | Overview chart: calls only, or calls + revenue? | U1 | Calls line with a revenue toggle; endpoint returns both |
 | 2 | Channel chart default metric | U2 | Calls (as Invoca), with a revenue switch |
 | 3 | Calls list page size and sort | U3a | 25, newest first |
-| 4 | Route for the "No campaign" calls list | U3b | `/campaigns/none` reusing the detail layout |
+| 4 | Route for the "No campaign" calls list | U3b | Settled: `/campaigns/none`, calls-only (no chart/table) |
 | 5 | Should dark mode follow the OS preference on first visit? | Any time | No — default light (current behaviour) |
 
 Settled: caller hash is never exposed (U3a); U2 extends existing responses instead of adding an endpoint.
