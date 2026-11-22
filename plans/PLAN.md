@@ -11,7 +11,7 @@
 | M2 — Metrics engine + API | complete | §12, [milestone-2](archive/milestone-2/milestone-2.md) |
 | M3 — Dashboard overview page | complete | §12, [milestone-3](archive/milestone-3/milestone-3.md) |
 | M4 — Campaign detail page | complete | §12, [milestone-4](archive/milestone-4/milestone-4.md) |
-| M5 — Docs + clean-checkout smoke test | complete | §12, [milestone-5](milestone-5/milestone-5.md) |
+| M5 — Docs + clean-checkout smoke test | complete | §12, [milestone-5](archive/milestone-5/milestone-5.md) |
 | M6 — Stretch | not started | §12 |
 | UI improvements (after M5) | in progress (13 tasks); T1–T12 merged, T13 (docs) in review | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
 
@@ -393,7 +393,7 @@ Each milestone ends with something demonstrable. Do them in order.
 - `README.md` (one-command setup, tests, data notes), `DECISIONS.md` (incl. spend-estimate limitation and AI spend total), `TECHNICAL.md` (freshness, messy data, Mermaid architecture diagram), `AI_COST_LOG.md` (fold in existing `ai-spend.md`).
 - Smoke run: fresh clone → `docker compose up` → dashboard loads with imported data.
 
-**Plan:** five PRs; task breakdown and dependency diagram: [milestone-5/milestone-5.md](milestone-5/milestone-5.md).
+**Result:** all five PRs are merged to `main` (docs PRs #62, #69, #70, smoke script #71, then the exit check). Task breakdown, exit-check results and deviations: [archive/milestone-5/milestone-5.md](archive/milestone-5/milestone-5.md).
 
 **Done when:** a fresh clone passes the smoke run and all docs exist.
 
