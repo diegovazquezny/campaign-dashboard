@@ -43,14 +43,14 @@ Same as M0–M3:
 - Depends on M3 only. Parallel with PR 1.
 
 ### PR 3 — Daily table
-**Status:** in progress
+**Status:** complete (#56)
 - `components/daily-table.tsx`: columns Date, Calls, Booked, Revenue, Budgeted spend (est.) (header text from a `locationSelected` prop, see conventions; this PR also moves the shared spend-label constants out of `campaign-table.tsx` into `lib/format.ts`). Rows in date order, "—" for null spend, zero-filled days shown as zeros, and a totals row from `sumDays`.
 - **Tests:** rows render in date order; null spend shows "—" (and the totals spend shows "—" when all are null); the totals row equals the sum of the rows; the location label appears only when a location is selected.
 - **Check:** `npm test`.
 - Depends on PR 1 (`sumDays`).
 
 ### PR 4 — Revenue-vs-spend chart
-**Status:** not started
+**Status:** complete (#57)
 - Read the `dataviz` skill first. Add `recharts` to `dashboard-ui/package.json`. Lockfile churn in `package-lock.json` is excluded from the 500-line limit; the lockfile must be committed for the Docker build.
 - `components/daily-chart.tsx` (client component, takes `days`): one chart with daily revenue and daily spend over the range, in dollars, a legend, accessible title/description, and a tooltip with exact values. A null spend renders as a gap, not zero. A text summary beneath (`sr-only` or visible) gives range totals so the chart is not the only source of the numbers.
 - **Tests:** jsdom has no layout, so mock `ResponsiveContainer` (or give it a fixed size); assert the series, legend labels and the accessible description render, and that `toChartData` output is what the chart receives.
@@ -58,7 +58,7 @@ Same as M0–M3:
 - Depends on PR 1 (`toChartData`). Parallel with PR 3.
 
 ### PR 5 — Detail page
-**Status:** not started
+**Status:** in progress
 - `app/campaigns/[id]/page.tsx` (server component): `resolveRange` → if valid, `getMeta()` and `getCampaignDaily()` run independently, each wrapped as `{value}|{err}` as in `app/page.tsx`, so a daily 404 keeps the filter bar and does not refetch meta. The page calls `await connection()`. If `getMeta()` fails, render the `<h1>` plus an alert only, as M3 does. An invalid custom range passes `freshness={null}` and the meta coverage to `PageHeader`, as M3 does → `BackLink`, the page's own `<h1>{daily.campaign.name}</h1>` (`PageHeader` has no title prop and renders no `<h1>`; on an error or 404 there is no name, so use a generic "Campaign" heading), `PageHeader`, `FilterBar`, `DailyChart`, `DailyTable`.
 - States, as on `/`: an invalid custom range renders the filter bar with its error and makes no API call; an `ApiRequestError` (404 unknown campaign or office, 400) renders `error.message` inline with the filter bar usable; no calls in range (`!hasActivity`) shows (consistent with the overview's `totals.calls === 0`, so a campaign with spend but no calls also shows it) "No calls in this range — data covers ⟨from⟩ – ⟨to⟩" in place of the chart and table. `app/campaigns/[id]/loading.tsx`. The generic `app/error.tsx` covers the rest.
 - **Tests:** page-level, as in M3 (`await Page({ params: Promise.resolve({ id }), searchParams: Promise.resolve({...}) })`, API functions mocked): default range from the fake clock; filters and the `location` param reach the API call; empty state; API error inline; invalid custom range makes no call.
