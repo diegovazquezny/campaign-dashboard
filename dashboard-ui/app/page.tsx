@@ -29,36 +29,42 @@ export default async function Home({
   const range = resolveRange(params, today);
   const location = first(params.location);
 
-  let meta: Meta;
-  let metrics: CampaignMetricsResponse | null = null;
-  let apiError: string | null = null;
-
-  try {
-    if (range.error === undefined) {
-      [meta, metrics] = await Promise.all([
-        getMeta(),
-        getCampaignMetrics({
+  // Fetch meta and metrics independently so a metrics failure (e.g. an unknown
+  // location) never triggers a second meta request.
+  const metaResult = getMeta().then(
+    (value) => ({ value }),
+    (err: unknown) => ({ err }),
+  );
+  const metricsResult =
+    range.error === undefined
+      ? getCampaignMetrics({
           from: range.from,
           to: range.to,
           locationId: location,
-        }),
-      ]);
-    } else {
-      meta = await getMeta();
-    }
-  } catch (err) {
-    apiError = errorMessage(err);
-    // Metrics failed (e.g. unknown location): keep the filter bar usable.
-    try {
-      meta = await getMeta();
-    } catch {
-      return (
-        <main>
-          <h1>Campaign Dashboard</h1>
-          <p role="alert">{apiError}</p>
-        </main>
-      );
-    }
+        }).then(
+          (value) => ({ value }),
+          (err: unknown) => ({ err }),
+        )
+      : null;
+  const [metaOutcome, metricsOutcome] = await Promise.all([
+    metaResult,
+    metricsResult,
+  ]);
+
+  if ("err" in metaOutcome) {
+    return (
+      <main>
+        <h1>Campaign Dashboard</h1>
+        <p role="alert">{errorMessage(metaOutcome.err)}</p>
+      </main>
+    );
+  }
+  const meta: Meta = metaOutcome.value;
+  let metrics: CampaignMetricsResponse | null = null;
+  let apiError: string | null = null;
+  if (metricsOutcome) {
+    if ("err" in metricsOutcome) apiError = errorMessage(metricsOutcome.err);
+    else metrics = metricsOutcome.value;
   }
 
   const coverageText = meta.data_coverage

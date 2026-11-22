@@ -130,6 +130,19 @@ describe("Home", () => {
     expect(screen.getByRole("alert").textContent).toBe("Location not found");
     expect(screen.getByRole("combobox")).toBeTruthy();
     expect(screen.queryByRole("table")).toBeNull();
+    expect(getMeta).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the message alone when meta fails", async () => {
+    vi.mocked(getMeta).mockRejectedValue(
+      new ApiRequestError(0, "network_error", "Could not reach the API"),
+    );
+    await renderHome({});
+    expect(screen.getByRole("alert").textContent).toBe(
+      "Could not reach the API",
+    );
+    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(getMeta).toHaveBeenCalledTimes(1);
   });
 
   it("makes no metrics call for an invalid custom range", async () => {
