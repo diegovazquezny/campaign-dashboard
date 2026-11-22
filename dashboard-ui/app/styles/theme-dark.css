@@ -20,10 +20,11 @@ html[data-theme="dark"] {
   --bad: #ff6b6b;
   --radius: 6px;
   --radius-lg: 10px;
-  --shadow-sm: none;
-  --shadow: none;
-  --font-body: var(--font-geist-sans), system-ui, sans-serif;
-  --font-heading: var(--font-geist-sans), system-ui, sans-serif;
+  --shadow-sm: 0 0 #0000;
+  --shadow: 0 0 #0000;
+  --body-size: 13px;
+  --num-font: var(--font-geist-mono), ui-monospace, monospace;
+  --num-size: 12.5px;
   --h1-size: 20px;
   --h1-weight: 600;
   --h1-tracking: -0.01em;
@@ -34,27 +35,4 @@ html[data-theme="dark"] {
   --cell-x: 12px;
   --series-revenue: #2dd4bf;
   --series-spend: #fb923c;
-}
-html[data-theme="dark"] body {
-  font-size: 13px;
-}
-html[data-theme="dark"] tbody td {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 12.5px;
-}
-html[data-theme="dark"] tbody tr > td:first-child,
-html[data-theme="dark"] tbody tr > td:first-child + td {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 13px;
-}
-html[data-theme="dark"] h1::before {
-  content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  margin-right: 10px;
-  box-shadow: 0 0 12px var(--accent);
-  vertical-align: middle;
 }

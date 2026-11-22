@@ -5,6 +5,17 @@ import { useState } from "react";
 import type { CampaignRow, Totals } from "../lib/api-types";
 import { detailHref } from "../lib/filters";
 import {
+  footLabel,
+  footNum,
+  labelCell,
+  numCell,
+  rowHover,
+  sortButton,
+  table,
+  thLeft,
+  thRight,
+} from "./table-styles";
+import {
   formatCount,
   formatMoney,
   formatPercent,
@@ -87,6 +98,16 @@ const COLUMNS: Column[] = [
   },
 ];
 
+// Campaign and channel are labels (left-aligned); every other column is a number.
+const isLabelKey = (key: SortKey) => key === "name" || key === "channel";
+
+function cellClass(key: SortKey): string {
+  if (key === "name") return labelCell;
+  if (key === "channel")
+    return `${labelCell} text-xs text-muted dark:text-body`;
+  return numCell;
+}
+
 function breakdownText(row: CampaignRow): string | null {
   if (!row.channel_breakdown?.length) return null;
   return (
@@ -99,21 +120,11 @@ function breakdownText(row: CampaignRow): string | null {
 
 function Tip({ id, text }: { id: string; text: string }) {
   return (
-    <span id={id} style={visuallyHidden}>
+    <span id={id} className="sr-only">
       {text}
     </span>
   );
 }
-
-const visuallyHidden: React.CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  overflow: "hidden",
-  clip: "rect(0 0 0 0)",
-  margin: -1,
-  whiteSpace: "nowrap",
-};
 
 export function CampaignTable({
   rows,
@@ -139,7 +150,7 @@ export function CampaignTable({
   const paid = totals.paid;
 
   return (
-    <table>
+    <table className={table}>
       <thead>
         <tr>
           {COLUMNS.map((c) => {
@@ -152,8 +163,8 @@ export function CampaignTable({
             return (
               <th
                 key={c.key}
-                style={{ position: "relative" }}
                 scope="col"
+                className={isLabelKey(c.key) ? thLeft : thRight}
                 title={c.tip}
                 aria-describedby={tipId}
                 aria-sort={
@@ -164,7 +175,11 @@ export function CampaignTable({
                     : "none"
                 }
               >
-                <button type="button" onClick={() => onSort(c.key)}>
+                <button
+                  type="button"
+                  className={sortButton}
+                  onClick={() => onSort(c.key)}
+                >
                   {label}
                   {active ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
                 </button>
@@ -176,11 +191,14 @@ export function CampaignTable({
       </thead>
       <tbody>
         {ranked.map((row, i) => (
-          <tr key={row.campaign_id ?? `null-${i}`}>
+          <tr key={row.campaign_id ?? `null-${i}`} className={rowHover}>
             {COLUMNS.map((c) => (
-              <td key={c.key}>
+              <td key={c.key} className={cellClass(c.key)}>
                 {c.key === "name" && row.campaign_id ? (
-                  <Link href={detailHref(row.campaign_id, detailQuery)}>
+                  <Link
+                    href={detailHref(row.campaign_id, detailQuery)}
+                    className="font-semibold text-fg hover:text-accent hover:underline"
+                  >
                     {c.cell(row)}
                   </Link>
                 ) : (
@@ -193,12 +211,12 @@ export function CampaignTable({
         {noCampaign && (
           <tr
             data-testid="no-campaign-row"
-            style={{ opacity: 0.65 }}
+            className={`${rowHover} opacity-65`}
             title={noCampaignTip ?? undefined}
             aria-describedby={noCampaignTip ? "tip-no-campaign" : undefined}
           >
             {COLUMNS.map((c) => (
-              <td key={c.key} style={{ position: "relative" }}>
+              <td key={c.key} className={`${cellClass(c.key)} relative`}>
                 {c.key === "spend_cents" ? "—" : c.cell(noCampaign)}
                 {c.key === "name" && noCampaignTip && (
                   <Tip id="tip-no-campaign" text={noCampaignTip} />
@@ -210,20 +228,22 @@ export function CampaignTable({
       </tbody>
       <tfoot>
         <tr data-testid="totals-row">
-          <th scope="row" colSpan={2}>
+          <th scope="row" colSpan={2} className={footLabel}>
             Totals (spend ratios: paid campaigns only)
           </th>
-          <td>{formatCount(totals.calls)}</td>
-          <td>{formatCount(totals.unique_callers)}</td>
-          <td>{formatCount(totals.new_callers)}</td>
-          <td>{formatCount(totals.booked)}</td>
-          <td>{formatPercent(totals.booking_rate)}</td>
-          <td>{formatPercent(totals.unanswered_rate)}</td>
-          <td>{formatCount(totals.awaiting_outcome)}</td>
-          <td>{formatMoney(totals.revenue_cents)}</td>
-          <td>{formatMoney(totals.spend_cents)}</td>
-          <td>{formatRatio(paid.revenue_per_spend)}</td>
-          <td>{formatMoney(paid.spend_per_booking_cents)}</td>
+          <td className={footNum}>{formatCount(totals.calls)}</td>
+          <td className={footNum}>{formatCount(totals.unique_callers)}</td>
+          <td className={footNum}>{formatCount(totals.new_callers)}</td>
+          <td className={footNum}>{formatCount(totals.booked)}</td>
+          <td className={footNum}>{formatPercent(totals.booking_rate)}</td>
+          <td className={footNum}>{formatPercent(totals.unanswered_rate)}</td>
+          <td className={footNum}>{formatCount(totals.awaiting_outcome)}</td>
+          <td className={footNum}>{formatMoney(totals.revenue_cents)}</td>
+          <td className={footNum}>{formatMoney(totals.spend_cents)}</td>
+          <td className={footNum}>{formatRatio(paid.revenue_per_spend)}</td>
+          <td className={footNum}>
+            {formatMoney(paid.spend_per_booking_cents)}
+          </td>
         </tr>
       </tfoot>
     </table>

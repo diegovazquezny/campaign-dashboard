@@ -34,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col bg-bg font-sans text-body leading-normal text-fg">
         {children}
         <ThemeToggle />
       </body>

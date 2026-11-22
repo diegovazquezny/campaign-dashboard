@@ -26,6 +26,14 @@ const exactFormat = new Intl.NumberFormat("en-US", {
 export const dollarsExact = (v: unknown) =>
   typeof v === "number" ? exactFormat.format(v) : "—";
 
+// Recharts renders these as inline styles, so the theme tokens are passed as var()s.
+const TOOLTIP_STYLE = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius)",
+  boxShadow: "var(--shadow)",
+};
+
 export function DailyChart({ days, locationSelected = false }: Props) {
   const descId = useId();
   const captionId = useId();
@@ -39,8 +47,11 @@ export function DailyChart({ days, locationSelected = false }: Props) {
   }. Total revenue ${formatMoney(totals.revenue_cents)}; total spend ${formatMoney(totals.spend_cents)}.`;
 
   return (
-    <figure className="my-4">
-      <figcaption id={captionId} className="mb-2 text-sm font-medium">
+    <figure className="m-0 rounded-card border border-border bg-card px-5 pt-5 pb-2 shadow-card">
+      <figcaption
+        id={captionId}
+        className="mb-2 text-[15px] font-semibold text-fg"
+      >
         Revenue vs spend by day
       </figcaption>
       <div
@@ -59,10 +70,25 @@ export function DailyChart({ days, locationSelected = false }: Props) {
               strokeOpacity={0.12}
               vertical={false}
             />
-            <XAxis dataKey="date" tick={{ fontSize: 12, fill: "currentColor" }} minTickGap={24} />
-            <YAxis tick={{ fontSize: 12, fill: "currentColor" }} tickFormatter={dollars} width={64} />
-            <Tooltip formatter={(v) => dollarsExact(v)} />
-            <Legend />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 12, fill: "currentColor" }}
+              minTickGap={24}
+            />
+            <YAxis
+              tick={{ fontSize: 12, fill: "currentColor" }}
+              tickFormatter={dollars}
+              width={64}
+            />
+            <Tooltip
+              formatter={(v) => dollarsExact(v)}
+              contentStyle={TOOLTIP_STYLE}
+            />
+            <Legend
+              formatter={(value) => (
+                <span style={{ color: "var(--muted)" }}>{value}</span>
+              )}
+            />
             <Line
               type="monotone"
               dataKey="revenue_dollars"

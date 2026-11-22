@@ -1,6 +1,52 @@
 @import "tailwindcss";
 
+/* Dark mode follows <html data-theme="dark">, not the OS preference. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/*
+ * Theme tokens (app/styles/theme-*.css) exposed as Tailwind utilities.
+ * `inline` keeps them as live var() references, so they follow data-theme.
+ */
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-num: var(--num-font);
+
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-row-border: var(--row-border);
+  --color-row-hover: var(--row-hover);
+  --color-thead: var(--thead-bg);
+  --color-chip: var(--chip-bg);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-fg: var(--warn-fg);
+  --color-warn-border: var(--warn-border);
+  --color-bad: var(--bad);
+
+  --radius-ctl: var(--radius);
+  --radius-card: var(--radius-lg);
+  --shadow-ctl: var(--shadow-sm);
+  --shadow-card: var(--shadow);
+
+  --text-body: var(--body-size);
+  --text-num: var(--num-size);
+  --text-h1: var(--h1-size);
+  --text-th: var(--th-size);
+  --font-weight-h1: var(--h1-weight);
+  --tracking-h1: var(--h1-tracking);
+  --tracking-th: var(--th-tracking);
+  --spacing-cell-x: var(--cell-x);
+  --spacing-cell-y: var(--cell-y);
+}
+
+@layer base {
+  :where(a, button, input, select):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }

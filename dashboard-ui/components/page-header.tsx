@@ -6,6 +6,10 @@ import {
   partialRange,
 } from "../lib/badges";
 
+const PILL = "m-0 rounded-full border px-3 py-0.75 text-[13px]";
+const CHIP = `${PILL} border-border bg-chip text-muted`;
+const WARN = `${PILL} border-warn-border bg-warn-bg text-warn-fg`;
+
 type Props = {
   coverage: Meta["data_coverage"];
   freshness: Meta["freshness"];
@@ -25,17 +29,21 @@ export function PageHeader({
     ? formatDateSpan(coverage.from, coverage.to, today.getFullYear())
     : null;
   return (
-    <header>
-      {coverageText ? <p>Data covers {coverageText}</p> : <p>No data loaded</p>}
+    <header className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      {coverageText ? (
+        <p className={CHIP}>Data covers {coverageText}</p>
+      ) : (
+        <p className={CHIP}>No data loaded</p>
+      )}
       {coverageText && freshness && freshnessWarning(range, freshness) && (
-        <p role="status">
+        <p role="status" className={WARN}>
           Bookings and revenue from{" "}
           {formatShortDate(freshness.outcomes_may_be_incomplete_from)} onward
           may be incomplete.
         </p>
       )}
       {coverageText && partialRange(range, coverage) && (
-        <p role="status">
+        <p role="status" className={WARN}>
           Selected range extends outside available data (covers {coverageText}).
         </p>
       )}

@@ -93,26 +93,26 @@ Existing API: `GET /api/meta`, `GET /api/campaigns/metrics`, `GET /api/campaigns
 
 Shared rules (both themes): segmented control for date presets; data-coverage and freshness notices as pill badges; tables in a rounded card with sticky header, right-aligned tabular numbers, active-sort column in the accent colour, row hover, emphasised totals row; chart in a card; visible focus ring in the accent colour.
 
-### Files (in the working tree, uncommitted)
+### Files
 
-- `dashboard-ui/app/styles.css` (imports `app/styles/*.css`: `base`, `filters`, `tables`, `chart`, `toggle`, `theme-light`, `theme-dark`) — tokens per theme on `html[data-theme="light|dark"]`, plus element styling for the existing semantic markup (no component changes).
-- `dashboard-ui/components/theme-toggle.tsx` — pill button (bottom right) that flips `data-theme` and saves the choice to `localStorage`.
+- `dashboard-ui/app/styles/theme-light.css`, `theme-dark.css` — the token variables on `html[data-theme="light|dark"]`; imported by `app/styles.css`.
+- `dashboard-ui/app/globals.css` — Tailwind import, the `dark:` variant (tied to `data-theme`), and the `@theme inline` mapping of tokens to utilities.
+- Components styled with utilities: `campaign-table`, `daily-table`, `daily-chart`, `filter-bar`, `page-header`, `back-link`, `theme-toggle`, plus `table-styles.ts`, `page-shell`, `page-title`, `notice`.
 - `dashboard-ui/app/layout.tsx` — loads the CSS, renders the toggle, runs an inline pre-paint script so a saved dark choice causes no white flash, sets the title to "Campaign Dashboard".
 
 ### Remaining work
 
-1. Branch from `main` (not from `milestone-5-pr-1-readme`).
-2. Leave `dashboard-ui/AGENTS.md` out of the commit. `next dev` edits it on every start, so it will keep showing as modified; revert it with `git checkout` before committing.
-3. Style the route loading states (`app/loading.tsx`, `app/campaigns/[id]/loading.tsx`): they render a bare `<p>` outside `<main>` and are unstyled today.
-4. Add `components/theme-toggle.test.tsx`: renders the right label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
-5. ~~Rebuild the `web` image and check both themes on :3000.~~ Done 2026-11-22 (the screenshots in §2 are from that build).
+1. ~~Commit the theme and convert it to Tailwind~~ In review (T1, PR #65; large on purpose, see [ui-improvements.md](ui-improvements.md)).
+2. Style the route loading states (`app/loading.tsx`, `app/campaigns/[id]/loading.tsx`): they render a bare `<p>` outside `<main>` and are unstyled today (T2; use `PageShell` and `Notice`).
+3. Add `components/theme-toggle.test.tsx`: renders the right label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
+4. ~~Rebuild the `web` image and check both themes on :3000.~~ Done 2026-11-22 (the screenshots in §2 are from that build).
 
 **Done when:** both themes render correctly on the overview, detail, loading and error states; the toggle persists across reloads; `npm test`, `npm run lint`, `npx tsc --noEmit` pass.
 
 ### Rules for U1–U3 components
 
 - Use theme tokens only; no hard-coded colours. Verify every new component in both themes.
-- **Tailwind-first, everywhere (decision).** All styling uses Tailwind utilities in `className`, with theme tokens exposed through `@theme` in `globals.css` (e.g. `bg-card`, `text-muted`, `border-border`, `text-accent`) so utilities follow `data-theme`. No CSS Modules, no new bare-element or global component rules. `app/styles/*.css` is the **legacy** bare-element styling (e.g. `main > p:not([role])`, `main > table`, `figure`); task T1b migrates the existing components to Tailwind and deletes those files except the token files. Until T1b lands, new widgets must not inherit those rules by accident (don't use bare `<p>`/`<table>` children of `<main>`).
+- **Tailwind-first, everywhere (decision).** All styling uses Tailwind utilities in `className`, with theme tokens exposed through `@theme` in `globals.css` (e.g. `bg-card`, `text-muted`, `border-border`, `text-accent`, `shadow-card`, `rounded-card`, `px-cell-x`) so utilities follow `data-theme`. Dark-only styling uses the `dark:` variant. No CSS Modules and no component CSS files; the only CSS files are the two token files. Shared class strings go in a TS module (see `components/table-styles.ts`); recurring pieces become small components (`PageShell`, `PageTitle`, `Notice`).
 - New tokens are added to `app/styles/theme-light.css` and `theme-dark.css` in the phase that needs them, and mapped in `@theme` (U1: `--series-calls`; U2: a six-colour `--channel-*` palette that passes contrast in both themes).
 
 ## 4b. U0b — Daily table pagination

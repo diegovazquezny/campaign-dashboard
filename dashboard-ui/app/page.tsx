@@ -2,6 +2,9 @@ import { connection } from "next/server";
 import { CampaignTable } from "../components/campaign-table";
 import { FilterBar } from "../components/filter-bar";
 import { PageHeader } from "../components/page-header";
+import { Notice } from "../components/notice";
+import { PageShell } from "../components/page-shell";
+import { PageTitle } from "../components/page-title";
 import { ApiRequestError, getCampaignMetrics, getMeta } from "../lib/api";
 import type { CampaignMetricsResponse, Meta } from "../lib/api-types";
 import { formatDateSpan } from "../lib/badges";
@@ -54,10 +57,10 @@ export default async function Home({
 
   if ("err" in metaOutcome) {
     return (
-      <main>
-        <h1>Campaign Dashboard</h1>
-        <p role="alert">{errorMessage(metaOutcome.err)}</p>
-      </main>
+      <PageShell>
+        <PageTitle>Campaign Dashboard</PageTitle>
+        <Notice role="alert">{errorMessage(metaOutcome.err)}</Notice>
+      </PageShell>
     );
   }
   const meta: Meta = metaOutcome.value;
@@ -87,8 +90,8 @@ export default async function Home({
     : null;
 
   return (
-    <main>
-      <h1>Campaign Dashboard</h1>
+    <PageShell>
+      <PageTitle>Campaign Dashboard</PageTitle>
       <PageHeader
         coverage={meta.data_coverage}
         // An invalid custom range has no dates to compare, so show no badges.
@@ -102,13 +105,13 @@ export default async function Home({
       />
       <FilterBar meta={meta} range={range} />
       {apiError ? (
-        <p role="alert">{apiError}</p>
+        <Notice role="alert">{apiError}</Notice>
       ) : metrics && metrics.totals.calls === 0 ? (
-        <p>
+        <Notice>
           {coverageText
             ? `No calls in this range — data covers ${coverageText}`
             : "No data loaded"}
-        </p>
+        </Notice>
       ) : metrics ? (
         <CampaignTable
           rows={metrics.rows}
@@ -117,6 +120,6 @@ export default async function Home({
           detailQuery={detailQuery}
         />
       ) : null}
-    </main>
+    </PageShell>
   );
 }

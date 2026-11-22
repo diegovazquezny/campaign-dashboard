@@ -1,23 +1,27 @@
-'use client';
+"use client";
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useState, useTransition } from 'react';
-import type { Meta } from '../lib/api-types';
-import type { Preset, ResolvedRange } from '../lib/date-ranges';
-import { DEFAULT_PRESET } from '../lib/date-ranges';
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition } from "react";
+import type { Meta } from "../lib/api-types";
+import type { Preset, ResolvedRange } from "../lib/date-ranges";
+import { DEFAULT_PRESET } from "../lib/date-ranges";
 import {
   buildQuery,
   type FilterChange,
   type FilterState,
-} from '../lib/filters';
+} from "../lib/filters";
 
 const PRESET_LABELS: [Preset, string][] = [
-  ['last_quarter', 'Last quarter'],
-  ['this_quarter', 'This quarter'],
-  ['last_30_days', 'Last 30 days'],
-  ['last_90_days', 'Last 90 days'],
-  ['custom', 'Custom'],
+  ["last_quarter", "Last quarter"],
+  ["this_quarter", "This quarter"],
+  ["last_30_days", "Last 30 days"],
+  ["last_90_days", "Last 90 days"],
+  ["custom", "Custom"],
 ];
+
+const LABEL =
+  "inline-flex items-center gap-2 text-[13px] font-medium text-muted";
+const FIELD = "rounded-ctl border border-border bg-card px-2.5 py-1.5 text-fg";
 
 // Native date inputs emit partial values (e.g. year 0002) while typing. On
 // change only push plausible 4-digit years; on blur accept any real date.
@@ -47,7 +51,7 @@ export function FilterBar({
     preset: range.preset,
     from: range.from,
     to: range.to,
-    location: searchParams.get('location') ?? '',
+    location: searchParams.get("location") ?? "",
   };
 
   // Server-resolved props lag behind navigation, so track the latest state we
@@ -59,13 +63,13 @@ export function FilterBar({
 
   // In-progress date input values, resynced when the resolved range changes.
   const [drafts, setDrafts] = useState({
-    from: range.from ?? '',
-    to: range.to ?? '',
+    from: range.from ?? "",
+    to: range.to ?? "",
   });
   const [draftsFor, setDraftsFor] = useState(`${range.from}|${range.to}`);
   if (draftsFor !== `${range.from}|${range.to}`) {
     setDraftsFor(`${range.from}|${range.to}`);
-    setDrafts({ from: range.from ?? '', to: range.to ?? '' });
+    setDrafts({ from: range.from ?? "", to: range.to ?? "" });
   }
 
   function update(change: FilterChange) {
@@ -74,10 +78,10 @@ export function FilterBar({
     setLatest({
       key: urlKey,
       state: {
-        preset: next.get('preset') ?? DEFAULT_PRESET,
-        from: next.get('from') ?? undefined,
-        to: next.get('to') ?? undefined,
-        location: next.get('location') ?? '',
+        preset: next.get("preset") ?? DEFAULT_PRESET,
+        from: next.get("from") ?? undefined,
+        to: next.get("to") ?? undefined,
+        location: next.get("location") ?? "",
       },
     });
     startTransition(() => {
@@ -85,61 +89,76 @@ export function FilterBar({
     });
   }
 
-  function editDate(field: 'from' | 'to', value: string, final: boolean) {
+  function editDate(field: "from" | "to", value: string, final: boolean) {
     setDrafts((d) => ({ ...d, [field]: value }));
-    const ok = value === '' ? final : isCompleteDate(value, final);
-    if (ok && value !== (base[field] ?? '')) update({ [field]: value });
+    const ok = value === "" ? final : isCompleteDate(value, final);
+    if (ok && value !== (base[field] ?? "")) update({ [field]: value });
   }
 
   function selectPreset(preset: Preset) {
     // Custom prefills with the currently resolved range so it never starts empty.
     update(
-      preset === 'custom' && range.preset !== 'custom'
+      preset === "custom" && range.preset !== "custom"
         ? { preset, from: range.from, to: range.to }
         : { preset },
     );
   }
 
   return (
-    <div aria-busy={isPending}>
-      <div role="group" aria-label="Date range">
+    <div
+      aria-busy={isPending}
+      className="flex flex-wrap items-center gap-x-5 gap-y-3 aria-busy:opacity-70"
+    >
+      <div
+        role="group"
+        aria-label="Date range"
+        className="inline-flex gap-0.5 rounded-ctl border border-border bg-chip p-[3px]"
+      >
         {PRESET_LABELS.map(([preset, label]) => (
           <button
             key={preset}
             type="button"
             aria-pressed={range.preset === preset}
+            className="cursor-pointer rounded-[calc(var(--radius)-3px)] px-3.5 py-1.5 font-medium text-muted transition-colors hover:text-fg aria-pressed:bg-accent aria-pressed:text-accent-fg aria-pressed:shadow-ctl aria-pressed:hover:text-accent-fg"
             onClick={() => selectPreset(preset)}
           >
             {label}
           </button>
         ))}
       </div>
-      {range.preset === 'custom' && (
-        <div>
-          <label>
+      {range.preset === "custom" && (
+        <div className="flex flex-wrap items-center gap-3">
+          <label className={LABEL}>
             From
             <input
               type="date"
+              className={FIELD}
               value={drafts.from}
-              onChange={(e) => editDate('from', e.target.value, false)}
-              onBlur={(e) => editDate('from', e.target.value, true)}
+              onChange={(e) => editDate("from", e.target.value, false)}
+              onBlur={(e) => editDate("from", e.target.value, true)}
             />
           </label>
-          <label>
+          <label className={LABEL}>
             To
             <input
               type="date"
+              className={FIELD}
               value={drafts.to}
-              onChange={(e) => editDate('to', e.target.value, false)}
-              onBlur={(e) => editDate('to', e.target.value, true)}
+              onChange={(e) => editDate("to", e.target.value, false)}
+              onBlur={(e) => editDate("to", e.target.value, true)}
             />
           </label>
-          {range.error && <p role="alert">{range.error}</p>}
+          {range.error && (
+            <p role="alert" className="text-[13px] text-bad">
+              {range.error}
+            </p>
+          )}
         </div>
       )}
-      <label>
+      <label className={LABEL}>
         Office
         <select
+          className={FIELD}
           value={serverState.location}
           onChange={(e) => update({ location: e.target.value })}
         >
@@ -157,7 +176,11 @@ export function FilterBar({
           ))}
         </select>
       </label>
-      {isPending && <span role="status">Updating…</span>}
+      {isPending && (
+        <span role="status" className="text-[13px] text-muted">
+          Updating…
+        </span>
+      )}
     </div>
   );
 }

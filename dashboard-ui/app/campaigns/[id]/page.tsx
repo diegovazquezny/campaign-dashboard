@@ -4,6 +4,9 @@ import { DailyChart } from "../../../components/daily-chart";
 import { DailyTable } from "../../../components/daily-table";
 import { FilterBar } from "../../../components/filter-bar";
 import { PageHeader } from "../../../components/page-header";
+import { Notice } from "../../../components/notice";
+import { PageShell } from "../../../components/page-shell";
+import { PageTitle } from "../../../components/page-title";
 import { ApiRequestError, getCampaignDaily, getMeta } from "../../../lib/api";
 import type { DailyResponse, Meta } from "../../../lib/api-types";
 import { formatDateSpan } from "../../../lib/badges";
@@ -77,11 +80,11 @@ export default async function CampaignDetail({
 
   if ("err" in metaOutcome) {
     return (
-      <main>
+      <PageShell>
         <BackLink query={backQuery} />
-        <h1>{daily?.campaign.name ?? "Campaign"}</h1>
-        <p role="alert">{errorMessage(metaOutcome.err)}</p>
-      </main>
+        <PageTitle>{daily?.campaign.name ?? "Campaign"}</PageTitle>
+        <Notice role="alert">{errorMessage(metaOutcome.err)}</Notice>
+      </PageShell>
     );
   }
   const meta: Meta = metaOutcome.value;
@@ -95,9 +98,9 @@ export default async function CampaignDetail({
     : null;
 
   return (
-    <main>
+    <PageShell>
       <BackLink query={backQuery} />
-      <h1>{daily?.campaign.name ?? "Campaign"}</h1>
+      <PageTitle>{daily?.campaign.name ?? "Campaign"}</PageTitle>
       <PageHeader
         coverage={meta.data_coverage}
         // An invalid custom range has no dates to compare, so show no badges.
@@ -111,19 +114,19 @@ export default async function CampaignDetail({
       />
       <FilterBar meta={meta} range={range} />
       {apiError ? (
-        <p role="alert">{apiError}</p>
+        <Notice role="alert">{apiError}</Notice>
       ) : daily && !hasActivity(daily.days) ? (
-        <p>
+        <Notice>
           {coverageText
             ? `No calls in this range — data covers ${coverageText}`
             : "No data loaded"}
-        </p>
+        </Notice>
       ) : daily ? (
         <>
           <DailyChart days={daily.days} locationSelected={Boolean(location)} />
           <DailyTable days={daily.days} locationSelected={Boolean(location)} />
         </>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

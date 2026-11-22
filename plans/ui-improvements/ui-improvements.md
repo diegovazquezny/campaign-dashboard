@@ -6,13 +6,13 @@
 
 ## Status
 
-Not started. T1 uses the U0 code that is **uncommitted in the main checkout** (`dashboard-ui/app/styles.css` + `app/styles/*.css`, `dashboard-ui/components/theme-toggle.tsx`, `dashboard-ui/app/layout.tsx`). That code must be kept, not rewritten.
+T1 in review (PR #65). Everything else not started.
 
 ## PR rules
 
-- One thing per PR, individually mergeable and testable, under 500 changed lines. Every PR leaves the app runnable and states how to verify it.
+- One thing per PR, individually mergeable and testable, under 500 changed lines (T1 is the one exception). Every PR leaves the app runnable and states how to verify it.
 - Branch from `main`. Leave `dashboard-ui/AGENTS.md` out of commits (`next dev` edits it; `git checkout` it first).
-- Tailwind utilities only (no CSS Modules, no new global CSS), theme tokens only, check both themes (PLAN.md §4 "Rules for U1–U3 components").
+- Tailwind utilities only (no CSS Modules, no new global CSS; shared class strings live in TS modules like `components/table-styles.ts`), theme tokens only, check both themes (PLAN.md §4 "Rules for U1–U3 components").
 - Metric definitions are base-plan §7 and apply unchanged; reuse `call_facts.rb`, `spend_sql.rb`, `data_coverage.rb`.
 - **Gate:** T1–T3 may land any time. T4 onward starts only after base-plan M5 is complete.
 
@@ -30,27 +30,22 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 
 ## Tasks
 
-### T1 — Commit the Clarity/Midnight theme (U0)
+### T1 — Theme, styled with Tailwind (U0)
 **Status:** in review · **Depends on:** nothing
-- The code already exists uncommitted in the main checkout. Branch from `main`, copy those three files in as they are (do not discard or redo them), exclude `dashboard-ui/AGENTS.md`, and commit. `layout.tsx` on `main` may have moved on; merge the diff by hand if so.
-- Size: about 470 lines (409 CSS + 40 toggle + ~20 layout). If it goes over 500 after rebasing, move the toggle into T2.
-- **Acceptance:** both themes render on overview and detail; toggle flips `data-theme` and persists across reload with no white flash; title is "Campaign Dashboard"; `npm test`, lint and `tsc` pass.
-
-### T1b — Migrate styling to Tailwind (U0)
-**Status:** not started · **Depends on:** T1
-- Decision: Tailwind-first everywhere, no CSS Modules (PLAN.md §4). Map the theme tokens in `globals.css` with `@theme` so utilities follow `data-theme`; convert the existing components (`campaign-table`, `daily-table`, `daily-chart`, `filter-bar`, `page-header`, `back-link`, `theme-toggle`, page shells) to utilities; delete `app/styles/{base,filters,tables,chart,toggle}.css` and keep only the token files (`theme-light.css`, `theme-dark.css`).
-- Likely over 500 lines: split by component group (e.g. tokens + toggle + shell, then tables, then filters/header/chart), each PR leaving both themes intact.
-- **Tests:** existing tests keep passing; update any that assert markup or class names.
-- **Acceptance:** both themes look the same as before on overview and detail (compare screenshots); no bare-element selectors remain; `npm test`, lint, `tsc` pass.
+- Light ("Clarity") and dark ("Midnight") themes with a toggle, **styled entirely with Tailwind utilities** (decision: Tailwind-first everywhere, no CSS Modules, no bare-element CSS). Started from the uncommitted U0 code, then converted.
+- Tokens: `app/styles/theme-light.css` and `theme-dark.css` (variables on `html[data-theme]`), imported via `app/styles.css`, and mapped to utilities in `app/globals.css` (`@theme inline`, plus a `dark:` variant tied to `data-theme`).
+- Components converted to utilities: `campaign-table`, `daily-table`, `daily-chart` (Recharts styles passed as props), `filter-bar`, `page-header`, `back-link`, `theme-toggle`, page shells. New shared pieces: `components/table-styles.ts`, `page-shell.tsx`, `page-title.tsx`, `notice.tsx`.
+- **Exception to the 500-line rule:** this PR is large on purpose (it replaces the 400-line bare-element stylesheet with utilities in one go).
+- **Acceptance:** both themes look the same as the captured designs on overview and detail; toggle flips `data-theme` and persists with no white flash; title is "Campaign Dashboard"; no bare-element selectors remain; `npm test`, lint and `tsc` pass.
 
 ### T2 — Loading states + toggle test (U0)
-**Status:** not started · **Depends on:** T1b
+**Status:** not started · **Depends on:** T1
 - Style `app/loading.tsx` and `app/campaigns/[id]/loading.tsx` (wrap in `<main>`, Tailwind utilities).
 - Add `components/theme-toggle.test.tsx`: label, flips `data-theme`, writes `localStorage`, survives `localStorage` throwing.
 - **Acceptance:** loading and error states look right in both themes; new tests pass.
 
 ### T3 — Pager + daily-table pagination (U0b)
-**Status:** not started · **Depends on:** T1b
+**Status:** not started · **Depends on:** T1
 - `components/pager.tsx` (`page`, `pageCount`, `onChange`; `<nav aria-label>`, live range label, Tailwind styles) and paging in `components/daily-table.tsx` per PLAN.md §4b (30 rows, oldest first, totals row covers all days, resets on range/office change).
 - **Tests:** the six cases listed in §4b (`daily-table.test.tsx`) plus a small `pager.test.tsx`.
 - **Acceptance:** 90- and 366-day ranges page correctly; totals match the chart on every page.
@@ -62,7 +57,7 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** endpoint matches PLAN.md §6 U1. Base-plan §8 is updated in T13, not here (docs stay stale until then, deliberately, so each API PR stays small).
 
 ### T5 — KPI cards (U1)
-**Status:** not started · **Depends on:** M5, T1b
+**Status:** not started · **Depends on:** M5, T1
 - `components/kpi-cards.tsx`: Calls, Booked, Booking rate, Revenue, Revenue ÷ spend (paid only), from `totals`/`totals.paid` already fetched. Null → "—". "May be incomplete" marker when the range reaches `outcomes_may_be_incomplete_from`. Mount above the table in `app/page.tsx`; keep the existing "No calls in this range" message for an empty range.
 - **Tests:** values, nulls, empty range, freshness marker.
 - **Acceptance:** KPI values equal the table's totals row; both themes checked.
@@ -120,15 +115,14 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 Direct dependencies only; they match the diagram.
 
 - M5 → T4, T5, T7, T9
-- T1 → T1b
-- T1b → T2, T3, T5
+- T1 → T2, T3, T5
 - T4, T5 → T6
 - T7, T6 → T8
 - T9 → T10, T11
 - T3 → T11
 - T10, T11 → T12
 - T2, T6, T8, T12 → T13
-- Start immediately: T1, then T1b. Then in parallel: T2, T3. After M5, in parallel: T4, T5, T7, T9.
-- Longest chains (6 PRs, T1b may itself be several PRs): T1 → T1b → T5 → T6 → T8 → T13 and T1 → T1b → T3 → T11 → T12 → T13.
+- Start immediately: T1. Then in parallel: T2, T3. After M5, in parallel: T4, T5, T7, T9.
+- Longest chains (5 PRs): T1 → T5 → T6 → T8 → T13 and T1 → T3 → T11 → T12 → T13.
 
 See [ui-improvements-dag.drawio](ui-improvements-dag.drawio).
