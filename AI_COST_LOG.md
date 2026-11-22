@@ -1,14 +1,27 @@
 # AI cost log
 
-One row per AI session whose cost can be recovered from this repo. The only record is a usage summary that was kept in a standalone file, now folded in here and removed. The original is in git history at commit `344ef04`.
+One row per AI session whose cost is recorded. Costs are each session's "Estimated cost" as reported by the tool. The "Plan refinement 2" row comes from the usage summary kept in a standalone file, now folded in here and removed (the original is in git history at commit `344ef04`). The milestone 1 to 4 and ui-improvements rows come from usage summaries supplied by the project owner. The cost column is the session total, so the small haiku amounts in the model column are already included and are not added again.
 
-| Model | Purpose | Cost (USD) |
+| Session | Models | Cost (USD) |
 |---|---|---|
-| claude-opus-5-5 | Plan mode, "Plan refinement 2" session (954.6k cache read, 68.5k cache write, 21.5k output tokens) | 0.97 |
-| claude-haiku-5-5 | Same session, minor calls (1.2k input, 20 output tokens) | 0.0001 (included in the session's estimated $0.97, not added again) |
-| Other sessions (milestone planning and implementation, M0 to M5) | Not recorded in the repo | unknown |
+| Plan mode, "Plan refinement 2" | claude-opus-5-5 (+ haiku $0.0001) | 0.97 |
+| milestone-1 implementation, session 1 | claude-sonnet-5-5 (+ haiku $0.0005) | 0.66 |
+| milestone-1 implementation, session 2 | claude-sonnet-5-5 (+ haiku $0.0046) | 5.41 |
+| milestone-2 implementation, session 1 | claude-sonnet-5-5 (+ haiku $0.0023) | 1.71 |
+| milestone-2 implementation, session 2 | claude-sonnet-5-5 (+ haiku $0.0007) | 2.04 |
+| milestone-2 implementation, session 3 | claude-sonnet-5-5 $0.3958, claude-sonnet-5 $0.1205 (+ haiku $0.0001) | 0.52 |
+| milestone-3 implementation, session 1 | claude-sonnet-5-5 (+ haiku $0.0005) | 0.94 |
+| milestone-3 implementation, session 2 | claude-sonnet-5-5 (+ haiku $0.0017) | 0.76 |
+| milestone-3 implementation, session 3 | claude-sonnet-5-5 $0.74, claude-sonnet-5 $0.2369 (+ haiku $0.0002) | 0.98 |
+| milestone-3 implementation, session 4 | claude-sonnet-5-5 $0.4969, claude-sonnet-5 $0.1174 (+ haiku $0.0001) | 0.61 |
+| milestone-4 implementation, session 1 | claude-sonnet-5-5 (+ haiku $0.0005) | 0.83 |
+| milestone-4 implementation, session 2 | claude-sonnet-5-5 (+ haiku $0.0020) | 1.39 |
+| milestone-4 implementation, session 3 | claude-sonnet-5-5 (+ haiku $0.0001) | 0.71 |
+| ui-improvements, session 1 | claude-sonnet-5-5 (+ haiku $0.0003) | 0.66 |
+| ui-improvements, session 2 | claude-sonnet-5-5 (+ haiku $0.0009) | 3.63 |
+| Other sessions (M0, milestone 5, UI improvements work after the figures above were captured, planning not listed) | Not recorded | unknown |
 
-**Total of recorded costs: $0.97.** This is the session's estimated cost as reported by the tool. It is a lower bound: rows marked unknown are not counted and the true total is higher.
+**Total of recorded costs: $21.82.** It is a lower bound: the unknown row is not counted, so the true total is higher.
 
 ## Original session summary
 

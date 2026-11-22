@@ -47,4 +47,4 @@ The data has no actual ad spend, only each campaign's daily budget. So **spend i
 
 ## AI spend
 
-**Total recorded AI spend: $0.97.** This is the sum of the rows in [AI_COST_LOG.md](AI_COST_LOG.md). Costs for other sessions are not recoverable from the repo and are logged there as unknown, so the true total is higher.
+**Total recorded AI spend: $21.82.** This is the sum of the rows in [AI_COST_LOG.md](AI_COST_LOG.md). Costs for other sessions are not recoverable from the repo and are logged there as unknown, so the true total is higher.
