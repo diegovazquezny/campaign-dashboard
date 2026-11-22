@@ -94,4 +94,9 @@ describe("DailyTable", () => {
     rerender(<DailyTable days={[day("2025-10-01")]} locationSelected />);
     expect(screen.getByText(/allocated by call share/)).toBeTruthy();
   });
+
+  it("renders nothing when there are no days", () => {
+    const { container } = render(<DailyTable days={[]} />);
+    expect(container.querySelector("table")).toBeNull();
+  });
 });

@@ -13,6 +13,8 @@ type Props = {
 };
 
 export function DailyTable({ days, locationSelected }: Props) {
+  // No days: render nothing rather than a table with a zero totals row.
+  if (days.length === 0) return null;
   const rows = [...days].sort((a, b) => a.date.localeCompare(b.date));
   const totals = sumDays(rows);
   return (
