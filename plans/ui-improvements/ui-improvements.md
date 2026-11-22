@@ -6,7 +6,7 @@
 
 ## Status
 
-T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74), T6 (PR #75), T7 (PR #76) T8 (PR #77) and T9 (PR #78) and T10 (PR #79) merged. T11 (calls list on the campaign page) in review; the `/campaigns/none` page is split into a follow-up, T11b. Everything else not started.
+T1 (PR #65), T2 (PR #67), T3 (PR #68), T4 (PR #73), T5 (PR #74), T6 (PR #75), T7 (PR #76) T8 (PR #77), T9 (PR #78), T10 (PR #79) and T11 (PR #80, calls list on the campaign page) merged. T11b (the `/campaigns/none` page and the "No campaign" row link, split from T11) in review. Everything else not started.
 
 ## PR rules
 
@@ -94,7 +94,7 @@ Parallel tasks that edit the same file will conflict textually. Whichever merges
 - **Acceptance:** specs pass; `is_first_call` agrees with `new_callers` for the same calls.
 
 ### T11 — Calls list on the campaign page (U3b)
-**Status:** in review (the `none` page and the "No campaign" row link are split into T11b, as this plan allows: the full change was over 500 lines) · **Depends on:** T9, T3
+**Status:** merged (PR #80; the `none` page and the "No campaign" row link are split into T11b, as this plan allows: the full change was over 500 lines; T11b is in review) · **Depends on:** T9, T3
 - `getCalls()` + types; "Calls" section under the daily chart (time in office-local zone, outcome incl. "Awaiting outcome", duration, agent, revenue), paged with `Pager`; `page` added to `buildQuery` and reset on filter change; "No campaign" row links to `/campaigns/none`, a **calls-only page** (static route `app/campaigns/none/page.tsx`, which takes precedence over `[id]`): header, filters and the calls list, no daily chart or table, since `/api/campaigns/:id/daily` has no "none" campaign. Resolves open question 4. If the PR passes 500 lines, split the `none` page into its own follow-up.
 - **Tests:** list rendering, empty state, paging, reset on filter change, `buildQuery`.
 

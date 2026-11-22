@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveRange } from "./date-ranges";
+import { first, resolveRange } from "./date-ranges";
 
 describe("resolveRange presets", () => {
   it("defaults to last quarter", () => {
@@ -255,5 +255,19 @@ describe("resolveRange edge cases", () => {
 
   it("throws on an invalid today (caller bug, not a URL param)", () => {
     expect(() => resolveRange({}, "2026-1-5")).toThrow(/Invalid today/);
+  });
+});
+
+describe("first", () => {
+  it("returns the first value of an array", () => {
+    expect(first(["a", "b"])).toBe("a");
+  });
+  it("returns a plain value as is", () => {
+    expect(first("a")).toBe("a");
+  });
+  it("treats an empty string, an empty array and undefined as missing", () => {
+    expect(first("")).toBeUndefined();
+    expect(first([])).toBeUndefined();
+    expect(first(undefined)).toBeUndefined();
   });
 });

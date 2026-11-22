@@ -216,7 +216,18 @@ export function CampaignTable({
           >
             {COLUMNS.map((c) => (
               <td key={c.key} className={`${cellClass(c.key)} relative`}>
-                {c.key === "spend_cents" ? "—" : c.cell(noCampaign)}
+                {c.key === "name" ? (
+                  <Link
+                    href={detailHref("none", detailQuery)}
+                    className="font-semibold text-fg hover:text-accent hover:underline"
+                  >
+                    {c.cell(noCampaign)}
+                  </Link>
+                ) : c.key === "spend_cents" ? (
+                  "—"
+                ) : (
+                  c.cell(noCampaign)
+                )}
                 {c.key === "name" && noCampaignTip && (
                   <Tip id="tip-no-campaign" text={noCampaignTip} />
                 )}

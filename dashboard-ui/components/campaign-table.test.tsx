@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { CampaignRow, Totals } from "../lib/api-types";
 import { CampaignTable } from "./campaign-table";
@@ -190,9 +196,20 @@ describe("CampaignTable", () => {
     );
   });
 
-  it("does not link the No campaign row", () => {
-    render(<CampaignTable rows={rows} totals={totals} />);
-    const cell = screen.getByTestId("no-campaign-row");
-    expect(cell.querySelector("a")).toBeNull();
+  it("links the No campaign row to the calls-only page, keeping the filters", () => {
+    render(
+      <CampaignTable
+        rows={rows}
+        totals={totals}
+        detailQuery="preset=last_30_days&location=loc1"
+      />,
+    );
+    const link = within(screen.getByTestId("no-campaign-row")).getByRole(
+      "link",
+      { name: /No campaign/ },
+    );
+    expect(link.getAttribute("href")).toBe(
+      "/campaigns/none?preset=last_30_days&location=loc1",
+    );
   });
 });
