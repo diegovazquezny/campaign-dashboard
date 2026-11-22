@@ -23,13 +23,13 @@ Same as M0–M4:
 ## PRs
 
 ### PR 1 — README.md
-**Status:** in progress
+**Status:** merged (PR #62)
 - One-command setup (`cp .env.example .env`, `docker compose up`), ports (web 3000, api 3001, db 5432, `DB_PORT` override), native development (`bin/setup`, `bin/dev`), how to run tests (`api` RSpec, `dashboard-ui` `npm test`, lint, `tsc`), where the data lives (`data/`, `DATA_DIR`) and how re-seeding/importing works, a short data-notes section (messy data handled, coverage Aug 31 – Oct 29), repo layout, links to the other docs.
 - **Check:** follow the README verbatim on a clean working tree; every command works as written.
 - Depends on M4 only.
 
 ### PR 2 — DECISIONS.md and AI_COST_LOG.md
-**Status:** not started
+**Status:** in review
 - `DECISIONS.md`: product-focused summary of D1–D12 (why, in plain language), the **spend-estimate limitation** (budget × days, assumes full spend, overstates cost) and the "allocated by call share" rule, what was left out (auth, first-touch toggle, chatbot), open questions from §13, and the **AI spend total** (taken from `AI_COST_LOG.md`).
 - `AI_COST_LOG.md`: table of model, purpose, cost per entry, with a total; fold in `ai-spend.md` (existing entries) and then delete `ai-spend.md` with `git rm`. Costs not recoverable from history are stated as unknown, not invented.
 - **Check:** the total in DECISIONS.md equals the sum of the log's rows; no dead links; `ai-spend.md` is gone and nothing references it.
