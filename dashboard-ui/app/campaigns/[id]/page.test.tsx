@@ -1,6 +1,11 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CallRow, CallsResponse, DailyResponse, Meta } from "../../../lib/api-types";
+import type {
+  CallRow,
+  CallsResponse,
+  DailyResponse,
+  Meta,
+} from "../../../lib/api-types";
 
 vi.mock("next/server", () => ({ connection: async () => {} }));
 vi.mock("next/navigation", () => ({
@@ -21,7 +26,9 @@ vi.mock("../../../lib/api", async () => {
     await vi.importActual<typeof import("../../../lib/api")>(
       "../../../lib/api",
     );
-  return { ...actual, getMeta: vi.fn(),
+  return {
+    ...actual,
+    getMeta: vi.fn(),
     getCampaignDaily: vi.fn(),
     getCalls: vi.fn(),
   };
@@ -241,9 +248,7 @@ describe("CampaignDetail", () => {
     });
 
     it("shows an empty state when the range has no calls", async () => {
-      vi.mocked(getCalls).mockResolvedValue(
-        callsPage({ total: 0, calls: [] }),
-      );
+      vi.mocked(getCalls).mockResolvedValue(callsPage({ total: 0, calls: [] }));
       await renderPage();
       expect(screen.getByText("No calls in this range.")).toBeTruthy();
       expect(screen.getAllByRole("table").length).toBe(1);
@@ -252,7 +257,9 @@ describe("CampaignDetail", () => {
     it("shows a pager when there is more than one page", async () => {
       vi.mocked(getCalls).mockResolvedValue(callsPage({ total: 60 }));
       await renderPage();
-      expect(screen.getByRole("navigation", { name: "Calls pages" })).toBeTruthy();
+      expect(
+        screen.getByRole("navigation", { name: "Calls pages" }),
+      ).toBeTruthy();
       expect(screen.getByText("Calls 1–1 of 60")).toBeTruthy();
     });
 
@@ -260,9 +267,9 @@ describe("CampaignDetail", () => {
       vi.mocked(getCalls).mockResolvedValue(
         callsPage({ page: 9, total: 30, calls: [] }),
       );
-      await expect(
-        renderPage({ page: "9", location: "loc1" }),
-      ).rejects.toThrow("NEXT_REDIRECT /campaigns/a?location=loc1&page=2");
+      await expect(renderPage({ page: "9", location: "loc1" })).rejects.toThrow(
+        "NEXT_REDIRECT /campaigns/a?location=loc1&page=2",
+      );
     });
 
     it("shows a calls error inline without hiding the chart and table", async () => {
@@ -275,7 +282,11 @@ describe("CampaignDetail", () => {
     });
 
     it("does not fetch calls for an invalid custom range", async () => {
-      await renderPage({ preset: "custom", from: "2026-09-10", to: "2026-09-01" });
+      await renderPage({
+        preset: "custom",
+        from: "2026-09-10",
+        to: "2026-09-01",
+      });
       expect(getCalls).not.toHaveBeenCalled();
     });
   });

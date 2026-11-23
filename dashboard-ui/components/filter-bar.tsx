@@ -20,9 +20,11 @@ const PRESET_LABELS: [Preset, string][] = [
   ["custom", "Custom"],
 ];
 
+// Phones: label and field fill the row; 16px text keeps iOS from zooming on focus.
 const LABEL =
-  "inline-flex items-center gap-2 text-[13px] font-medium text-muted";
-const FIELD = "rounded-ctl border border-border bg-card px-2.5 py-1.5 text-fg";
+  "flex w-full items-center gap-2 text-[13px] font-medium text-muted sm:inline-flex sm:w-auto";
+const FIELD =
+  "min-h-10 flex-1 rounded-ctl border border-border bg-card px-2.5 py-1.5 text-base text-fg sm:min-h-0 sm:flex-none sm:text-body";
 
 // Native date inputs emit partial values (e.g. year 0002) while typing. On
 // change only push plausible 4-digit years; on blur accept any real date.
@@ -113,14 +115,14 @@ export function FilterBar({
       <div
         role="group"
         aria-label="Date range"
-        className="inline-flex gap-0.5 rounded-ctl border border-border bg-chip p-[3px]"
+        className="grid grid-cols-3 gap-0.5 rounded-ctl border border-border bg-chip p-[3px] sm:inline-flex"
       >
         {PRESET_LABELS.map(([preset, label]) => (
           <button
             key={preset}
             type="button"
             aria-pressed={range.preset === preset}
-            className="cursor-pointer rounded-[calc(var(--radius)-3px)] px-3.5 py-1.5 font-medium text-muted transition-colors hover:text-fg aria-pressed:bg-accent aria-pressed:text-accent-fg aria-pressed:shadow-ctl aria-pressed:hover:text-accent-fg"
+            className="min-h-10 cursor-pointer rounded-[calc(var(--radius)-3px)] px-2 py-1.5 text-center font-medium whitespace-nowrap sm:min-h-0 sm:px-3.5 text-muted transition-colors hover:text-fg aria-pressed:bg-accent aria-pressed:text-accent-fg aria-pressed:shadow-ctl aria-pressed:hover:text-accent-fg"
             onClick={() => selectPreset(preset)}
           >
             {label}
@@ -128,7 +130,7 @@ export function FilterBar({
         ))}
       </div>
       {range.preset === "custom" && (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
           <label className={LABEL}>
             From
             <input

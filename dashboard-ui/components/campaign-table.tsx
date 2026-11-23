@@ -11,10 +11,13 @@ import {
   numCell,
   rowHover,
   sortButton,
+  stickyCell,
+  stickyHead,
   table,
   thLeft,
   thRight,
 } from "./table-styles";
+import { TableScroll } from "./table-scroll";
 import {
   formatCount,
   formatMoney,
@@ -102,7 +105,7 @@ const COLUMNS: Column[] = [
 const isLabelKey = (key: SortKey) => key === "name" || key === "channel";
 
 function cellClass(key: SortKey): string {
-  if (key === "name") return labelCell;
+  if (key === "name") return `${labelCell} ${stickyCell}`;
   if (key === "channel") return `${labelCell} text-muted`;
   return numCell;
 }
@@ -149,113 +152,119 @@ export function CampaignTable({
   const paid = totals.paid;
 
   return (
-    <table className={table}>
-      <thead>
-        <tr>
-          {COLUMNS.map((c) => {
-            const label =
-              c.key === "spend_cents" && locationSelected
-                ? SPEND_LOCATION_LABEL
-                : c.label;
-            const active = sort.key === c.key;
-            const tipId = c.tip ? `tip-${c.key}` : undefined;
-            return (
-              <th
-                key={c.key}
-                scope="col"
-                className={isLabelKey(c.key) ? thLeft : thRight}
-                title={c.tip}
-                aria-describedby={tipId}
-                aria-sort={
-                  active
-                    ? sort.direction === "asc"
-                      ? "ascending"
-                      : "descending"
-                    : "none"
-                }
-              >
-                <button
-                  type="button"
-                  className={sortButton}
-                  onClick={() => onSort(c.key)}
+    <TableScroll label="Campaigns">
+      <table className={table}>
+        <thead>
+          <tr>
+            {COLUMNS.map((c) => {
+              const label =
+                c.key === "spend_cents" && locationSelected
+                  ? SPEND_LOCATION_LABEL
+                  : c.label;
+              const active = sort.key === c.key;
+              const tipId = c.tip ? `tip-${c.key}` : undefined;
+              return (
+                <th
+                  key={c.key}
+                  scope="col"
+                  className={`${isLabelKey(c.key) ? thLeft : thRight} ${c.key === "name" ? stickyHead : ""}`}
+                  title={c.tip}
+                  aria-describedby={tipId}
+                  aria-sort={
+                    active
+                      ? sort.direction === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
                 >
-                  {label}
-                  {active ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
-                </button>
-                {c.tip && tipId && <Tip id={tipId} text={c.tip} />}
-              </th>
-            );
-          })}
-        </tr>
-      </thead>
-      <tbody>
-        {ranked.map((row, i) => (
-          <tr key={row.campaign_id ?? `null-${i}`} className={rowHover}>
-            {COLUMNS.map((c) => (
-              <td key={c.key} className={cellClass(c.key)}>
-                {c.key === "name" && row.campaign_id ? (
-                  <Link
-                    href={detailHref(row.campaign_id, detailQuery)}
-                    className="font-semibold text-fg hover:text-accent hover:underline"
+                  <button
+                    type="button"
+                    className={sortButton}
+                    onClick={() => onSort(c.key)}
                   >
-                    {c.cell(row)}
-                  </Link>
-                ) : (
-                  c.cell(row)
-                )}
-              </td>
-            ))}
+                    {label}
+                    {active ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
+                  </button>
+                  {c.tip && tipId && <Tip id={tipId} text={c.tip} />}
+                </th>
+              );
+            })}
           </tr>
-        ))}
-        {noCampaign && (
-          <tr
-            data-testid="no-campaign-row"
-            className={`${rowHover} opacity-65`}
-            title={noCampaignTip ?? undefined}
-            aria-describedby={noCampaignTip ? "tip-no-campaign" : undefined}
-          >
-            {COLUMNS.map((c) => (
-              <td key={c.key} className={`${cellClass(c.key)} relative`}>
-                {c.key === "name" ? (
-                  <Link
-                    href={detailHref("none", detailQuery)}
-                    className="font-semibold text-fg hover:text-accent hover:underline"
-                  >
-                    {c.cell(noCampaign)}
-                  </Link>
-                ) : c.key === "spend_cents" ? (
-                  "—"
-                ) : (
-                  c.cell(noCampaign)
-                )}
-                {c.key === "name" && noCampaignTip && (
-                  <Tip id="tip-no-campaign" text={noCampaignTip} />
-                )}
-              </td>
-            ))}
+        </thead>
+        <tbody>
+          {ranked.map((row, i) => (
+            <tr key={row.campaign_id ?? `null-${i}`} className={rowHover}>
+              {COLUMNS.map((c) => (
+                <td key={c.key} className={cellClass(c.key)}>
+                  {c.key === "name" && row.campaign_id ? (
+                    <Link
+                      href={detailHref(row.campaign_id, detailQuery)}
+                      className="font-semibold text-fg hover:text-accent hover:underline"
+                    >
+                      {c.cell(row)}
+                    </Link>
+                  ) : (
+                    c.cell(row)
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+          {noCampaign && (
+            <tr
+              data-testid="no-campaign-row"
+              className={`${rowHover} opacity-65`}
+              title={noCampaignTip ?? undefined}
+              aria-describedby={noCampaignTip ? "tip-no-campaign" : undefined}
+            >
+              {COLUMNS.map((c) => (
+                <td
+                  key={c.key}
+                  // The pinned name cell is already positioned (sticky).
+                  className={`${cellClass(c.key)} ${c.key === "name" ? "" : "relative"}`}
+                >
+                  {c.key === "name" ? (
+                    <Link
+                      href={detailHref("none", detailQuery)}
+                      className="font-semibold text-fg hover:text-accent hover:underline"
+                    >
+                      {c.cell(noCampaign)}
+                    </Link>
+                  ) : c.key === "spend_cents" ? (
+                    "—"
+                  ) : (
+                    c.cell(noCampaign)
+                  )}
+                  {c.key === "name" && noCampaignTip && (
+                    <Tip id="tip-no-campaign" text={noCampaignTip} />
+                  )}
+                </td>
+              ))}
+            </tr>
+          )}
+        </tbody>
+        <tfoot>
+          <tr data-testid="totals-row">
+            <th scope="row" colSpan={2} className={footLabel}>
+              Totals (spend ratios: paid campaigns only)
+            </th>
+            <td className={footNum}>{formatCount(totals.calls)}</td>
+            <td className={footNum}>{formatCount(totals.unique_callers)}</td>
+            <td className={footNum}>{formatCount(totals.new_callers)}</td>
+            <td className={footNum}>{formatCount(totals.booked)}</td>
+            <td className={footNum}>{formatPercent(totals.booking_rate)}</td>
+            <td className={footNum}>{formatPercent(totals.unanswered_rate)}</td>
+            <td className={footNum}>{formatCount(totals.awaiting_outcome)}</td>
+            <td className={footNum}>{formatMoney(totals.revenue_cents)}</td>
+            <td className={footNum}>{formatMoney(totals.spend_cents)}</td>
+            <td className={footNum}>{formatRatio(paid.revenue_per_spend)}</td>
+            <td className={footNum}>
+              {formatMoney(paid.spend_per_booking_cents)}
+            </td>
           </tr>
-        )}
-      </tbody>
-      <tfoot>
-        <tr data-testid="totals-row">
-          <th scope="row" colSpan={2} className={footLabel}>
-            Totals (spend ratios: paid campaigns only)
-          </th>
-          <td className={footNum}>{formatCount(totals.calls)}</td>
-          <td className={footNum}>{formatCount(totals.unique_callers)}</td>
-          <td className={footNum}>{formatCount(totals.new_callers)}</td>
-          <td className={footNum}>{formatCount(totals.booked)}</td>
-          <td className={footNum}>{formatPercent(totals.booking_rate)}</td>
-          <td className={footNum}>{formatPercent(totals.unanswered_rate)}</td>
-          <td className={footNum}>{formatCount(totals.awaiting_outcome)}</td>
-          <td className={footNum}>{formatMoney(totals.revenue_cents)}</td>
-          <td className={footNum}>{formatMoney(totals.spend_cents)}</td>
-          <td className={footNum}>{formatRatio(paid.revenue_per_spend)}</td>
-          <td className={footNum}>
-            {formatMoney(paid.spend_per_booking_cents)}
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+        </tfoot>
+      </table>
+    </TableScroll>
   );
 }

@@ -25,23 +25,37 @@ describe("sumDays", () => {
       day({ calls: 2, booked: 1, revenue_cents: 500, spend_cents: 100 }),
       day({ calls: 3, booked: 0, revenue_cents: 250, spend_cents: 101 }),
     ]);
-    expect(t).toEqual({ calls: 5, booked: 1, revenue_cents: 750, spend_cents: 201 });
+    expect(t).toEqual({
+      calls: 5,
+      booked: 1,
+      revenue_cents: 750,
+      spend_cents: 201,
+    });
   });
 
   it("keeps spend null when all days are null", () => {
-    expect(sumDays([day({ spend_cents: null }), day({ spend_cents: null })]).spend_cents).toBeNull();
+    expect(
+      sumDays([day({ spend_cents: null }), day({ spend_cents: null })])
+        .spend_cents,
+    ).toBeNull();
   });
 
   it("ignores null days when others have spend", () => {
-    expect(sumDays([day({ spend_cents: null }), day({ spend_cents: 40 })]).spend_cents).toBe(40);
+    expect(
+      sumDays([day({ spend_cents: null }), day({ spend_cents: 40 })])
+        .spend_cents,
+    ).toBe(40);
   });
 });
 
 describe("sumDays null and zero spend", () => {
   it("skips a null day between non-null days", () => {
     expect(
-      sumDays([day({ spend_cents: 10 }), day({ spend_cents: null }), day({ spend_cents: 5 })])
-        .spend_cents,
+      sumDays([
+        day({ spend_cents: 10 }),
+        day({ spend_cents: null }),
+        day({ spend_cents: 5 }),
+      ]).spend_cents,
     ).toBe(15);
   });
   it("keeps a zero spend as 0, not null", () => {

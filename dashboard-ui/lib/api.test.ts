@@ -255,7 +255,12 @@ describe("getCalls", () => {
 
   it("adds location and page, and passes campaign none through", async () => {
     fetchMock.mockResolvedValue(json(body));
-    await getCalls({ ...args, campaignId: "none", locationId: "loc1", page: 3 });
+    await getCalls({
+      ...args,
+      campaignId: "none",
+      locationId: "loc1",
+      page: 3,
+    });
     const url = new URL(fetchMock.mock.calls[0][0]);
     expect(url.searchParams.get("campaign_id")).toBe("none");
     expect(url.searchParams.get("location_id")).toBe("loc1");

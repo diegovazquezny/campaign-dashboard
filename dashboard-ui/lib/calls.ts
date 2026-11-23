@@ -23,7 +23,8 @@ export async function loadCalls(
   try {
     return { data: await getCalls(args), error: null };
   } catch (err) {
-    if (err instanceof ApiRequestError) return { data: null, error: err.message };
+    if (err instanceof ApiRequestError)
+      return { data: null, error: err.message };
     throw err;
   }
 }

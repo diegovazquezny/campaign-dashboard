@@ -1,5 +1,5 @@
 const button =
-  "cursor-pointer rounded-ctl border border-border bg-card px-3.5 py-1.5 font-medium text-fg hover:border-accent " +
+  "min-h-10 cursor-pointer rounded-ctl border border-border bg-card px-3.5 py-1.5 font-medium whitespace-nowrap text-fg hover:border-accent sm:min-h-0 " +
   "aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:border-border";
 
 type Props = {
@@ -31,9 +31,11 @@ export function Pager({
   return (
     <nav
       aria-label={ariaLabel}
-      className="flex items-center justify-end gap-3 text-muted"
+      className="flex flex-wrap items-center justify-between gap-3 text-muted sm:justify-end"
     >
-      <span aria-live="polite">{label}</span>
+      <span aria-live="polite" className="w-full sm:w-auto">
+        {label}
+      </span>
       <button
         type="button"
         className={button}

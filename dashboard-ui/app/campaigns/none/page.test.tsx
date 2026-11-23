@@ -137,7 +137,11 @@ describe("NoCampaignCalls", () => {
   });
 
   it("makes no calls request for an invalid custom range", async () => {
-    await renderPage({ preset: "custom", from: "2026-09-10", to: "2026-09-01" });
+    await renderPage({
+      preset: "custom",
+      from: "2026-09-10",
+      to: "2026-09-01",
+    });
     expect(getCalls).not.toHaveBeenCalled();
   });
 });
