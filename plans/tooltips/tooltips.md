@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. T1 (PR #87, which also carried these plan docs, so the milestone is four PRs in total) and T3 (PR #88) merged. T2 in review.
+In progress. T1 (PR #87, which also carried these plan docs, so the milestone is four PRs in total), T2 (PR #89), T3 (PR #88) merged. T4 in review.
 
 ## PR rules
 
@@ -89,7 +89,7 @@ T2 and T3 touch different files, so they can run in parallel.
 - **Acceptance:** each card shows an icon and its text on hover, keyboard focus and tap; existing card tests still pass; both themes checked.
 
 ### T2 — Table column headers
-**Status:** in review · **Depends on:** T1
+**Status:** merged (PR #89) · **Depends on:** T1
 - `components/campaign-table.tsx`: an icon on all 13 headers. Remove the New callers `title=` and the `Tip` helper. Replace the No campaign row's `title=` with an `InfoTip` next to the "No campaign" link (channel breakdown text). The spend header uses `HELP.spendByLocation` when `locationSelected`.
 - `components/daily-table.tsx` (5 headers) and `components/calls-section.tsx` (5 headers).
 - Adds the table entries to `lib/help-text.ts`.
@@ -105,10 +105,10 @@ T2 and T3 touch different files, so they can run in parallel.
 - **Acceptance:** every chart and call-detail card has an icon; the toggles still work; both themes checked.
 
 ### T4 — Exit check and docs
-**Status:** not started · **Depends on:** T2, T3
+**Status:** in review · **Depends on:** T2, T3
 - Walk the overview, campaign, `/campaigns/none` and call pages in both themes at desktop and phone widths (tap). Check tooltips near the right edge and inside the scrolled campaign table. Small fixes only; split anything over 500 lines.
 - Record the results under "Exit check result" below, and update statuses in this file and in PLAN.md.
-- **Exit check result:** not yet walked.
+- **Exit check result:** walked 2026-11-23 with a Playwright script (hover on desktop, tap on phone) against the dev server. Pages: overview, a campaign, `/campaigns/none` and a call. Both themes, 1280px and 390px wide. Every icon opened a non-empty tooltip that stayed inside the viewport: 22 on the overview, 11 on a campaign, 5 on `/campaigns/none`, 3 on a call (16 page loads, 0 problems). Also checked the campaign table scrolled fully right at 390px: the tooltip is not clipped by `TableScroll`. No fixes were needed.
 
 ## Dependencies
 

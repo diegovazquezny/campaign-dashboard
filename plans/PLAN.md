@@ -14,7 +14,7 @@
 | M5 — Docs + clean-checkout smoke test | complete | §12, [milestone-5](archive/milestone-5/milestone-5.md) |
 | M6 — Stretch | not started | §12 |
 | UI improvements (after M5) | in progress (13 tasks); T1–T12 merged, T13 (docs) in review | [ui-improvements/PLAN.md](ui-improvements/PLAN.md), [tasks](ui-improvements/ui-improvements.md) |
-| Tooltips (after UI improvements) | in progress (4 tasks); T1 and T3 merged, T2 in review | [tooltips](tooltips/tooltips.md) |
+| Tooltips (after UI improvements) | in progress (4 tasks); T1–T3 merged, T4 (exit check) in review | [tooltips](tooltips/tooltips.md) |
 
 Update this table when a milestone's status changes. Statuses: `not started`, `in progress`, `complete`.
 
