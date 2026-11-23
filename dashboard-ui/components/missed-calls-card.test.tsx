@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Totals } from "../lib/api-types";
+import { HELP } from "../lib/help-text";
 import { MissedCallsCard } from "./missed-calls-card";
 
 afterEach(cleanup);
@@ -22,6 +23,15 @@ describe("MissedCallsCard", () => {
     expect(screen.getByText("Voicemail").nextElementSibling?.textContent).toBe(
       "3",
     );
+  });
+
+  it("explains the card with an info icon", () => {
+    render(<MissedCallsCard totals={totals} />);
+    const button = screen.getByRole("button", { name: "About Missed calls" });
+    expect(
+      document.getElementById(button.getAttribute("aria-describedby")!)
+        ?.textContent,
+    ).toBe(HELP.missedCalls);
   });
 
   it("agrees with the rate: missed + voicemail = rate × calls", () => {

@@ -1,5 +1,7 @@
 import type { Meta, Totals } from "../lib/api-types";
 import { freshnessWarning } from "../lib/badges";
+import { HELP } from "../lib/help-text";
+import { InfoTip } from "./info-tip";
 import {
   formatCount,
   formatMoney,
@@ -18,21 +20,29 @@ type Props = {
 export function KpiCards({ totals, range, freshness }: Props) {
   const incomplete = freshness !== null && freshnessWarning(range, freshness);
   const cards = [
-    { label: "Calls", value: formatCount(totals.calls) },
-    { label: "Booked", value: formatCount(totals.booked), outcome: true },
+    { label: "Calls", value: formatCount(totals.calls), help: HELP.calls },
+    {
+      label: "Booked",
+      value: formatCount(totals.booked),
+      help: HELP.booked,
+      outcome: true,
+    },
     {
       label: "Booking rate",
       value: formatPercent(totals.booking_rate),
+      help: HELP.bookingRate,
       outcome: true,
     },
     {
       label: "Revenue",
       value: formatMoney(totals.revenue_cents),
+      help: HELP.revenue,
       outcome: true,
     },
     {
       label: "Revenue ÷ spend",
       value: formatRatio(totals.paid.revenue_per_spend),
+      help: HELP.revenueOverSpend,
       note: "paid campaigns only",
       outcome: true,
     },
@@ -47,8 +57,9 @@ export function KpiCards({ totals, range, freshness }: Props) {
           key={card.label}
           className="rounded-card border border-border bg-card p-4 shadow-card"
         >
-          <dt className="text-th font-semibold tracking-th text-muted uppercase">
+          <dt className="flex items-center gap-1 text-th font-semibold tracking-th text-muted uppercase">
             {card.label}
+            <InfoTip label={card.label} text={card.help} />
           </dt>
           <dd className="m-0 mt-1 font-num text-2xl font-bold tabular-nums">
             {card.value}
