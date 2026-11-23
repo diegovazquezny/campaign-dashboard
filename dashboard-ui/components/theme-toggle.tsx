@@ -16,7 +16,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="fixed right-4 bottom-4 z-50 inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-3.5 py-[9px] text-[13px] leading-none font-medium text-fg shadow-card hover:border-accent"
+      className="fixed right-4 bottom-4 z-50 inline-flex min-h-10 min-w-10 cursor-pointer items-center justify-center gap-2 sm:min-h-0 sm:min-w-0 rounded-full border border-border bg-card px-3.5 py-[9px] text-[13px] leading-none font-medium text-fg shadow-card hover:border-accent"
       onClick={toggle}
       aria-label="Toggle dark mode"
     >
