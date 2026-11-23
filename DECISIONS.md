@@ -72,7 +72,7 @@ PK = primary key, FK = foreign key, (o) = optional (nullable).
 ### 4. Three tables: `locations`, `campaigns` and `calls`
 
 - **`locations`** (8 rows): one per office, with its name and timezone.
-- **`campaigns`** (12 rows): name, marketing channel and daily budget. The budget is the only spend information we have (see above).
+- **`campaigns`** (12 rows): name, marketing channel and daily budget. The budget is the only spend information we have (see "Spend is an estimate" below).
 - **`calls`** (about 5,000 rows): one row per call. The CSV has 5,411 rows because 396 calls appear in more than one version; only the latest is kept. Each call belongs to exactly one location (foreign key, required) and to at most one campaign (foreign key, optional). A call with no campaign is what the UI shows as "No campaign". It still carries its own `marketing_channel`, so those calls can be grouped by channel.
 - **Why:** this mirrors the three source CSVs, so the import is a straight load and the relationships are enforced by foreign keys. Indexes cover the filters every screen uses: date, campaign plus date, and office plus date.
 - **Alternative: one wide table with campaign and office details copied onto every call.** No joins, but a budget or timezone change would have to be rewritten on thousands of rows.
@@ -84,14 +84,14 @@ PK = primary key, FK = foreign key, (o) = optional (nullable).
 
 - **Why:** the data has nothing about a caller except the number, so a separate table would hold one column and need keeping in sync with every import.
 - **Alternative: a `callers` table** with first-seen date and call count. Faster lookups at scale, but duplicated data that goes stale.
-- **Cost:** caller facts are computed on demand.
+- **Cost:** caller facts such as first call and call count are calculated from the calls table at query time, not stored.
 
 ### 6. Each call counts toward the campaign that took it; days follow each office's timezone
 
 Every call stores its `campaign_id` as received and a `local_date` computed in the office's timezone at import.
 
 - **Why:** crediting the campaign that took the call is the usual call-tracking convention, and "Tuesday" should mean Tuesday at the office.
-- **Alternative: first-touch attribution** (credit the caller's first campaign). It avoids double-crediting repeat callers, but hides which campaign actually drove the call. It could be added later as a toggle using the same on-demand approach.
+- **Alternative: first-touch attribution** (credit the caller's first campaign). It avoids double-crediting repeat callers, but hides which campaign actually drove the call. It could be added later as a toggle, calculated at query time like other caller facts.
 - **Alternative: bucket days in UTC.** Simpler, but the first call (00:39 UTC) would fall on the wrong local day for some offices.
 - **Cost:** campaigns that mostly re-reach people another campaign already got can look better than they are. The "New callers" column exists to expose this.
 
