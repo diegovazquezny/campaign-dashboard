@@ -7,9 +7,14 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { dailyTableKey, type Day } from "../lib/daily";
+import { HELP } from "../lib/help-text";
 import { DailyTable } from "./daily-table";
 
 afterEach(cleanup);
+
+// The text an info icon points at with aria-describedby.
+const tipText = (icon: HTMLElement) =>
+  document.getElementById(icon.getAttribute("aria-describedby")!)?.textContent;
 
 const day = (date: string, over: Partial<Day> = {}): Day => ({
   date,
@@ -109,11 +114,35 @@ describe("DailyTable", () => {
   it("shows the location label only when a location is selected", () => {
     const { rerender } = render(<DailyTable days={[day("2025-10-01")]} />);
     expect(
-      screen.getByRole("columnheader", { name: "Budgeted spend (est.)" }),
+      screen.getByRole("button", { name: "About Budgeted spend (est.)" }),
     ).toBeTruthy();
     expect(screen.queryByText(/allocated by call share/)).toBeNull();
     rerender(<DailyTable days={[day("2025-10-01")]} locationSelected />);
     expect(screen.getByText(/allocated by call share/)).toBeTruthy();
+  });
+
+  it("gives every header an info icon with its explanation", () => {
+    const { rerender } = render(<DailyTable days={[day("2025-10-01")]} />);
+    const expected: [string, string][] = [
+      ["Date", HELP.date],
+      ["Calls", HELP.callsPerDay],
+      ["Booked", HELP.booked],
+      ["Revenue", HELP.revenuePerDay],
+      ["Budgeted spend (est.)", HELP.spend],
+    ];
+    for (const [label, text] of expected) {
+      expect(
+        tipText(screen.getByRole("button", { name: `About ${label}` })),
+      ).toBe(text);
+    }
+    rerender(<DailyTable days={[day("2025-10-01")]} locationSelected />);
+    expect(
+      tipText(
+        screen.getByRole("button", {
+          name: "About Budgeted spend (est.), allocated by call share",
+        }),
+      ),
+    ).toBe(HELP.spendByLocation);
   });
 
   it("renders nothing when there are no days", () => {

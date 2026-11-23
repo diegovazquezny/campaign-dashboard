@@ -17,14 +17,14 @@ import {
   thLeft,
   thRight,
 } from "./table-styles";
+import { HELP, spendHeader } from "../lib/help-text";
+import { InfoTip } from "./info-tip";
 import { TableScroll } from "./table-scroll";
 import {
   formatCount,
   formatMoney,
   formatPercent,
   formatRatio,
-  SPEND_LABEL,
-  SPEND_LOCATION_LABEL,
 } from "../lib/format";
 import {
   isTextSortKey,
@@ -44,59 +44,81 @@ type Props = {
 type Column = {
   key: SortKey;
   label: string;
-  tip?: string;
+  help: string;
   cell: (row: CampaignRow) => string;
 };
 
 const COLUMNS: Column[] = [
-  { key: "name", label: "Campaign", cell: (r) => r.name },
-  { key: "channel", label: "Channel", cell: (r) => r.channel },
-  { key: "calls", label: "Calls", cell: (r) => formatCount(r.calls) },
+  { key: "name", label: "Campaign", help: HELP.campaign, cell: (r) => r.name },
+  {
+    key: "channel",
+    label: "Channel",
+    help: HELP.channel,
+    cell: (r) => r.channel,
+  },
+  {
+    key: "calls",
+    label: "Calls",
+    help: HELP.callsPerCampaign,
+    cell: (r) => formatCount(r.calls),
+  },
   {
     key: "unique_callers",
     label: "Unique callers",
+    help: HELP.uniqueCallers,
     cell: (r) => formatCount(r.unique_callers),
   },
   {
     key: "new_callers",
     label: "New callers",
-    tip: "First seen since data starts (Sep 1)",
+    help: HELP.newCallers,
     cell: (r) => formatCount(r.new_callers),
   },
-  { key: "booked", label: "Booked", cell: (r) => formatCount(r.booked) },
+  {
+    key: "booked",
+    label: "Booked",
+    help: HELP.booked,
+    cell: (r) => formatCount(r.booked),
+  },
   {
     key: "booking_rate",
     label: "Booking rate",
+    help: HELP.bookingRate,
     cell: (r) => formatPercent(r.booking_rate),
   },
   {
     key: "unanswered_rate",
     label: "Unanswered rate",
+    help: HELP.unansweredRate,
     cell: (r) => formatPercent(r.unanswered_rate),
   },
   {
     key: "awaiting_outcome",
     label: "Awaiting outcome",
+    help: HELP.awaitingOutcome,
     cell: (r) => formatCount(r.awaiting_outcome),
   },
   {
     key: "revenue_cents",
     label: "Revenue",
+    help: HELP.revenuePerCampaign,
     cell: (r) => formatMoney(r.revenue_cents),
   },
   {
     key: "spend_cents",
-    label: SPEND_LABEL,
+    ...spendHeader(),
     cell: (r) => formatMoney(r.spend_cents),
   },
   {
     key: "revenue_per_spend",
     label: "Revenue ÷ spend",
+    help: HELP.revenueOverSpend,
     cell: (r) => formatRatio(r.revenue_per_spend),
   },
   {
     key: "spend_per_booking_cents",
     label: "Spend per booking",
+    help: HELP.spendPerBooking,
     cell: (r) => formatMoney(r.spend_per_booking_cents),
   },
 ];
@@ -117,14 +139,6 @@ function breakdownText(row: CampaignRow): string | null {
     row.channel_breakdown
       .map((b) => `${b.channel} ${formatCount(b.calls)}`)
       .join(", ")
-  );
-}
-
-function Tip({ id, text }: { id: string; text: string }) {
-  return (
-    <span id={id} className="sr-only">
-      {text}
-    </span>
   );
 }
 
@@ -157,19 +171,16 @@ export function CampaignTable({
         <thead>
           <tr>
             {COLUMNS.map((c) => {
-              const label =
-                c.key === "spend_cents" && locationSelected
-                  ? SPEND_LOCATION_LABEL
-                  : c.label;
+              const { label, help } =
+                c.key === "spend_cents" ? spendHeader(locationSelected) : c;
               const active = sort.key === c.key;
-              const tipId = c.tip ? `tip-${c.key}` : undefined;
+              // The icon sits beside the sort button, not inside it, so
+              // clicking it never sorts.
               return (
                 <th
                   key={c.key}
                   scope="col"
                   className={`${isLabelKey(c.key) ? thLeft : thRight} ${c.key === "name" ? stickyHead : ""}`}
-                  title={c.tip}
-                  aria-describedby={tipId}
                   aria-sort={
                     active
                       ? sort.direction === "asc"
@@ -178,15 +189,17 @@ export function CampaignTable({
                       : "none"
                   }
                 >
-                  <button
-                    type="button"
-                    className={sortButton}
-                    onClick={() => onSort(c.key)}
-                  >
-                    {label}
-                    {active ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
-                  </button>
-                  {c.tip && tipId && <Tip id={tipId} text={c.tip} />}
+                  <div className="flex items-center pr-1">
+                    <button
+                      type="button"
+                      className={sortButton}
+                      onClick={() => onSort(c.key)}
+                    >
+                      {label}
+                      {active ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
+                    </button>
+                    <InfoTip label={label} text={help} />
+                  </div>
                 </th>
               );
             })}
@@ -212,32 +225,33 @@ export function CampaignTable({
             </tr>
           ))}
           {noCampaign && (
-            <tr
-              data-testid="no-campaign-row"
-              className={`${rowHover} opacity-65`}
-              title={noCampaignTip ?? undefined}
-              aria-describedby={noCampaignTip ? "tip-no-campaign" : undefined}
-            >
+            <tr data-testid="no-campaign-row" className={rowHover}>
               {COLUMNS.map((c) => (
                 <td
                   key={c.key}
-                  // The pinned name cell is already positioned (sticky).
-                  className={`${cellClass(c.key)} ${c.key === "name" ? "" : "relative"}`}
+                  // The row reads as muted, but the info icon stays at full
+                  // strength, so the dimming is on the cells and the link, not
+                  // on the row. The pinned name cell is already positioned
+                  // (sticky) and has an opaque background, so it is not dimmed
+                  // itself.
+                  className={`${cellClass(c.key)} ${c.key === "name" ? "" : "relative opacity-65"}`}
                 >
                   {c.key === "name" ? (
-                    <Link
-                      href={detailHref("none", detailQuery)}
-                      className="font-semibold text-fg hover:text-accent hover:underline"
-                    >
-                      {c.cell(noCampaign)}
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      <Link
+                        href={detailHref("none", detailQuery)}
+                        className="font-semibold text-fg opacity-65 hover:text-accent hover:underline"
+                      >
+                        {c.cell(noCampaign)}
+                      </Link>
+                      {noCampaignTip && (
+                        <InfoTip label="No campaign" text={noCampaignTip} />
+                      )}
+                    </div>
                   ) : c.key === "spend_cents" ? (
                     "—"
                   ) : (
                     c.cell(noCampaign)
-                  )}
-                  {c.key === "name" && noCampaignTip && (
-                    <Tip id="tip-no-campaign" text={noCampaignTip} />
                   )}
                 </td>
               ))}

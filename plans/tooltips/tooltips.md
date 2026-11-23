@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. T1 in review (branch `tooltips-t1-info-tip`). Plan docs (this file, the diagram, the PLAN.md row) ship with T1's PR, so the milestone is four PRs in total.
+In progress. T1 (PR #87, which also carried these plan docs, so the milestone is four PRs in total) and T3 (PR #88) merged. T2 in review.
 
 ## PR rules
 
@@ -25,7 +25,7 @@ Same as the UI improvements plan ([../ui-improvements/ui-improvements.md](../ui-
 - **Opens** on pointer enter, focus, and click/tap (toggle, for phones). **Closes** on blur, Esc and outside press, and 150 ms after the mouse leaves both the icon and the bubble (so the bubble can be hovered and its text selected). On scroll and resize it **repositions** instead of closing (focusing an off-screen icon scrolls it into view, which would otherwise close the tooltip at once).
 - **Positioning:** `position: fixed` from the icon's `getBoundingClientRect()`. Above the icon, flipped below when there is no room, clamped horizontally to the viewport. Fixed is required because `TableScroll` (`components/table-scroll.tsx`) scrolls horizontally and would clip an absolutely positioned popup.
 - **Styling:** `bg-card border-border text-fg shadow-card rounded-card`, `max-w-64`, normal-case 13px text (it must not inherit a header's uppercase and tracking), `z-50` (above the sticky header and sticky first column).
-- **In sortable headers** the icon is a sibling of the sort `<button>`, never inside it, and clicking it must not sort. The header cell becomes `inline-flex`, keeping the `thLeft`/`thRight` alignment.
+- **In sortable headers** the icon is a sibling of the sort `<button>`, never inside it, and clicking it must not sort. It always trails the label (an icon in front of a right-aligned label reads as belonging to the column on its left), and the cell keeps its `thLeft`/`thRight` alignment. Non-sortable headers (daily and calls tables) use `components/th-label.tsx`.
 - **Copy lives in one module:** `dashboard-ui/lib/help-text.ts` exports `HELP`, keyed by metric or surface (`HELP.calls`, `HELP.spend`, `HELP.spendByLocation`, …). A metric shown in several tables has one definition. Each PR adds the entries it uses, taking the wording from the table below.
 - The two existing native `title=` hovers (New callers header, No campaign row) are replaced, not kept alongside.
 
@@ -35,10 +35,15 @@ Source of truth for review. Definitions come from base-plan §7 and the UI impro
 
 | Where | Text |
 |---|---|
-| Calls (KPI, campaign, daily) | Every call in the date range and office, including calls not tied to a campaign. |
+| Calls (KPI) | Every call in the date range and office, including calls not tied to a campaign. |
+| Calls (campaign table) | Calls in the date range and office for each campaign. |
+| Calls (daily table) | Calls this campaign received on each day. |
 | Booked (KPI, campaign, daily) | Calls whose outcome was a booked appointment. |
 | Booking rate | Booked ÷ calls. |
-| Revenue (KPI, campaign, daily, calls) | Total revenue recorded on calls in the range. |
+| Revenue (KPI) | Total revenue recorded on calls in the range. |
+| Revenue (campaign table) | Revenue recorded on each campaign's calls in the range. |
+| Revenue (daily table) | Revenue recorded on this campaign's calls on each day. |
+| Revenue (calls table) | Revenue recorded on this call. |
 | Revenue ÷ spend (KPI, campaign) | Revenue from paid campaigns ÷ their estimated spend. Campaigns with no budget, and calls with no campaign, are left out. |
 | Missed calls card | Share of calls nobody answered. Missed rang out; voicemail means the caller left a message. Missed + voicemail = all unanswered calls. |
 | Campaign (column) | Click a name for its daily chart and calls. "No campaign" means calls not tied to any campaign. |
@@ -76,7 +81,7 @@ T2 and T3 touch different files, so they can run in parallel.
 ## Tasks
 
 ### T1 — `InfoTip`, help text, KPI and missed-calls cards
-**Status:** in review · **Depends on:** nothing
+**Status:** merged (PR #87) · **Depends on:** nothing
 - `components/info-tip.tsx` per Conventions, and `lib/help-text.ts` with the entries the cards use.
 - `components/kpi-cards.tsx`: an icon next to each of the five `<dt>` labels. `components/missed-calls-card.tsx`: an icon next to the `<h2>`.
 - This PR also carries the plan docs (`plans/tooltips/`, the PLAN.md status row).
@@ -84,7 +89,7 @@ T2 and T3 touch different files, so they can run in parallel.
 - **Acceptance:** each card shows an icon and its text on hover, keyboard focus and tap; existing card tests still pass; both themes checked.
 
 ### T2 — Table column headers
-**Status:** not started · **Depends on:** T1
+**Status:** in review · **Depends on:** T1
 - `components/campaign-table.tsx`: an icon on all 13 headers. Remove the New callers `title=` and the `Tip` helper. Replace the No campaign row's `title=` with an `InfoTip` next to the "No campaign" link (channel breakdown text). The spend header uses `HELP.spendByLocation` when `locationSelected`.
 - `components/daily-table.tsx` (5 headers) and `components/calls-section.tsx` (5 headers).
 - Adds the table entries to `lib/help-text.ts`.
@@ -92,7 +97,7 @@ T2 and T3 touch different files, so they can run in parallel.
 - **Acceptance:** every header in the three tables has an icon; sorting, sticky first column and horizontal scroll still work; tooltips are not clipped inside `TableScroll`; both themes checked.
 
 ### T3 — Chart and call detail cards
-**Status:** in review · **Depends on:** T1 (parallel with T2)
+**Status:** merged (PR #88) · **Depends on:** T1 (parallel with T2)
 - Adds the chart and call-detail entries to `lib/help-text.ts`.
 - Icon in the `<figcaption>` of `overview-chart.tsx` (text follows the calls/revenue toggle), `channel-chart.tsx` (same) and `daily-chart.tsx`.
 - `Card` in `components/call-details.tsx` takes an optional `help` prop rendered next to its `<h2>`; the three cards (About this call, Caller data, Marketing data) pass it.
