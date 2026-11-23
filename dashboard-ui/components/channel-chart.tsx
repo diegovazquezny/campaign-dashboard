@@ -21,6 +21,7 @@ export function ChannelChart({ channels }: { channels: ChannelTotal[] }) {
   const captionId = useId();
   const descId = useId();
   const isCalls = metric === "calls";
+  const title = isCalls ? "Calls by channel" : "Revenue by channel";
 
   const data = channels
     .map((c) => ({
@@ -44,12 +45,9 @@ export function ChannelChart({ channels }: { channels: ChannelTotal[] }) {
             id={captionId}
             className="text-[15px] font-semibold text-fg"
           >
-            {isCalls ? "Calls by channel" : "Revenue by channel"}
+            {title}
           </figcaption>
-          <InfoTip
-            label={isCalls ? "Calls by channel" : "Revenue by channel"}
-            text={isCalls ? HELP.callsByChannel : HELP.revenueByChannel}
-          />
+          <InfoTip label={title} text={HELP.byChannel} />
         </div>
         <MetricToggle
           label="Channel metric"

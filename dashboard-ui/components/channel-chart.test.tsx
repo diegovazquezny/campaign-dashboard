@@ -77,12 +77,12 @@ describe("ChannelChart", () => {
         screen.getByRole("button", { name }).getAttribute("aria-describedby")!,
       )?.textContent;
 
-    expect(describedBy("About Calls by channel")).toBe(HELP.callsByChannel);
+    expect(describedBy("About Calls by channel")).toBe(HELP.byChannel);
     // the chart's accessible name stays the plain title
     expect(screen.getByRole("img", { name: "Calls by channel" })).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Revenue" }));
-    expect(describedBy("About Revenue by channel")).toBe(HELP.revenueByChannel);
+    expect(describedBy("About Revenue by channel")).toBe(HELP.byChannel);
     expect(
       screen.queryByRole("button", { name: "About Calls by channel" }),
     ).toBeNull();

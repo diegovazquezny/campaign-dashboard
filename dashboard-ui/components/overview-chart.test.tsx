@@ -83,7 +83,7 @@ describe("OverviewChart", () => {
     expect(
       document.getElementById(calls.getAttribute("aria-describedby")!)
         ?.textContent,
-    ).toBe(HELP.callsByDay);
+    ).toBe(HELP.byDay);
     // the tooltip text is not part of the chart's accessible name
     expect(screen.getByRole("img", { name: "Calls by day" })).toBeTruthy();
 
@@ -94,7 +94,7 @@ describe("OverviewChart", () => {
     expect(
       document.getElementById(revenue.getAttribute("aria-describedby")!)
         ?.textContent,
-    ).toBe(HELP.revenueByDay);
+    ).toBe(HELP.byDay);
     expect(
       screen.queryByRole("button", { name: "About Calls by day" }),
     ).toBeNull();

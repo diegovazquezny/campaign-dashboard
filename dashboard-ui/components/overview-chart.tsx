@@ -29,6 +29,7 @@ export function OverviewChart({ days, incompleteFrom }: Props) {
   const descId = useId();
 
   const isCalls = metric === "calls";
+  const title = isCalls ? "Calls by day" : "Revenue by day";
   const data = days.map((d) => ({
     date: d.date,
     value: isCalls ? d.calls : d.revenue_cents / 100,
@@ -62,12 +63,9 @@ export function OverviewChart({ days, incompleteFrom }: Props) {
             id={captionId}
             className="text-[15px] font-semibold text-fg"
           >
-            {isCalls ? "Calls by day" : "Revenue by day"}
+            {title}
           </figcaption>
-          <InfoTip
-            label={isCalls ? "Calls by day" : "Revenue by day"}
-            text={isCalls ? HELP.callsByDay : HELP.revenueByDay}
-          />
+          <InfoTip label={title} text={HELP.byDay} />
         </div>
         <MetricToggle
           label="Chart metric"

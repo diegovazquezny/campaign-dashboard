@@ -88,13 +88,13 @@ describe("CallPage", () => {
   it("gives each card an info icon that explains it, keeping heading text plain", async () => {
     await renderPage(call);
     const cards = [
-      ["About this call", HELP.aboutCall],
-      ["Caller data", HELP.callerData],
-      ["Marketing data", HELP.marketingData],
+      ["About this call", "About this call", HELP.aboutCall],
+      ["Caller data", "About Caller data", HELP.callerData],
+      ["Marketing data", "About Marketing data", HELP.marketingData],
     ] as const;
-    for (const [title, text] of cards) {
+    for (const [title, buttonName, text] of cards) {
       const button = within(card(title)).getByRole("button", {
-        name: `About ${title}`,
+        name: buttonName,
       });
       expect(
         document.getElementById(button.getAttribute("aria-describedby")!)

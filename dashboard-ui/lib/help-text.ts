@@ -11,13 +11,10 @@ export const HELP = {
     "Revenue from paid campaigns ÷ their estimated spend. Campaigns with no budget, and calls with no campaign, are left out.",
   missedCalls:
     "Share of calls nobody answered. Missed rang out; voicemail means the caller left a message. Missed + voicemail = all unanswered calls.",
-  callsByDay:
+  // Same text for the calls and revenue views of each chart.
+  byDay:
     "Daily totals, including calls with no campaign. Shaded days may still be missing outcomes, which arrive up to 3 days late.",
-  revenueByDay:
-    "Daily totals, including calls with no campaign. Shaded days may still be missing outcomes, which arrive up to 3 days late.",
-  callsByChannel:
-    "Grouped by marketing channel. Calls with no campaign are split by the channel they came in on.",
-  revenueByChannel:
+  byChannel:
     "Grouped by marketing channel. Calls with no campaign are split by the channel they came in on.",
   revenueVsSpend:
     "This campaign's daily revenue against its estimated daily spend.",
