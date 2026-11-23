@@ -12,6 +12,8 @@ import {
   YAxis,
 } from "recharts";
 import type { AccountDailyResponse } from "../lib/api-types";
+import { HELP } from "../lib/help-text";
+import { InfoTip } from "./info-tip";
 import { MetricToggle, TOOLTIP_STYLE, type Metric } from "./metric-toggle";
 import { dollarsExact, formatCount, formatMoney } from "../lib/format";
 
@@ -27,6 +29,7 @@ export function OverviewChart({ days, incompleteFrom }: Props) {
   const descId = useId();
 
   const isCalls = metric === "calls";
+  const title = isCalls ? "Calls by day" : "Revenue by day";
   const data = days.map((d) => ({
     date: d.date,
     value: isCalls ? d.calls : d.revenue_cents / 100,
@@ -53,12 +56,17 @@ export function OverviewChart({ days, incompleteFrom }: Props) {
   return (
     <figure className="m-0 rounded-card border border-border bg-card px-3 pt-5 sm:px-5 pb-2 shadow-card">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <figcaption
-          id={captionId}
-          className="text-[15px] font-semibold text-fg"
-        >
-          {isCalls ? "Calls by day" : "Revenue by day"}
-        </figcaption>
+        {/* The icon stays outside the figcaption: the chart's accessible name
+            is the figcaption text and must not include the tooltip. */}
+        <div className="flex items-center gap-1">
+          <figcaption
+            id={captionId}
+            className="text-[15px] font-semibold text-fg"
+          >
+            {title}
+          </figcaption>
+          <InfoTip label={title} text={HELP.byDay} />
+        </div>
         <MetricToggle
           label="Chart metric"
           metric={metric}

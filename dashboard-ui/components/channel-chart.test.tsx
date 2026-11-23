@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { HELP } from "../lib/help-text";
 
 const received: {
   data?: { label: string; value: number; color: string }[];
@@ -67,6 +68,24 @@ describe("ChannelChart", () => {
     expect(
       screen.getByText(/Paid search 8, Organic 3\. Total 11\./),
     ).toBeTruthy();
+  });
+
+  it("explains the chart with an info icon that follows the toggle", () => {
+    render(<ChannelChart channels={channels} />);
+    const describedBy = (name: string) =>
+      document.getElementById(
+        screen.getByRole("button", { name }).getAttribute("aria-describedby")!,
+      )?.textContent;
+
+    expect(describedBy("About Calls by channel")).toBe(HELP.byChannel);
+    // the chart's accessible name stays the plain title
+    expect(screen.getByRole("img", { name: "Calls by channel" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Revenue" }));
+    expect(describedBy("About Revenue by channel")).toBe(HELP.byChannel);
+    expect(
+      screen.queryByRole("button", { name: "About Calls by channel" }),
+    ).toBeNull();
   });
 
   it("switches to revenue in dollars and re-sorts", () => {
