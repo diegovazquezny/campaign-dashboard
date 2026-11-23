@@ -18,12 +18,17 @@ type Props = {
 
 const GAP = 8;
 const MARGIN = 8;
+// Lets the mouse cross the gap from the icon to the bubble without closing it.
+const LEAVE_DELAY_MS = 150;
 
 // Circled-i that explains a figure. Opens on mouse hover, keyboard focus and
-// touch tap; closes on leave, blur, Esc and outside press, and follows the icon on scroll and resize.
+// touch tap. Closes when the mouse leaves the icon and the bubble (after a
+// short delay, so the bubble can be hovered and its text selected), on blur,
+// Esc and outside press. Follows the icon on scroll and resize.
 //
-// The text is always in the DOM (screen-reader only while closed) so
-// aria-describedby and tests can find it. While open it moves into a portal
+// The text is always in the DOM (display: none while closed, which
+// aria-describedby still resolves, so it is not read as part of the label) so
+// tests can find it. While open it moves into a portal
 // on <body> and is placed with `position: fixed`, so neither a scrolling
 // table wrapper nor a sticky header's stacking context can clip or cover it.
 export function InfoTip({ label, text }: Props) {
@@ -34,6 +39,14 @@ export function InfoTip({ label, text }: Props) {
   const tip = useRef<HTMLSpanElement>(null);
   // Set on pointerdown so focus and click can tell a mouse from a finger.
   const pointer = useRef<string | null>(null);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const cancelLeave = useCallback(() => clearTimeout(leaveTimer.current), []);
+  const leaveSoon = useCallback(() => {
+    clearTimeout(leaveTimer.current);
+    leaveTimer.current = setTimeout(() => setOpen(false), LEAVE_DELAY_MS);
+  }, []);
+  useEffect(() => cancelLeave, [cancelLeave]);
 
   const place = useCallback(() => {
     const b = button.current?.getBoundingClientRect();
@@ -88,8 +101,14 @@ export function InfoTip({ label, text }: Props) {
       className={
         open
           ? "fixed z-50 w-max max-w-64 rounded-card border border-border bg-card px-3 py-2 text-left text-[13px] leading-snug font-normal tracking-normal whitespace-normal text-fg normal-case shadow-card"
-          : "sr-only"
+          : "hidden"
       }
+      onPointerEnter={(e) => {
+        if (e.pointerType === "mouse") cancelLeave();
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === "mouse") leaveSoon();
+      }}
       style={
         open
           ? pos
@@ -109,15 +128,18 @@ export function InfoTip({ label, text }: Props) {
         type="button"
         aria-label={`About ${label}`}
         aria-describedby={id}
-        className="-my-1 inline-flex h-6 w-6 shrink-0 cursor-help items-center justify-center rounded-full align-middle text-muted hover:text-fg"
+        className="-my-3 inline-flex h-6 min-h-10 w-6 min-w-10 shrink-0 sm:-my-1 sm:min-h-0 sm:min-w-0 cursor-help items-center justify-center rounded-full align-middle text-muted hover:text-fg"
         onPointerDown={(e) => {
           pointer.current = e.pointerType;
         }}
         onPointerEnter={(e) => {
-          if (e.pointerType === "mouse") setOpen(true);
+          if (e.pointerType === "mouse") {
+            cancelLeave();
+            setOpen(true);
+          }
         }}
         onPointerLeave={(e) => {
-          if (e.pointerType === "mouse") setOpen(false);
+          if (e.pointerType === "mouse") leaveSoon();
         }}
         onFocus={() => {
           // A tap focuses the button on some browsers; click handles touch.
@@ -127,6 +149,7 @@ export function InfoTip({ label, text }: Props) {
         }}
         onBlur={() => {
           pointer.current = null;
+          cancelLeave();
           setOpen(false);
         }}
         onClick={() => {

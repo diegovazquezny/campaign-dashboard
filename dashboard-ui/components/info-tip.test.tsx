@@ -5,7 +5,7 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InfoTip } from "./info-tip";
 
 const TEXT = "Booked ÷ calls.";
@@ -18,7 +18,10 @@ function setup() {
   };
 }
 
-const isOpen = (el: HTMLElement) => !el.className.includes("sr-only");
+const isOpen = (el: HTMLElement) => !el.classList.contains("hidden");
+
+// Run the close delay.
+const settle = () => act(() => void vi.advanceTimersByTime(200));
 
 // jsdom has no layout; give the icon and the bubble sizes.
 function mockLayout(
@@ -47,11 +50,13 @@ function mockLayout(
 }
 
 beforeEach(() => {
+  vi.useFakeTimers();
   window.innerWidth = 1000;
   window.innerHeight = 800;
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   // @ts-expect-error restore jsdom's own getters
   delete HTMLElement.prototype.offsetWidth;
@@ -77,7 +82,29 @@ describe("InfoTip", () => {
     expect(button.getAttribute("aria-describedby")).toBe(tip().id);
 
     fireEvent.pointerLeave(button, { pointerType: "mouse" });
+    settle();
     expect(isOpen(tip())).toBe(false);
+  });
+
+  it("stays open while the mouse moves from the icon onto the bubble", () => {
+    const { button, tip } = setup();
+    fireEvent.pointerEnter(button, { pointerType: "mouse" });
+
+    fireEvent.pointerLeave(button, { pointerType: "mouse" });
+    act(() => void vi.advanceTimersByTime(50));
+    fireEvent.pointerEnter(tip(), { pointerType: "mouse" });
+    settle();
+    expect(isOpen(tip())).toBe(true);
+
+    fireEvent.pointerLeave(tip(), { pointerType: "mouse" });
+    settle();
+    expect(isOpen(tip())).toBe(false);
+  });
+
+  it("keeps the closed text out of the label (display: none, not screen-reader-only)", () => {
+    const { tip } = setup();
+    expect(tip().classList.contains("hidden")).toBe(true);
+    expect(tip().classList.contains("sr-only")).toBe(false);
   });
 
   it("opens on keyboard focus and closes on blur", () => {
@@ -174,6 +201,7 @@ describe("InfoTip", () => {
     fireEvent.pointerEnter(button, { pointerType: "mouse" });
     expect(tip().style.left).toBe("8px");
     fireEvent.pointerLeave(button, { pointerType: "mouse" });
+    settle();
 
     mockLayout(button, { left: 976, top: 300, right: 1000, bottom: 324 });
     fireEvent.pointerEnter(button, { pointerType: "mouse" });
