@@ -2,7 +2,7 @@
 
 The main design choices behind this dashboard, the alternatives we considered, and what each choice costs us. The question it answers: *which campaigns turn calls into revenue, and at what cost?*
 
-Each decision has a plain-English summary, then a short technical note. Full detail is in [plans/PLAN.md](plans/PLAN.md) (section 4 for decisions, section 7 for metric definitions).
+Each decision has a plain-English summary, then a short technical note. Full detail is in [plans/PLAN.md](plans/PLAN.md) (section 4 for decisions, section 7 for metric definitions). PLAN.md uses its own D1-D12 numbering, which differs from the numbers here.
 
 ## Tech stack
 
@@ -17,7 +17,7 @@ A Ruby on Rails API (JSON only) serves the numbers; a Next.js + TypeScript app r
 
 ### 2. PostgreSQL as the only data store
 
-- **Why:** the data is small (about 5,400 call rows), relational, and needs date math, timezones and constraints that Postgres handles natively. It is also available as a managed service on every major cloud.
+- **Why:** the data is small (about 5,000 calls), relational, and needs date math, timezones and constraints that Postgres handles natively. It is also available as a managed service on every major cloud.
 - **Alternative: SQLite.** Simpler to ship, but weaker timezone support, and a file on one machine does not suit an API that may run on several instances.
 - **Alternative: an analytics store (ClickHouse, BigQuery).** Built for scale we do not have; far too heavy for this size.
 
@@ -50,7 +50,7 @@ campaigns (id, name, channel, daily_budget_cents)
 
 - **`locations`** (8 rows): one per office, with its name and timezone.
 - **`campaigns`** (12 rows): name, marketing channel and daily budget. The budget is the only spend information we have (see above).
-- **`calls`** (about 5,400 rows): one row per call. Each call belongs to exactly one location (foreign key, required) and to at most one campaign (foreign key, optional). A call with no campaign is what the UI shows as "No campaign". It still carries its own `marketing_channel`, so those calls can be grouped by channel.
+- **`calls`** (about 5,000 rows): one row per call. The CSV has 5,411 rows because 396 calls appear in more than one version; only the latest is kept (decision 5). Each call belongs to exactly one location (foreign key, required) and to at most one campaign (foreign key, optional). A call with no campaign is what the UI shows as "No campaign". It still carries its own `marketing_channel`, so those calls can be grouped by channel.
 - **Why:** this mirrors the three source CSVs, so the import is a straight load and the relationships are enforced by foreign keys. Indexes cover the filters every screen uses: date, campaign plus date, and office plus date.
 - **Alternative: one wide table with campaign and office details copied onto every call.** No joins, but a budget or timezone change would have to be rewritten on thousands of rows.
 - **Cost:** campaign and office details come from a join. At this size it is not noticeable.
