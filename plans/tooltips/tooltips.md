@@ -6,7 +6,7 @@
 
 ## Status
 
-In progress. T1 merged (PR #87, which also carried these plan docs, so the milestone is four PRs in total). T2 in review. T3 is in parallel with T2.
+In progress. T1 (PR #87, which also carried these plan docs, so the milestone is four PRs in total) and T3 (PR #88) merged. T2 in review.
 
 ## PR rules
 
@@ -35,10 +35,15 @@ Source of truth for review. Definitions come from base-plan §7 and the UI impro
 
 | Where | Text |
 |---|---|
-| Calls (KPI, campaign, daily) | Every call in the date range and office, including calls not tied to a campaign. |
+| Calls (KPI) | Every call in the date range and office, including calls not tied to a campaign. |
+| Calls (campaign table) | Calls in the date range and office for each campaign. |
+| Calls (daily table) | Calls this campaign received on each day. |
 | Booked (KPI, campaign, daily) | Calls whose outcome was a booked appointment. |
 | Booking rate | Booked ÷ calls. |
-| Revenue (KPI, campaign, daily, calls) | Total revenue recorded on calls in the range. |
+| Revenue (KPI) | Total revenue recorded on calls in the range. |
+| Revenue (campaign table) | Revenue recorded on each campaign's calls in the range. |
+| Revenue (daily table) | Revenue recorded on this campaign's calls on each day. |
+| Revenue (calls table) | Revenue recorded on this call. |
 | Revenue ÷ spend (KPI, campaign) | Revenue from paid campaigns ÷ their estimated spend. Campaigns with no budget, and calls with no campaign, are left out. |
 | Missed calls card | Share of calls nobody answered. Missed rang out; voicemail means the caller left a message. Missed + voicemail = all unanswered calls. |
 | Campaign (column) | Click a name for its daily chart and calls. "No campaign" means calls not tied to any campaign. |
@@ -92,7 +97,7 @@ T2 and T3 touch different files, so they can run in parallel.
 - **Acceptance:** every header in the three tables has an icon; sorting, sticky first column and horizontal scroll still work; tooltips are not clipped inside `TableScroll`; both themes checked.
 
 ### T3 — Chart and call detail cards
-**Status:** in review · **Depends on:** T1 (parallel with T2)
+**Status:** merged (PR #88) · **Depends on:** T1 (parallel with T2)
 - Adds the chart and call-detail entries to `lib/help-text.ts`.
 - Icon in the `<figcaption>` of `overview-chart.tsx` (text follows the calls/revenue toggle), `channel-chart.tsx` (same) and `daily-chart.tsx`.
 - `Card` in `components/call-details.tsx` takes an optional `help` prop rendered next to its `<h2>`; the three cards (About this call, Caller data, Marketing data) pass it.

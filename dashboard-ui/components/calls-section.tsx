@@ -77,7 +77,11 @@ function CallsTable({
                 <ThLabel label="Agent" help={HELP.agent} align="left" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                <ThLabel label="Revenue" help={HELP.revenue} align="right" />
+                <ThLabel
+                  label="Revenue"
+                  help={HELP.revenuePerCall}
+                  align="right"
+                />
               </th>
             </tr>
           </thead>

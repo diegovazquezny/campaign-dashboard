@@ -125,9 +125,9 @@ describe("DailyTable", () => {
     const { rerender } = render(<DailyTable days={[day("2025-10-01")]} />);
     const expected: [string, string][] = [
       ["Date", HELP.date],
-      ["Calls", HELP.calls],
+      ["Calls", HELP.callsPerDay],
       ["Booked", HELP.booked],
-      ["Revenue", HELP.revenue],
+      ["Revenue", HELP.revenuePerDay],
       ["Budgeted spend (est.)", HELP.spend],
     ];
     for (const [label, text] of expected) {

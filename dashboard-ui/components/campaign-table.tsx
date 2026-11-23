@@ -17,7 +17,7 @@ import {
   thLeft,
   thRight,
 } from "./table-styles";
-import { HELP } from "../lib/help-text";
+import { HELP, spendHeader } from "../lib/help-text";
 import { InfoTip } from "./info-tip";
 import { TableScroll } from "./table-scroll";
 import {
@@ -25,8 +25,6 @@ import {
   formatMoney,
   formatPercent,
   formatRatio,
-  SPEND_LABEL,
-  SPEND_LOCATION_LABEL,
 } from "../lib/format";
 import {
   isTextSortKey,
@@ -61,7 +59,7 @@ const COLUMNS: Column[] = [
   {
     key: "calls",
     label: "Calls",
-    help: HELP.calls,
+    help: HELP.callsPerCampaign,
     cell: (r) => formatCount(r.calls),
   },
   {
@@ -103,13 +101,12 @@ const COLUMNS: Column[] = [
   {
     key: "revenue_cents",
     label: "Revenue",
-    help: HELP.revenue,
+    help: HELP.revenuePerCampaign,
     cell: (r) => formatMoney(r.revenue_cents),
   },
   {
     key: "spend_cents",
-    label: SPEND_LABEL,
-    help: HELP.spend,
+    ...spendHeader(),
     cell: (r) => formatMoney(r.spend_cents),
   },
   {
@@ -174,9 +171,8 @@ export function CampaignTable({
         <thead>
           <tr>
             {COLUMNS.map((c) => {
-              const location = c.key === "spend_cents" && locationSelected;
-              const label = location ? SPEND_LOCATION_LABEL : c.label;
-              const help = location ? HELP.spendByLocation : c.help;
+              const { label, help } =
+                c.key === "spend_cents" ? spendHeader(locationSelected) : c;
               const active = sort.key === c.key;
               // The icon sits beside the sort button, not inside it, so
               // clicking it never sorts.
@@ -229,21 +225,22 @@ export function CampaignTable({
             </tr>
           ))}
           {noCampaign && (
-            <tr
-              data-testid="no-campaign-row"
-              className={`${rowHover} opacity-65`}
-            >
+            <tr data-testid="no-campaign-row" className={rowHover}>
               {COLUMNS.map((c) => (
                 <td
                   key={c.key}
-                  // The pinned name cell is already positioned (sticky).
-                  className={`${cellClass(c.key)} ${c.key === "name" ? "" : "relative"}`}
+                  // The row reads as muted, but the info icon stays at full
+                  // strength, so the dimming is on the cells and the link, not
+                  // on the row. The pinned name cell is already positioned
+                  // (sticky) and has an opaque background, so it is not dimmed
+                  // itself.
+                  className={`${cellClass(c.key)} ${c.key === "name" ? "" : "relative opacity-65"}`}
                 >
                   {c.key === "name" ? (
                     <div className="flex items-center gap-1">
                       <Link
                         href={detailHref("none", detailQuery)}
-                        className="font-semibold text-fg hover:text-accent hover:underline"
+                        className="font-semibold text-fg opacity-65 hover:text-accent hover:underline"
                       >
                         {c.cell(noCampaign)}
                       </Link>

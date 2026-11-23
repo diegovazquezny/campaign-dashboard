@@ -50,7 +50,7 @@ describe("CallsSection", () => {
       ["Outcome", HELP.outcome],
       ["Duration", HELP.duration],
       ["Agent", HELP.agent],
-      ["Revenue", HELP.revenue],
+      ["Revenue", HELP.revenuePerCall],
     ];
     for (const [label, text] of expected) {
       expect(

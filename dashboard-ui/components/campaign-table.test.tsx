@@ -156,14 +156,14 @@ describe("CampaignTable", () => {
     const expected: [string, string][] = [
       ["Campaign", HELP.campaign],
       ["Channel", HELP.channel],
-      ["Calls", HELP.calls],
+      ["Calls", HELP.callsPerCampaign],
       ["Unique callers", HELP.uniqueCallers],
       ["New callers", HELP.newCallers],
       ["Booked", HELP.booked],
       ["Booking rate", HELP.bookingRate],
       ["Unanswered rate", HELP.unansweredRate],
       ["Awaiting outcome", HELP.awaitingOutcome],
-      ["Revenue", HELP.revenue],
+      ["Revenue", HELP.revenuePerCampaign],
       ["Budgeted spend (est.)", HELP.spend],
       ["Revenue ÷ spend", HELP.revenueOverSpend],
       ["Spend per booking", HELP.spendPerBooking],
@@ -178,7 +178,26 @@ describe("CampaignTable", () => {
       });
       expect(sort.contains(icon)).toBe(false);
     }
-    expect(document.querySelector("th[title], [id^='tip-']")).toBeNull();
+    expect(document.querySelector("th[title]")).toBeNull();
+  });
+
+  it("dims the No campaign row but not its info icon", () => {
+    render(<CampaignTable rows={rows} totals={totals} />);
+    const tr = screen.getByTestId("no-campaign-row");
+    const icon = within(tr).getByRole("button", { name: "About No campaign" });
+    expect(tr.className).not.toContain("opacity");
+    for (
+      let el: HTMLElement | null = icon;
+      el && el !== tr;
+      el = el.parentElement
+    ) {
+      expect(el.className).not.toContain("opacity");
+    }
+    // the rest of the row still reads as muted
+    expect(
+      within(tr).getByRole("link", { name: "No campaign" }).className,
+    ).toContain("opacity-65");
+    expect(tr.querySelectorAll("td")[2].className).toContain("opacity-65");
   });
 
   it("clicking an info icon does not sort", () => {

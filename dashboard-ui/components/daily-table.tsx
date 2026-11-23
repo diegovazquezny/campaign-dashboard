@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Day } from "../lib/daily";
 import { sumDays } from "../lib/daily";
-import { HELP } from "../lib/help-text";
+import { HELP, spendHeader } from "../lib/help-text";
 import { Pager } from "./pager";
 import { TableScroll } from "./table-scroll";
 import { ThLabel } from "./th-label";
@@ -18,12 +18,7 @@ import {
   thPadding,
   thRight,
 } from "./table-styles";
-import {
-  formatCount,
-  formatMoney,
-  SPEND_LABEL,
-  SPEND_LOCATION_LABEL,
-} from "../lib/format";
+import { formatCount, formatMoney } from "../lib/format";
 
 const PAGE_SIZE = 30;
 
@@ -55,20 +50,20 @@ export function DailyTable({ days, locationSelected }: Props) {
                 <ThLabel label="Date" help={HELP.date} align="left" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                <ThLabel label="Calls" help={HELP.calls} align="right" />
+                <ThLabel label="Calls" help={HELP.callsPerDay} align="right" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
                 <ThLabel label="Booked" help={HELP.booked} align="right" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                <ThLabel label="Revenue" help={HELP.revenue} align="right" />
-              </th>
-              <th scope="col" className={`${thRight} ${thPadding}`}>
                 <ThLabel
-                  label={locationSelected ? SPEND_LOCATION_LABEL : SPEND_LABEL}
-                  help={locationSelected ? HELP.spendByLocation : HELP.spend}
+                  label="Revenue"
+                  help={HELP.revenuePerDay}
                   align="right"
                 />
+              </th>
+              <th scope="col" className={`${thRight} ${thPadding}`}>
+                <ThLabel {...spendHeader(locationSelected)} align="right" />
               </th>
             </tr>
           </thead>

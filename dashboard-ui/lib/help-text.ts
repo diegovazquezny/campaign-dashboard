@@ -1,3 +1,5 @@
+import { SPEND_LABEL, SPEND_LOCATION_LABEL } from "./format";
+
 // Tooltip copy, one entry per metric or surface. Source of truth for review:
 // plans/tooltips/tooltips.md. Metric definitions follow base-plan §7. Each PR
 // adds the entries it uses (T2: tables, T3: charts and call detail cards).
@@ -24,7 +26,13 @@ export const HELP = {
     'Whether this was the caller\'s first call and how many calls they have made. "First" counts from Sep 1, and phone numbers are never shown.',
   marketingData: "The campaign, channel and office the call came through.",
 
-  // Table column headers
+  // Table column headers. The KPI texts above describe the whole range; a
+  // table column describes one row (a campaign, a day, a call).
+  callsPerCampaign: "Calls in the date range and office for each campaign.",
+  revenuePerCampaign: "Revenue recorded on each campaign's calls in the range.",
+  callsPerDay: "Calls this campaign received on each day.",
+  revenuePerDay: "Revenue recorded on this campaign's calls on each day.",
+  revenuePerCall: "Revenue recorded on this call.",
   campaign:
     'Click a name for its daily chart and calls. "No campaign" means calls not tied to any campaign.',
   channel: "The marketing channel the campaign runs on.",
@@ -46,3 +54,10 @@ export const HELP = {
   duration: "Length of the call.",
   agent: "The agent ID that took the call.",
 } as const;
+
+/** Label and tooltip for the spend column; an office changes both. */
+export function spendHeader(locationSelected?: boolean) {
+  return locationSelected
+    ? { label: SPEND_LOCATION_LABEL, help: HELP.spendByLocation }
+    : { label: SPEND_LABEL, help: HELP.spend };
+}
