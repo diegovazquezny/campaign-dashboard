@@ -3,8 +3,10 @@
 import { useState } from "react";
 import type { Day } from "../lib/daily";
 import { sumDays } from "../lib/daily";
+import { HELP } from "../lib/help-text";
 import { Pager } from "./pager";
 import { TableScroll } from "./table-scroll";
+import { ThLabel } from "./th-label";
 import {
   footLabel,
   footNum,
@@ -50,19 +52,23 @@ export function DailyTable({ days, locationSelected }: Props) {
           <thead>
             <tr>
               <th scope="col" className={`${thLeft} ${thPadding}`}>
-                Date
+                <ThLabel label="Date" help={HELP.date} align="left" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                Calls
+                <ThLabel label="Calls" help={HELP.calls} align="right" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                Booked
+                <ThLabel label="Booked" help={HELP.booked} align="right" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                Revenue
+                <ThLabel label="Revenue" help={HELP.revenue} align="right" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                {locationSelected ? SPEND_LOCATION_LABEL : SPEND_LABEL}
+                <ThLabel
+                  label={locationSelected ? SPEND_LOCATION_LABEL : SPEND_LABEL}
+                  help={locationSelected ? HELP.spendByLocation : HELP.spend}
+                  align="right"
+                />
               </th>
             </tr>
           </thead>

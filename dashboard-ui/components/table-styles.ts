@@ -12,7 +12,7 @@ export const thRight = `${th} text-right`;
 export const thPadding = "px-cell-x py-cell-y";
 
 export const sortButton =
-  "w-full cursor-pointer px-cell-x py-cell-y leading-tight whitespace-normal [text-align:inherit] [text-transform:inherit] hover:text-fg";
+  "flex-1 cursor-pointer py-cell-y pr-0 pl-cell-x leading-tight whitespace-normal [text-align:inherit] [text-transform:inherit] hover:text-fg";
 
 const cell = "border-b border-row-border px-cell-x py-cell-y";
 export const labelCell = `${cell} text-left`;

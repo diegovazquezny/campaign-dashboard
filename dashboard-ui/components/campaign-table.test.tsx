@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { CampaignRow, Totals } from "../lib/api-types";
+import { HELP } from "../lib/help-text";
 import { CampaignTable } from "./campaign-table";
 
 function row(over: Partial<CampaignRow>): CampaignRow {
@@ -88,6 +89,11 @@ function names(): string[] {
 describe("CampaignTable", () => {
   afterEach(cleanup);
 
+  // The text an info icon points at with aria-describedby.
+  const tipText = (icon: HTMLElement) =>
+    document.getElementById(icon.getAttribute("aria-describedby")!)
+      ?.textContent;
+
   it("sorts by revenue descending by default, then No campaign, then totals", () => {
     render(<CampaignTable rows={rows} totals={totals} />);
     const n = names();
@@ -117,7 +123,8 @@ describe("CampaignTable", () => {
     expect(names()[0]).toMatch(/^Alpha/);
     expect(
       screen
-        .getByRole("columnheader", { name: /Campaign/ })
+        .getByRole("button", { name: /^Campaign/ })
+        .closest("th")!
         .getAttribute("aria-sort"),
     ).toBe("ascending");
   });
@@ -135,23 +142,83 @@ describe("CampaignTable", () => {
     expect(cells[11].textContent).toBe("—");
   });
 
-  it("describes the channel breakdown on the No campaign row", () => {
+  it("explains the channel breakdown with an info icon on the No campaign row", () => {
     render(<CampaignTable rows={rows} totals={totals} />);
     const tr = screen.getByTestId("no-campaign-row");
-    const text = document.getElementById(
-      tr.getAttribute("aria-describedby")!,
-    )!.textContent;
-    expect(text).toBe("Calls by channel: organic 7, direct 3");
-    expect(tr.getAttribute("title")).toBe(text);
+    expect(tr.getAttribute("title")).toBeNull();
+    expect(
+      tipText(within(tr).getByRole("button", { name: "About No campaign" })),
+    ).toBe("Calls by channel: organic 7, direct 3");
   });
 
-  it("describes the New callers header", () => {
+  it("gives every header an info icon with its explanation", () => {
     render(<CampaignTable rows={rows} totals={totals} />);
-    const th = screen.getByRole("columnheader", { name: /New callers/ });
+    const expected: [string, string][] = [
+      ["Campaign", HELP.campaign],
+      ["Channel", HELP.channel],
+      ["Calls", HELP.calls],
+      ["Unique callers", HELP.uniqueCallers],
+      ["New callers", HELP.newCallers],
+      ["Booked", HELP.booked],
+      ["Booking rate", HELP.bookingRate],
+      ["Unanswered rate", HELP.unansweredRate],
+      ["Awaiting outcome", HELP.awaitingOutcome],
+      ["Revenue", HELP.revenue],
+      ["Budgeted spend (est.)", HELP.spend],
+      ["Revenue ÷ spend", HELP.revenueOverSpend],
+      ["Spend per booking", HELP.spendPerBooking],
+    ];
+    expect(expected).toHaveLength(13);
+    for (const [label, text] of expected) {
+      const icon = screen.getByRole("button", { name: `About ${label}` });
+      expect(tipText(icon)).toBe(text);
+      // a sibling of the sort button, never inside it
+      const sort = screen.getByRole("button", {
+        name: (n) => n.replace(/ [▲▼]$/, "") === label,
+      });
+      expect(sort.contains(icon)).toBe(false);
+    }
+    expect(document.querySelector("th[title], [id^='tip-']")).toBeNull();
+  });
+
+  it("clicking an info icon does not sort", () => {
+    render(<CampaignTable rows={rows} totals={totals} />);
+    const before = names();
+    for (const label of ["Campaign", "Calls", "Revenue"]) {
+      const icon = screen.getByRole("button", { name: `About ${label}` });
+      fireEvent.pointerDown(icon, { pointerType: "touch" });
+      fireEvent.click(icon);
+    }
+    expect(names()).toEqual(before);
     expect(
-      document.getElementById(th.getAttribute("aria-describedby")!)!
-        .textContent,
-    ).toBe("First seen since data starts (Sep 1)");
+      screen
+        .getByRole("button", { name: "Campaign" })
+        .closest("th")!
+        .getAttribute("aria-sort"),
+    ).toBe("none");
+    expect(
+      screen
+        .getByRole("button", { name: /^Revenue ▼$/ })
+        .closest("th")!
+        .getAttribute("aria-sort"),
+    ).toBe("descending");
+  });
+
+  it("explains spend by office when a location is selected", () => {
+    const { rerender } = render(<CampaignTable rows={rows} totals={totals} />);
+    expect(
+      tipText(
+        screen.getByRole("button", { name: "About Budgeted spend (est.)" }),
+      ),
+    ).toBe(HELP.spend);
+    rerender(<CampaignTable rows={rows} totals={totals} locationSelected />);
+    expect(
+      tipText(
+        screen.getByRole("button", {
+          name: "About Budgeted spend (est.), allocated by call share",
+        }),
+      ),
+    ).toBe(HELP.spendByLocation);
   });
 
   it("totals row uses totals values and paid ratios", () => {

@@ -8,7 +8,9 @@ import { formatCallTime, formatDuration, formatMoney } from "../lib/format";
 import Link from "next/link";
 import { callHref } from "../lib/filters";
 import { CallsPager } from "./calls-pager";
+import { HELP } from "../lib/help-text";
 import { TableScroll } from "./table-scroll";
+import { ThLabel } from "./th-label";
 import { Notice } from "./notice";
 import {
   labelCell,
@@ -63,19 +65,19 @@ function CallsTable({
           <thead>
             <tr>
               <th scope="col" className={`${thLeft} ${thPadding}`}>
-                Time
+                <ThLabel label="Time" help={HELP.time} align="left" />
               </th>
               <th scope="col" className={`${thLeft} ${thPadding}`}>
-                Outcome
+                <ThLabel label="Outcome" help={HELP.outcome} align="left" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                Duration
+                <ThLabel label="Duration" help={HELP.duration} align="right" />
               </th>
               <th scope="col" className={`${thLeft} ${thPadding}`}>
-                Agent
+                <ThLabel label="Agent" help={HELP.agent} align="left" />
               </th>
               <th scope="col" className={`${thRight} ${thPadding}`}>
-                Revenue
+                <ThLabel label="Revenue" help={HELP.revenue} align="right" />
               </th>
             </tr>
           </thead>
