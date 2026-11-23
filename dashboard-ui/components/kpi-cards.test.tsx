@@ -1,6 +1,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Totals } from "../lib/api-types";
+import { HELP } from "../lib/help-text";
 import { KpiCards } from "./kpi-cards";
 
 const totals: Totals = {
@@ -46,6 +47,24 @@ describe("KpiCards", () => {
     expect(value("Revenue")).toBe("$12,345");
     expect(value("Revenue ÷ spend")).toBe("2.50×");
     expect(screen.getByText("paid campaigns only")).toBeTruthy();
+  });
+
+  it("gives every card an info icon with its explanation", () => {
+    render(<KpiCards totals={totals} range={range} freshness={null} />);
+
+    for (const label of [
+      "Calls",
+      "Booked",
+      "Booking rate",
+      "Revenue",
+      "Revenue ÷ spend",
+    ]) {
+      const button = screen.getByRole("button", { name: `About ${label}` });
+      expect(
+        document.getElementById(button.getAttribute("aria-describedby")!),
+      ).toBeTruthy();
+    }
+    expect(screen.getByText(HELP.booked)).toBeTruthy();
   });
 
   it("shows — for null values", () => {
