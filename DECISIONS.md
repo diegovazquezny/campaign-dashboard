@@ -32,19 +32,42 @@ Compose runs the database, API and UI with one command.
 
 Three tables in PostgreSQL. Locations and campaigns are small reference tables; calls is the one that grows.
 
+```mermaid
+erDiagram
+    locations ||--o{ calls : "receives"
+    campaigns |o--o{ calls : "takes"
+
+    locations {
+        int(PK) id
+        text name
+        text timezone
+    }
+    campaigns {
+        int(PK) id
+        text name
+        text channel
+        int daily_budget_cents
+    }
+    calls {
+        text(PK) call_id
+        timestamptz started_at
+        timestamptz ended_at
+        int duration_seconds
+        text caller_number_hash
+        text tracking_number
+        text marketing_channel
+        boolean answered
+        text outcome
+        int revenue_cents
+        text agent_id
+        date local_date
+        timestamptz source_updated_at
+        int(FK)(o) campaign_id
+        int(FK) location_id
+    }
 ```
-locations (id, name, timezone)
-    1
-    |
-    *
-calls (call_id, started_at, ended_at, duration_seconds, caller_number_hash,
-       tracking_number, marketing_channel, answered, outcome, revenue_cents,
-       agent_id, local_date, source_updated_at, campaign_id?, location_id)
-    *
-    |
-    0..1
-campaigns (id, name, channel, daily_budget_cents)
-```
+
+PK = primary key, FK = foreign key, (o) = optional (nullable).
 
 ### 4. Three tables: `locations`, `campaigns` and `calls`
 
