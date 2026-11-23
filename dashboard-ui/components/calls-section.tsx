@@ -1,8 +1,14 @@
-import { isPastEnd, outcomeLabel, pageCount, type CallsResult } from "../lib/calls";
+import {
+  isPastEnd,
+  outcomeLabel,
+  pageCount,
+  type CallsResult,
+} from "../lib/calls";
 import { formatCallTime, formatDuration, formatMoney } from "../lib/format";
 import Link from "next/link";
 import { callHref } from "../lib/filters";
 import { CallsPager } from "./calls-pager";
+import { TableScroll } from "./table-scroll";
 import { Notice } from "./notice";
 import {
   labelCell,
@@ -52,45 +58,52 @@ function CallsTable({
   const start = (data.page - 1) * data.page_size;
   return (
     <>
-      <table className={table}>
-        <thead>
-          <tr>
-            <th scope="col" className={`${thLeft} ${thPadding}`}>
-              Time
-            </th>
-            <th scope="col" className={`${thLeft} ${thPadding}`}>
-              Outcome
-            </th>
-            <th scope="col" className={`${thRight} ${thPadding}`}>
-              Duration
-            </th>
-            <th scope="col" className={`${thLeft} ${thPadding}`}>
-              Agent
-            </th>
-            <th scope="col" className={`${thRight} ${thPadding}`}>
-              Revenue
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.calls.map((c) => (
-            <tr key={c.call_id} className={rowHover}>
-              <th scope="row" className={`${labelCell} font-medium`}>
-                <Link
-                  href={callHref(c.call_id, query)}
-                  className="hover:text-accent hover:underline"
-                >
-                  {formatCallTime(c.started_at, c.timezone)}
-                </Link>
+      <TableScroll label="Calls table">
+        <table className={table}>
+          <thead>
+            <tr>
+              <th scope="col" className={`${thLeft} ${thPadding}`}>
+                Time
               </th>
-              <td className={labelCell}>{outcomeLabel(c.outcome)}</td>
-              <td className={numCell}>{formatDuration(c.duration_seconds)}</td>
-              <td className={labelCell}>{c.agent_id ?? "—"}</td>
-              <td className={numCell}>{formatMoney(c.revenue_cents)}</td>
+              <th scope="col" className={`${thLeft} ${thPadding}`}>
+                Outcome
+              </th>
+              <th scope="col" className={`${thRight} ${thPadding}`}>
+                Duration
+              </th>
+              <th scope="col" className={`${thLeft} ${thPadding}`}>
+                Agent
+              </th>
+              <th scope="col" className={`${thRight} ${thPadding}`}>
+                Revenue
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.calls.map((c) => (
+              <tr key={c.call_id} className={rowHover}>
+                <th
+                  scope="row"
+                  className={`${labelCell} font-medium whitespace-nowrap`}
+                >
+                  <Link
+                    href={callHref(c.call_id, query)}
+                    className="hover:text-accent hover:underline"
+                  >
+                    {formatCallTime(c.started_at, c.timezone)}
+                  </Link>
+                </th>
+                <td className={labelCell}>{outcomeLabel(c.outcome)}</td>
+                <td className={numCell}>
+                  {formatDuration(c.duration_seconds)}
+                </td>
+                <td className={labelCell}>{c.agent_id ?? "—"}</td>
+                <td className={numCell}>{formatMoney(c.revenue_cents)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </TableScroll>
       <CallsPager
         page={data.page}
         pageCount={pageCount(data)}

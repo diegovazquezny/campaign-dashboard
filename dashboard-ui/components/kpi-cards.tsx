@@ -40,7 +40,7 @@ export function KpiCards({ totals, range, freshness }: Props) {
   return (
     <dl
       aria-label="Key figures"
-      className="m-0 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
+      className="m-0 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1"
     >
       {cards.map((card) => (
         <div

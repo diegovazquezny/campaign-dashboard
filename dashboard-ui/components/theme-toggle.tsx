@@ -20,8 +20,12 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label="Toggle dark mode"
     >
-      <span className="dark:hidden">☾ Dark</span>
-      <span className="hidden dark:inline">☀ Light</span>
+      <span className="dark:hidden">
+        ☾<span className="hidden sm:inline"> Dark</span>
+      </span>
+      <span className="hidden dark:inline">
+        ☀<span className="hidden sm:inline"> Light</span>
+      </span>
     </button>
   );
 }

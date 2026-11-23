@@ -35,7 +35,7 @@ export function ChannelChart({ channels }: { channels: ChannelTotal[] }) {
     .join(", ")}. Total ${describe(total)}.`;
 
   return (
-    <figure className="m-0 rounded-card border border-border bg-card px-5 pt-5 pb-3 shadow-card">
+    <figure className="m-0 rounded-card border border-border bg-card px-3 pt-5 sm:px-5 pb-3 shadow-card">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <figcaption
           id={captionId}

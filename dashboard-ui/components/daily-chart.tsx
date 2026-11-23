@@ -45,7 +45,7 @@ export function DailyChart({ days, locationSelected = false }: Props) {
   }. Total revenue ${formatMoney(totals.revenue_cents)}; total spend ${formatMoney(totals.spend_cents)}.`;
 
   return (
-    <figure className="m-0 rounded-card border border-border bg-card px-5 pt-5 pb-2 shadow-card">
+    <figure className="m-0 rounded-card border border-border bg-card px-3 pt-5 sm:px-5 pb-2 shadow-card">
       <figcaption
         id={captionId}
         className="mb-2 text-[15px] font-semibold text-fg"

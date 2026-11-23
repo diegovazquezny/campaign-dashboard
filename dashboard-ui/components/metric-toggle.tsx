@@ -1,7 +1,7 @@
 export type Metric = "calls" | "revenue";
 
 const BUTTON =
-  "cursor-pointer rounded-ctl border px-3 py-1 text-[13px] aria-pressed:border-accent aria-pressed:text-accent border-border text-muted";
+  "min-h-10 cursor-pointer rounded-ctl border px-3 py-1 text-[13px] sm:min-h-0 aria-pressed:border-accent aria-pressed:text-accent border-border text-muted";
 
 // Recharts tooltip box, themed with tokens.
 export const TOOLTIP_STYLE = {
