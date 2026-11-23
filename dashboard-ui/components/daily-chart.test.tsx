@@ -47,8 +47,20 @@ vi.mock("recharts", () => ({
 import { DailyChart } from "./daily-chart";
 
 const days = [
-  { date: "2026-01-01", calls: 2, booked: 1, revenue_cents: 10000, spend_cents: 2500 },
-  { date: "2026-01-02", calls: 0, booked: 0, revenue_cents: 0, spend_cents: null },
+  {
+    date: "2026-01-01",
+    calls: 2,
+    booked: 1,
+    revenue_cents: 10000,
+    spend_cents: 2500,
+  },
+  {
+    date: "2026-01-02",
+    calls: 0,
+    booked: 0,
+    revenue_cents: 0,
+    spend_cents: null,
+  },
 ] as Day[];
 
 afterEach(cleanup);

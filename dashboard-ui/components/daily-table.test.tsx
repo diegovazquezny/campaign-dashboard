@@ -77,9 +77,24 @@ describe("DailyTable", () => {
     render(
       <DailyTable
         days={[
-          day("2025-10-01", { calls: 2, booked: 1, revenue_cents: 10000, spend_cents: 5000 }),
-          day("2025-10-02", { calls: 3, booked: 2, revenue_cents: 20000, spend_cents: null }),
-          day("2025-10-03", { calls: 5, booked: 0, revenue_cents: 5000, spend_cents: 2500 }),
+          day("2025-10-01", {
+            calls: 2,
+            booked: 1,
+            revenue_cents: 10000,
+            spend_cents: 5000,
+          }),
+          day("2025-10-02", {
+            calls: 3,
+            booked: 2,
+            revenue_cents: 20000,
+            spend_cents: null,
+          }),
+          day("2025-10-03", {
+            calls: 5,
+            booked: 0,
+            revenue_cents: 5000,
+            spend_cents: 2500,
+          }),
         ]}
       />,
     );

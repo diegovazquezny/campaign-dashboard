@@ -1,4 +1,4 @@
-import { DEFAULT_PRESET, type Preset } from './date-ranges';
+import { DEFAULT_PRESET, type Preset } from "./date-ranges";
 
 export interface FilterState {
   preset?: string;
@@ -17,7 +17,7 @@ export type FilterChange = Partial<{
   page: number;
 }>;
 
-const FILTER_KEYS = ['preset', 'from', 'to', 'location'] as const;
+const FILTER_KEYS = ["preset", "from", "to", "location"] as const;
 
 /**
  * Build the query string (no leading "?") after applying `change` to `current`.
@@ -31,13 +31,13 @@ const FILTER_KEYS = ['preset', 'from', 'to', 'location'] as const;
 export function buildQuery(
   current: FilterState,
   change: FilterChange,
-  extra = '',
+  extra = "",
 ): string {
   const next: FilterState = { ...current };
   if (FILTER_KEYS.some((k) => change[k] !== undefined)) delete next.page;
   if (change.preset !== undefined) {
     next.preset = change.preset;
-    if (change.preset !== 'custom') {
+    if (change.preset !== "custom") {
       delete next.from;
       delete next.to;
     }
@@ -48,16 +48,16 @@ export function buildQuery(
   if (change.page !== undefined) next.page = change.page;
 
   const params = new URLSearchParams(extra);
-  for (const k of [...FILTER_KEYS, 'page']) params.delete(k);
+  for (const k of [...FILTER_KEYS, "page"]) params.delete(k);
   if (next.preset && next.preset !== DEFAULT_PRESET) {
-    params.set('preset', next.preset);
+    params.set("preset", next.preset);
   }
-  if (next.preset === 'custom') {
-    if (next.from) params.set('from', next.from);
-    if (next.to) params.set('to', next.to);
+  if (next.preset === "custom") {
+    if (next.from) params.set("from", next.from);
+    if (next.to) params.set("to", next.to);
   }
-  if (next.location) params.set('location', next.location);
-  if (next.page && next.page > 1) params.set('page', String(next.page));
+  if (next.location) params.set("location", next.location);
+  if (next.page && next.page > 1) params.set("page", String(next.page));
   return params.toString();
 }
 
@@ -72,8 +72,8 @@ export function detailHref(campaignId: string, query: string): string {
 
 /** The calls list a call came from: `/campaigns/<id>` or, with no campaign, `/campaigns/none`. */
 export function listHref(campaignId: string | null, query: string): string {
-  return campaignId === null || campaignId === 'none'
-    ? withQuery('/campaigns/none', query)
+  return campaignId === null || campaignId === "none"
+    ? withQuery("/campaigns/none", query)
     : detailHref(campaignId, query);
 }
 
@@ -84,7 +84,7 @@ export function callHref(callId: string, query: string): string {
 
 /** `/?<query>`; the query is used as is. */
 export function overviewHref(query: string): string {
-  return withQuery('/', query);
+  return withQuery("/", query);
 }
 
 /** A 1-based page number from a `page` search param; anything else is page 1. */
@@ -94,6 +94,10 @@ export function parsePage(value: string | string[] | undefined): number {
 }
 
 /** `pathname` with `current`'s filters and `page`; used to leave a page past the end. */
-export function pageHref(pathname: string, current: FilterState, page: number): string {
+export function pageHref(
+  pathname: string,
+  current: FilterState,
+  page: number,
+): string {
   return withQuery(pathname, buildQuery(current, { page }));
 }
