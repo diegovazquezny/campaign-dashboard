@@ -25,7 +25,7 @@ Then open:
 | API | http://localhost:3001/api/meta |
 | Database | localhost:5432 (set `DB_PORT` in `.env` if 5432 is taken) |
 
-The default view is "Last quarter", which starts before the data does, so a "Data covers …" badge is expected.
+The default view is "Last quarter", which starts before the data does, so a yellow "Selected range extends outside available data" warning is expected.
 
 ## What's in the app
 
@@ -38,7 +38,7 @@ The app has three kinds of page:
 | Page | URL | What it does |
 |---|---|---|
 | Main dashboard | `/` | Account-wide KPIs, charts, missed calls and a campaign table. |
-| Campaign detail | `/campaigns/:id` (and `/campaigns/none` for calls with no campaign) | One campaign's daily revenue vs spend, a day-by-day table and a paged list of its calls. |
+| Campaign detail | `/campaigns/:id` | One campaign's daily revenue vs spend, a day-by-day table and a paged list of its calls. `/campaigns/none` (calls with no campaign) shows only the paged list of calls. |
 | Call detail | `/calls/:id` | One call: what happened, who called, and which campaign, channel and office it came through. |
 
 Every page has a light/dark toggle (bottom right). Every metric and column has an (i) info icon with a short definition: hover it, or tap it on a phone.
@@ -49,7 +49,7 @@ Every page has a light/dark toggle (bottom right). Every metric and column has a
 
 - **Date range:** presets (Last quarter, This quarter, Last month, Last 30 days, Last 90 days) or Custom with From / To dates. The default is "Last quarter".
 - **Office:** limits every number on the page to one office, or shows all offices.
-- **Badges:** "Data covers ..." says which dates the data spans (shown when your range extends beyond it). The yellow warning appears when the range includes days whose outcomes may still be arriving.
+- **Badges:** "Data covers ..." always shows which dates the data spans. A yellow "Selected range extends outside available data" warning appears when your range goes beyond it. A second yellow warning appears when the range includes days whose outcomes may still be arriving.
 - Filters live in the URL, so any view can be shared as a link, and they carry over when you open a campaign.
 
 ### The main page, in three groups
@@ -98,21 +98,21 @@ One row per campaign, sorted by revenue (highest first) by default. Click a colu
 | Channel | The marketing channel the campaign runs on. |
 | Calls | Calls in the date range and office for the campaign. |
 | Unique callers | Distinct phone numbers that called. The totals row counts each caller once, even if they called several campaigns. |
-| New callers | Calls from a number never seen before. "Never seen" only counts back to the start of the data (Aug 31), so earlier callers can look new. |
+| New callers | Calls from a number never seen before. "Never seen" only counts back to the start of the data (Aug 31 office time, Sep 1 UTC), so earlier callers can look new. |
 | Booked | Calls whose outcome was a booked appointment. |
 | Booking rate | Booked ÷ calls. |
 | Unanswered rate | Share of calls not answered (missed or voicemail). |
 | Awaiting outcome | Answered calls with no outcome recorded yet. |
 | Revenue | Revenue recorded on the campaign's calls in the range. |
-| Budgeted spend (est.) | Daily budget × the days in the range that the data covers. Assumes the whole budget was spent, so it can overstate cost. Blank for campaigns with no budget. With an office selected, the column becomes the office's share of the spend, split by its share of the campaign's calls. |
-| Revenue ÷ spend | Revenue ÷ estimated spend. Blank when there is no spend. |
-| Spend per booking | Estimated spend ÷ bookings. Blank when there is no spend or no bookings. |
+| Budgeted spend (est.) | Daily budget × the days in the range that the data covers. Assumes the whole budget was spent, so it can overstate cost. Shows "—" for campaigns with no budget. With an office selected, the column becomes the office's share of the spend, split by its share of the campaign's calls. |
+| Revenue ÷ spend | Revenue ÷ estimated spend. Shows "—" when there is no spend. |
+| Spend per booking | Estimated spend ÷ bookings. Shows "—" when there is no spend or no bookings. |
 
 ### Campaign detail page
 
 ![Campaign detail page](docs/screenshots/campaign-detail.png)
 
-Opened from the table (or "No campaign"). It keeps the same filters and has a "← All campaigns" link back.
+Opened from the table (or "No campaign"). It keeps the same filters and has a "← All campaigns" link back. The "No campaign" page has only the Calls list below, with no chart or daily table.
 
 - **Revenue vs spend by day:** this campaign's daily revenue against its estimated daily spend.
 - **Daily table:** Date, Calls, Booked, Revenue and Budgeted spend (est.) for each day, 30 days per page, with a totals row for the whole range.
@@ -125,14 +125,14 @@ Opened from the table (or "No campaign"). It keeps the same filters and has a "�
 | Time | When the call started, in the office's time zone. |
 | Outcome | Booked, qualified lead, not qualified, missed, voicemail, or "Awaiting outcome". |
 | Duration | Length of the call. |
-| Agent | The agent ID that took the call (blank if unanswered). |
+| Agent | The agent ID that took the call ("—" if unanswered). |
 | Revenue | Revenue recorded on the call. |
 
 ### Call detail page
 
 ![Call detail page](docs/screenshots/call-detail.png)
 
-Opened by clicking a row in the calls list. Three cards:
+Opened by clicking a call's time in the calls list. Three cards:
 
 | Card | What it shows |
 |---|---|
