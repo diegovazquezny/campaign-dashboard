@@ -73,56 +73,31 @@ PK = primary key, FK = foreign key, (o) = optional (nullable).
 
 - **`locations`** (8 rows): one per office, with its name and timezone.
 - **`campaigns`** (12 rows): name, marketing channel and daily budget. The budget is the only spend information we have (see above).
-- **`calls`** (about 5,000 rows): one row per call. The CSV has 5,411 rows because 396 calls appear in more than one version; only the latest is kept (decision 5). Each call belongs to exactly one location (foreign key, required) and to at most one campaign (foreign key, optional). A call with no campaign is what the UI shows as "No campaign". It still carries its own `marketing_channel`, so those calls can be grouped by channel.
+- **`calls`** (about 5,000 rows): one row per call. The CSV has 5,411 rows because 396 calls appear in more than one version; only the latest is kept. Each call belongs to exactly one location (foreign key, required) and to at most one campaign (foreign key, optional). A call with no campaign is what the UI shows as "No campaign". It still carries its own `marketing_channel`, so those calls can be grouped by channel.
 - **Why:** this mirrors the three source CSVs, so the import is a straight load and the relationships are enforced by foreign keys. Indexes cover the filters every screen uses: date, campaign plus date, and office plus date.
 - **Alternative: one wide table with campaign and office details copied onto every call.** No joins, but a budget or timezone change would have to be rewritten on thousands of rows.
 - **Cost:** campaign and office details come from a join. At this size it is not noticeable.
 
-### 5. `calls` holds only the latest version of each call
-
-The CSV contains several versions of some calls (an outcome arrives later). The import keeps the version with the newest `updated_at` (stored as `source_updated_at`), never "last row wins" (some rows are out of order).
-
-- **Why:** the CSVs are a fixed snapshot, so nobody would read the history. Re-running the import is the recovery.
-- **Alternative: an append-only versions table** with a view for the current state. Keeps history and supports audits, but adds a table and joins for a feature nobody uses yet.
-- **Cost:** no history of how a call changed. If a live feed arrives, we may need to revisit this.
-
-### 6. No `callers` table: the caller is a hashed phone number on each call
+### 5. No `callers` table: the caller is a hashed phone number on each call
 
 `caller_number_hash` is a column on `calls`. "Unique callers", "new callers" and a caller's call count are all derived from it.
 
 - **Why:** the data has nothing about a caller except the number, so a separate table would hold one column and need keeping in sync with every import.
 - **Alternative: a `callers` table** with first-seen date and call count. Faster lookups at scale, but duplicated data that goes stale.
-- **Cost:** caller facts are computed on demand (see decision 9).
+- **Cost:** caller facts are computed on demand.
 
-### 7. Each call counts toward the campaign that took it; days follow each office's timezone
+### 6. Each call counts toward the campaign that took it; days follow each office's timezone
 
 Every call stores its `campaign_id` as received and a `local_date` computed in the office's timezone at import.
 
 - **Why:** crediting the campaign that took the call is the usual call-tracking convention, and "Tuesday" should mean Tuesday at the office.
-- **Alternative: first-touch attribution** (credit the caller's first campaign). It avoids double-crediting repeat callers, but hides which campaign actually drove the call. It could be added later as a toggle using the same on-demand approach as decision 9.
+- **Alternative: first-touch attribution** (credit the caller's first campaign). It avoids double-crediting repeat callers, but hides which campaign actually drove the call. It could be added later as a toggle using the same on-demand approach.
 - **Alternative: bucket days in UTC.** Simpler, but the first call (00:39 UTC) would fall on the wrong local day for some offices.
 - **Cost:** campaigns that mostly re-reach people another campaign already got can look better than they are. The "New callers" column exists to expose this.
 
-### 8. Money in whole cents; fixed lists and business rules enforced by the database
-
-Revenue and budgets are integer cents. Channel and outcome are limited to fixed lists, and check constraints encode rules such as "revenue exists only for booked calls" and "unanswered calls have no agent".
-
-- **Why:** sums stay exact, and bad data cannot get in no matter which program writes it.
-- **Alternative: decimal or float dollars.** Easier to read in raw form, but rounding errors accumulate in sums.
-- **Cost:** values must be converted for display, and the import rejects rows that break a rule (with a reason) instead of storing them.
-
-### 9. Derived numbers are computed when asked, not stored
-
-Spend and "new callers" are calculated at query time. A call is "new" if the same caller had no earlier call.
-
-- **Why:** nothing stored means nothing to go stale or recompute on every import. At this size the queries are fast.
-- **Alternative: a daily spend table and a stored "first call" flag.** Faster at large scale, but duplicates data and must be rebuilt on each import.
-- **Cost:** query time grows with data. PLAN.md section 7 has the scaling path.
-- **Limit:** "first" means first since the data starts on Sep 1, so earlier callers look new.
-
 ## API
 
-### 10. REST with a few purpose-built endpoints, not GraphQL
+### 7. REST with a few purpose-built endpoints, not GraphQL
 
 The API has six read-only endpoints, each shaped for one part of a screen:
 
@@ -142,26 +117,18 @@ The math (totals, rates, spend) is done in SQL, so the browser receives finished
 - **Alternative: REST that returns raw calls, with the math in the browser.** Simple API, but ships thousands of rows and duplicates metric logic in the client.
 - **Cost:** a new view usually means a new endpoint, and a screen can receive a few fields it does not use.
 
-### 11. Caller phone numbers are never returned
-
-The API exposes derived caller facts (first call, number of calls, first seen) but never the caller identifier, not even hashed.
-
-- **Why:** the hashes are short and could be brute-forced back to phone numbers.
-- **Alternative: return the hash for a caller-history view.** Useful, but a privacy risk for little gain in v1.
-- **Cost:** no way to list one caller's calls.
-
 ## UI
 
-### 12. Three pages: overview, campaign and call
+### 8. Three pages: overview, campaign and call
 
 - **Overview (`/`):** the account-wide picture for the chosen dates and office: KPI cards, charts, a missed-calls card and a ranked campaign table.
 - **Campaign (`/campaigns/:id`):** one campaign's daily revenue vs spend, a day-by-day table and its calls. `/campaigns/none` shows only the calls that came with no campaign.
 - **Call (`/calls/:id`):** one call's details, with caller facts and the campaign, channel and office it came through.
 - **Why:** it follows the question a marketer asks: which campaigns work, why does this one look the way it does, and what actually happened on a call. Each page is one click from the previous one and keeps the filters.
 - **Alternative: a single page with a side panel for details.** Fewer page loads, but no link to share a campaign or a call.
-- **Cost:** moving between pages reloads data from the server (see decision 15).
+- **Cost:** moving between pages reloads data from the server (see decision 11).
 
-### 13. The overview: five KPI cards, two charts, a missed-calls card and one table
+### 9. The overview: five KPI cards, two charts, a missed-calls card and one table
 
 - **KPI cards:** Calls, Booked, Booking rate, Revenue and Revenue ÷ spend. They equal the table's totals row, and the outcome-based ones show "May be incomplete" when the range includes days whose outcomes can still arrive.
 - **Charts:** calls or revenue **by day** (a line, to show the trend and any dip) and calls or revenue **by channel** (bars, largest first, to compare channels). Both switch between Calls and Revenue.
@@ -173,7 +140,7 @@ The API exposes derived caller facts (first call, number of calls, first seen) b
 - **Alternative: rank it like any campaign.** Simplest, but it would show an unfair, spend-free return.
 - **Cost:** a dense page. Info icons on every metric and column carry the definitions so the page itself stays uncluttered.
 
-### 14. Recharts for charts, with light and dark themes
+### 10. Recharts for charts, with light and dark themes
 
 - **Why:** a React-native charting library that fits the component model and covers the daily, channel and revenue-vs-spend charts without custom drawing.
 - **Alternative: Chart.js.** Mature and canvas-based, but less natural to compose in React.
@@ -181,7 +148,7 @@ The API exposes derived caller facts (first call, number of calls, first seen) b
 
 ## UX
 
-### 15. Filters live in the URL and pages are rendered on the server
+### 11. Filters live in the URL and pages are rendered on the server
 
 Date range and office are query parameters, and server components fetch the data.
 
@@ -189,7 +156,7 @@ Date range and office are query parameters, and server components fetch the data
 - **Alternative: client-side state with a data library** (React Query/SWR). Snappier filter changes, but links no longer reproduce a view without extra work.
 - **Cost:** changing a filter reloads the page's data from the server.
 
-### 16. Default to the last calendar quarter, with honest range badges
+### 12. Default to the last calendar quarter, with honest range badges
 
 Presets (last quarter, this quarter, last month, last 30/90 days, custom) are available. A "Data covers ..." badge appears when the range extends beyond the data, and a freshness badge appears when recent outcomes may be incomplete (outcomes can arrive up to 3 days late).
 
@@ -199,7 +166,7 @@ Presets (last quarter, this quarter, last month, last 30/90 days, custom) are av
 
 ## Data access
 
-### 17. Raw SQL for the metrics, ActiveRecord for everything else
+### 13. Raw SQL for the metrics, ActiveRecord for everything else
 
 The metric math (counts, rates, revenue, spend, daily series) is written as SQL and run through ActiveRecord's connection. Models, the importer and the calls list use ActiveRecord normally.
 
@@ -211,12 +178,12 @@ The metric math (counts, rates, revenue, spend, daily series) is written as SQL 
 
 - **Authentication and multi-tenancy.** Out of scope for this brief.
 - **AI features and a chatbot.** None in v1; the dashboard has to work without a model. If added, it would call the same data endpoints so its numbers always match the table.
-- **A first-touch toggle.** See decision 7.
+- **A first-touch toggle.** See decision 6.
 - **Scale work and a fully polished UI.** Out of scope for this brief.
 
 ## Open questions
 
-1. How will the API receive call data instead of reading a CSV? A recurring feed would bring back a run log (counts, rejections and status per run) and possibly version history (see decision 5).
+1. How will the API receive call data instead of reading a CSV? A recurring feed would bring back a run log (counts, rejections and status per run) and possibly version history.
 2. Where would actual spend come from (for example ad-platform APIs or manual entry), and at what granularity (daily per campaign)?
 
 ## Spend is an estimate
