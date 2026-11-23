@@ -92,7 +92,7 @@ T2 and T3 touch different files, so they can run in parallel.
 - **Acceptance:** every header in the three tables has an icon; sorting, sticky first column and horizontal scroll still work; tooltips are not clipped inside `TableScroll`; both themes checked.
 
 ### T3 — Chart and call detail cards
-**Status:** not started · **Depends on:** T1 (parallel with T2)
+**Status:** in review · **Depends on:** T1 (parallel with T2)
 - Adds the chart and call-detail entries to `lib/help-text.ts`.
 - Icon in the `<figcaption>` of `overview-chart.tsx` (text follows the calls/revenue toggle), `channel-chart.tsx` (same) and `daily-chart.tsx`.
 - `Card` in `components/call-details.tsx` takes an optional `help` prop rendered next to its `<h2>`; the three cards (About this call, Caller data, Marketing data) pass it.

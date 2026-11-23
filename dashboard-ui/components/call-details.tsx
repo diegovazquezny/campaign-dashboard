@@ -9,16 +9,30 @@ import {
   formatLocalDate,
   formatMoney,
 } from "../lib/format";
+import { HELP } from "../lib/help-text";
+import { InfoTip } from "./info-tip";
 
 type Item = { label: string; value: React.ReactNode };
 
-function Card({ title, items }: { title: string; items: Item[] }) {
+function Card({
+  title,
+  help,
+  items,
+}: {
+  title: string;
+  help: string;
+  items: Item[];
+}) {
   return (
     <section
       aria-label={title}
       className="rounded-card border border-border bg-card p-5 shadow-card"
     >
-      <h2 className="m-0 text-[15px] font-semibold text-fg">{title}</h2>
+      {/* The icon sits beside the h2, so the heading text stays just the title. */}
+      <div className="flex items-center gap-1">
+        <h2 className="m-0 text-[15px] font-semibold text-fg">{title}</h2>
+        <InfoTip label={title} text={help} />
+      </div>
       <dl className="m-0 mt-4 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-3">
         {items.map((i) => (
           <div key={i.label} className="contents">
@@ -51,6 +65,7 @@ export function CallDetails({
     <div className="grid gap-4 lg:grid-cols-3">
       <Card
         title="About this call"
+        help={HELP.aboutCall}
         items={[
           { label: "Call ID", value: call.call_id },
           { label: "Started", value: formatCallTime(call.started_at, tz) },
@@ -65,6 +80,7 @@ export function CallDetails({
       />
       <Card
         title="Caller data"
+        help={HELP.callerData}
         items={[
           {
             label: "Caller",
@@ -79,6 +95,7 @@ export function CallDetails({
       />
       <Card
         title="Marketing data"
+        help={HELP.marketingData}
         items={[
           {
             label: "Campaign",

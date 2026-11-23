@@ -1,6 +1,7 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CallDetail } from "../../../lib/api-types";
+import { HELP } from "../../../lib/help-text";
 
 vi.mock("next/server", () => ({ connection: async () => {} }));
 vi.mock("next/navigation", () => ({
@@ -82,6 +83,25 @@ describe("CallPage", () => {
     expect(
       screen.getByRole("link", { name: "Spring Promo" }).getAttribute("href"),
     ).toBe("/campaigns/c1");
+  });
+
+  it("gives each card an info icon that explains it, keeping heading text plain", async () => {
+    await renderPage(call);
+    const cards = [
+      ["About this call", HELP.aboutCall],
+      ["Caller data", HELP.callerData],
+      ["Marketing data", HELP.marketingData],
+    ] as const;
+    for (const [title, text] of cards) {
+      const button = within(card(title)).getByRole("button", {
+        name: `About ${title}`,
+      });
+      expect(
+        document.getElementById(button.getAttribute("aria-describedby")!)
+          ?.textContent,
+      ).toBe(text);
+      expect(screen.getByRole("heading", { name: title })).toBeTruthy();
+    }
   });
 
   it("shows a repeat caller with their count and first-seen date", async () => {

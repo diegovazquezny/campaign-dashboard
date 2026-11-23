@@ -48,6 +48,7 @@ vi.mock("recharts", () => ({
   CartesianGrid: () => null,
 }));
 
+import { HELP } from "../lib/help-text";
 import { OverviewChart } from "./overview-chart";
 
 const days = [
@@ -75,6 +76,30 @@ describe("OverviewChart", () => {
     expect(screen.getByText(/Total calls 8; total revenue \$425/)).toBeTruthy();
   });
 
+  it("explains the chart with an info icon that follows the toggle, outside the chart's name", () => {
+    render(<OverviewChart days={days} incompleteFrom={null} />);
+
+    const calls = screen.getByRole("button", { name: "About Calls by day" });
+    expect(
+      document.getElementById(calls.getAttribute("aria-describedby")!)
+        ?.textContent,
+    ).toBe(HELP.callsByDay);
+    // the tooltip text is not part of the chart's accessible name
+    expect(screen.getByRole("img", { name: "Calls by day" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Revenue" }));
+    const revenue = screen.getByRole("button", {
+      name: "About Revenue by day",
+    });
+    expect(
+      document.getElementById(revenue.getAttribute("aria-describedby")!)
+        ?.textContent,
+    ).toBe(HELP.revenueByDay);
+    expect(
+      screen.queryByRole("button", { name: "About Calls by day" }),
+    ).toBeNull();
+  });
+
   it("switches to revenue in dollars", () => {
     render(<OverviewChart days={days} incompleteFrom={null} />);
     fireEvent.click(screen.getByRole("button", { name: "Revenue" }));
@@ -100,14 +125,14 @@ describe("OverviewChart", () => {
 
     expect(received.data).toEqual([]);
     expect(received.area).toBeNull();
-    expect(screen.queryByText(/Shaded days/)).toBeNull();
+    expect(screen.queryByText(/Shaded days: bookings/)).toBeNull();
   });
 
   it("shades and notes the days from the freshness date on", () => {
     render(<OverviewChart days={days} incompleteFrom="2026-09-02" />);
 
     expect(received.area).toEqual({ x1: "2026-09-02", x2: "2026-09-03" });
-    expect(screen.getByText(/Shaded days/)).toBeTruthy();
+    expect(screen.getByText(/Shaded days: bookings/)).toBeTruthy();
     expect(
       screen.getByText(/from 2026-09-02 onward may be incomplete/),
     ).toBeTruthy();
@@ -123,7 +148,7 @@ describe("OverviewChart", () => {
     render(<OverviewChart days={days} incompleteFrom="2026-09-10" />);
 
     expect(received.area).toBeNull();
-    expect(screen.queryByText(/Shaded days/)).toBeNull();
+    expect(screen.queryByText(/Shaded days: bookings/)).toBeNull();
   });
 
   it("shades the single day of a one-day range", () => {

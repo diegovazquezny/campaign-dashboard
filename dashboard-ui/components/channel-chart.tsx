@@ -11,6 +11,8 @@ import {
   YAxis,
 } from "recharts";
 import type { ChannelTotal } from "../lib/channels";
+import { HELP } from "../lib/help-text";
+import { InfoTip } from "./info-tip";
 import { MetricToggle, TOOLTIP_STYLE, type Metric } from "./metric-toggle";
 import { dollarsExact, formatCount, formatMoney } from "../lib/format";
 
@@ -37,12 +39,18 @@ export function ChannelChart({ channels }: { channels: ChannelTotal[] }) {
   return (
     <figure className="m-0 rounded-card border border-border bg-card px-3 pt-5 sm:px-5 pb-3 shadow-card">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <figcaption
-          id={captionId}
-          className="text-[15px] font-semibold text-fg"
-        >
-          {isCalls ? "Calls by channel" : "Revenue by channel"}
-        </figcaption>
+        <div className="flex items-center gap-1">
+          <figcaption
+            id={captionId}
+            className="text-[15px] font-semibold text-fg"
+          >
+            {isCalls ? "Calls by channel" : "Revenue by channel"}
+          </figcaption>
+          <InfoTip
+            label={isCalls ? "Calls by channel" : "Revenue by channel"}
+            text={isCalls ? HELP.callsByChannel : HELP.revenueByChannel}
+          />
+        </div>
         <MetricToggle
           label="Channel metric"
           metric={metric}

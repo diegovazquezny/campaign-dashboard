@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { toChartData, type Day } from "../lib/daily";
+import { HELP } from "../lib/help-text";
 
 const received: {
   data?: unknown;
@@ -85,6 +86,20 @@ describe("DailyChart", () => {
     ).toHaveAccessibleDescription(
       /2026-01-01 to 2026-01-02.*Total revenue \$100; total spend \$25/,
     );
+  });
+
+  it("explains the chart with an info icon, outside the chart's name", () => {
+    render(<DailyChart days={days} />);
+    const button = screen.getByRole("button", {
+      name: "About Revenue vs spend by day",
+    });
+    expect(
+      document.getElementById(button.getAttribute("aria-describedby")!)
+        ?.textContent,
+    ).toBe(HELP.revenueVsSpend);
+    expect(
+      screen.getByRole("img", { name: "Revenue vs spend by day" }),
+    ).toBeTruthy();
   });
 
   it("shows a dash for all-null spend and the location label", () => {

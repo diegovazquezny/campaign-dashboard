@@ -12,6 +12,8 @@ import {
   YAxis,
 } from "recharts";
 import { sumDays, toChartData, type Day } from "../lib/daily";
+import { HELP } from "../lib/help-text";
+import { InfoTip } from "./info-tip";
 import {
   dollarsExact,
   formatMoney,
@@ -46,12 +48,15 @@ export function DailyChart({ days, locationSelected = false }: Props) {
 
   return (
     <figure className="m-0 rounded-card border border-border bg-card px-3 pt-5 sm:px-5 pb-2 shadow-card">
-      <figcaption
-        id={captionId}
-        className="mb-2 text-[15px] font-semibold text-fg"
-      >
-        Revenue vs spend by day
-      </figcaption>
+      <div className="mb-2 flex items-center gap-1">
+        <figcaption
+          id={captionId}
+          className="text-[15px] font-semibold text-fg"
+        >
+          Revenue vs spend by day
+        </figcaption>
+        <InfoTip label="Revenue vs spend by day" text={HELP.revenueVsSpend} />
+      </div>
       <div
         role="img"
         aria-labelledby={captionId}
