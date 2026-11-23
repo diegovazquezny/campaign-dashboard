@@ -174,6 +174,16 @@ Presets (last quarter, this quarter, last month, last 30/90 days, custom) are av
 - **Alternative: default to the last 30 days.** Mostly empty today, because the data is older.
 - **Alternative: default to all data.** Always populated, but not a reporting period anyone uses.
 
+## Data access
+
+### 17. Raw SQL for the metrics, ActiveRecord for everything else
+
+The metric math (counts, rates, revenue, spend, daily series) is written as SQL and run through ActiveRecord's connection. Models, the importer and the calls list use ActiveRecord normally.
+
+- **Why:** the metrics need conditional counts in one pass (`FILTER`), stacked steps (Common Table Expressions, or CTEs), days with no calls filled in (`generate_series`) and a totals row (`UNION`). ActiveRecord's query builder cannot express these, so we would still write SQL strings or run several queries and merge them in Ruby. One shared CTE (`CallFacts`) also defines each flag (booked, missed, at office) once, so totals and daily rows cannot drift apart.
+- **Alternative: ActiveRecord queries.** Easier to read for simple counts, and likely about as fast if each metric stayed one query. But each metric would be defined in several places, and the heavy queries would still need raw SQL.
+- **Cost:** harder to read and change than Ruby, tied to PostgreSQL, and values in the SQL strings must be quoted by hand (`conn.quote`).
+
 ## Left out on purpose
 
 - **Authentication and multi-tenancy.** Out of scope for this brief.
