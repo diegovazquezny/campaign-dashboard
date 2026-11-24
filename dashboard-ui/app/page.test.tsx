@@ -42,7 +42,7 @@ function metrics(calls: number): CampaignMetricsResponse {
     spend_cents: null,
   };
   return {
-    range: { from: "2026-07-01", to: "2026-09-30" },
+    range: { from: "2026-08-25", to: "2026-11-22" },
     rows: [
       {
         campaign_id: "a",
@@ -83,11 +83,11 @@ describe("Home", () => {
     vi.clearAllMocks();
   });
 
-  it("uses the last-quarter range by default and renders the table", async () => {
+  it("uses the last-90-days range by default and renders the table", async () => {
     await renderHome({});
     expect(getCampaignMetrics).toHaveBeenCalledWith({
-      from: "2026-07-01",
-      to: "2026-09-30",
+      from: "2026-08-25",
+      to: "2026-11-22",
       locationId: undefined,
     });
     expect(screen.getByText("Alpha")).toBeTruthy();

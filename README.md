@@ -25,7 +25,7 @@ Then open:
 | API | http://localhost:3001/api/meta |
 | Database | localhost:5432 (set `DB_PORT` in `.env` if 5432 is taken) |
 
-The default view is "Last quarter", which starts before the data does, so a yellow "Selected range extends outside available data" warning is expected.
+The default view is "Last 90 days". The data ends in October, so the range extends past it and a yellow "Selected range extends outside available data" warning is expected.
 
 ## What's in the app
 
@@ -47,7 +47,7 @@ Every page has a light/dark toggle (bottom right). Every metric and column has a
 
 ![Header badges and filters](docs/screenshots/filters.png)
 
-- **Date range:** presets (Last quarter, This quarter, Last month, Last 30 days, Last 90 days) or Custom with From / To dates. The default is "Last quarter".
+- **Date range:** presets (Last quarter, This quarter, Last month, Last 30 days, Last 90 days) or Custom with From / To dates. The default is "Last 90 days".
 - **Office:** limits every number on the page to one office, or shows all offices.
 - **Badges:** "Data covers ..." always shows which dates the data spans. A yellow "Selected range extends outside available data" warning appears when your range goes beyond it. A second yellow warning appears when the range includes days whose outcomes may still be arriving.
 - Filters live in the URL, so any view can be shared as a link, and they carry over when you open a campaign.

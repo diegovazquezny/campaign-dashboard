@@ -26,7 +26,7 @@ export type ResolvedRange = ValidRange | InvalidRange;
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
-export const DEFAULT_PRESET: Preset = "last_quarter";
+export const DEFAULT_PRESET: Preset = "last_90_days";
 const MAX_RANGE_DAYS = 366;
 const DAY_MS = 86_400_000;
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;

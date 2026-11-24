@@ -28,9 +28,9 @@ const meta: Meta = {
   ],
 };
 const quarter: ResolvedRange = {
-  preset: "last_quarter",
-  from: "2026-07-01",
-  to: "2026-09-30",
+  preset: "last_90_days",
+  from: "2026-08-25",
+  to: "2026-11-22",
 };
 
 beforeEach(() => {
@@ -41,7 +41,7 @@ beforeEach(() => {
 
 test("renders presets, locations and marks the active preset", () => {
   render(<FilterBar meta={meta} range={quarter} />);
-  expect(screen.getByRole("button", { name: "Last quarter" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "Last 90 days" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
@@ -85,7 +85,7 @@ test("Custom prefills the current resolved range", () => {
   render(<FilterBar meta={meta} range={quarter} />);
   fireEvent.click(screen.getByRole("button", { name: "Custom" }));
   expect(push).toHaveBeenCalledWith(
-    "/?preset=custom&from=2026-07-01&to=2026-09-30",
+    "/?preset=custom&from=2026-08-25&to=2026-11-22",
   );
 });
 

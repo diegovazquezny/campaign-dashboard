@@ -156,12 +156,13 @@ Date range and office are query parameters, and server components fetch the data
 - **Alternative: client-side state with a data library** (React Query/SWR). Snappier filter changes, but links no longer reproduce a view without extra work.
 - **Cost:** changing a filter reloads the page's data from the server.
 
-### 12. Default to the last calendar quarter, with honest range badges
+### 12. Default to the last 90 days, with honest range badges
 
 Presets (last quarter, this quarter, last month, last 30/90 days, custom) are available. A "Data covers ..." badge appears when the range extends beyond the data, and a freshness badge appears when recent outcomes may be incomplete (outcomes can arrive up to 3 days late).
 
-- **Why:** the last quarter matches how marketers report. Because the data ends in October, the default view normally shows the badge, so partial data is never mistaken for full data.
+- **Why:** a rolling 90 days always ends today, so the default never lands on a calendar boundary that is empty or half-covered. Because the data ends in October, the default view normally shows the badge, so partial data is never mistaken for full data.
 - **Alternative: default to the last 30 days.** Mostly empty today, because the data is older.
+- **Alternative: default to the last calendar quarter.** Matches how marketers report, but it is a fixed window that can sit entirely before or after the data.
 - **Alternative: default to all data.** Always populated, but not a reporting period anyone uses.
 
 ## Data access

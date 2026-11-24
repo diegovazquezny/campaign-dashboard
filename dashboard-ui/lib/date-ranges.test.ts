@@ -2,41 +2,57 @@ import { describe, expect, it } from "vitest";
 import { first, resolveRange } from "./date-ranges";
 
 describe("resolveRange presets", () => {
-  it("defaults to last quarter", () => {
+  it("defaults to the last 90 days", () => {
     expect(resolveRange({}, "2026-11-22")).toEqual({
+      preset: "last_90_days",
+      from: "2026-08-25",
+      to: "2026-11-22",
+    });
+  });
+
+  it("falls back to the last 90 days for an unknown preset", () => {
+    expect(resolveRange({ preset: "bogus" }, "2026-11-22").preset).toBe(
+      "last_90_days",
+    );
+  });
+
+  it("last_quarter is the previous calendar quarter", () => {
+    expect(resolveRange({ preset: "last_quarter" }, "2026-11-22")).toEqual({
       preset: "last_quarter",
       from: "2026-07-01",
       to: "2026-09-30",
     });
   });
 
-  it("falls back to last quarter for an unknown preset", () => {
-    expect(resolveRange({ preset: "bogus" }, "2026-11-22").preset).toBe(
-      "last_quarter",
-    );
-  });
-
   it("handles quarter boundaries", () => {
-    expect(resolveRange({}, "2026-03-31")).toMatchObject({
+    expect(
+      resolveRange({ preset: "last_quarter" }, "2026-03-31"),
+    ).toMatchObject({
       from: "2025-10-01",
       to: "2025-12-31",
     });
-    expect(resolveRange({}, "2026-04-01")).toMatchObject({
+    expect(
+      resolveRange({ preset: "last_quarter" }, "2026-04-01"),
+    ).toMatchObject({
       from: "2026-01-01",
       to: "2026-03-31",
     });
-    expect(resolveRange({}, "2026-12-31")).toMatchObject({
+    expect(
+      resolveRange({ preset: "last_quarter" }, "2026-12-31"),
+    ).toMatchObject({
       from: "2026-07-01",
       to: "2026-09-30",
     });
-    expect(resolveRange({}, "2027-01-01")).toMatchObject({
+    expect(
+      resolveRange({ preset: "last_quarter" }, "2027-01-01"),
+    ).toMatchObject({
       from: "2026-10-01",
       to: "2026-12-31",
     });
   });
 
   it("rolls over the year in January", () => {
-    expect(resolveRange({}, "2026-01-15")).toEqual({
+    expect(resolveRange({ preset: "last_quarter" }, "2026-01-15")).toEqual({
       preset: "last_quarter",
       from: "2025-10-01",
       to: "2025-12-31",
