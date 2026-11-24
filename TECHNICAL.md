@@ -81,7 +81,7 @@ Dates are `YYYY-MM-DD`, money is in cents. Routes are in `api/config/routes.rb`;
 | `GET /api/meta` | none | `data_coverage` (`from`, `to`), `freshness` (`latest_update_at`, `outcomes_may_be_incomplete_from`), `locations`, `campaigns`. Coverage and freshness are `null` on an empty database. |
 | `GET /api/campaigns/metrics` | `from`, `to` (required), `location_id` (optional) | `range`, `rows`, `totals` |
 | `GET /api/campaigns/:id/daily` | `from`, `to` (required), `location_id` (optional) | `campaign`, `days` (one per date in range, zero-filled) |
-| `GET /api/daily` | `from`, `to` (required), `location_id` (optional) | `range`, `days` (one per date in range, zero-filled), across all calls including "No campaign", so day sums equal the metrics `totals`. No spend. |
+| `GET /api/daily` | `from`, `to` (required), `location_id` (optional) | `range`, `days` (one per date in range, zero-filled), across all calls, including "No campaign", so day sums equal the metrics `totals`. No spend. |
 | `GET /api/calls` | `from`, `to` (required); `location_id`, `campaign_id` (a campaign id or `none`), `outcome` (an outcome or `awaiting`), `page` (default 1) (optional) | `page`, `page_size` (25), `total`, `calls` (newest first). Never includes the caller hash. |
 | `GET /api/calls/:id` | none | One call: the list row plus `is_first_call`, `caller_call_count` and `caller_first_seen` |
 | `GET /up` | none | Rails health check |
@@ -104,7 +104,7 @@ Outcomes arrive late, up to about 3 days ([PLAN.md section 3](plans/PLAN.md)), s
 
 ## Testing
 
-Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) runs rubocop and RSpec for `api`, and eslint and Vitest for `dashboard-ui`.
+Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) runs RuboCop and RSpec for `api`, and ESLint and Vitest for `dashboard-ui`.
 
 - **API (RSpec, `api/spec/`):**
   - `services/importer/` and `import_fixtures_spec.rb`: parsing, row validation and the import against hand-built fixtures.
@@ -113,7 +113,7 @@ Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) r
   - `real_data_spec.rb` and `real_data_consistency_spec.rb` (tag `:real_data`): import the real `data/` CSVs and check that the daily series add up to the table.
   - `lib/scale_check_spec.rb` and `spec/support/spend_oracle.rb`: the scale-check helper and an independent spend oracle.
 - **Web (Vitest, `dashboard-ui/`):** unit and component tests next to the code (date presets, badges, table sorting, API client, pages).
-- **Commands:** `bundle exec rspec` and `bundle exec rubocop` in `api/`; `npm test`, `npm run lint` and `npx next typegen && npx tsc --noEmit` in `dashboard-ui/` (`tsc` needs the route types that `next typegen` generates, `next build` and `next dev` also generate them).
+- **Commands:** `bundle exec rspec` and `bundle exec rubocop` in `api/`; `npm test`, `npm run lint` and `npx next typegen && npx tsc --noEmit` in `dashboard-ui/` (`tsc` needs the route types that `next typegen` generates; `next build` and `next dev` also generate them).
 
 ## Scaling path
 
@@ -126,12 +126,12 @@ Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) r
 ### Order of work
 
 1. **Redis cache (ElastiCache).**
-*Caveat: This assumes auth is added, each marketer belongs to a company, and a company id is available for the cache key*. Cache API responses keyed by company, endpoint, params and the company's data version. The API fills the cache itself (cache-aside): on a request it checks Redis, and on a miss it runs the SQL, stores the response under that key with a TTL, and returns it. When the data changes, the version changes, so old entries are never read again and age out. For example: `company_id:/api/campaigns/metrics:from=2026-10-01&to=2026-10-30&location_id=loc_01:v=2026-10-30T14:02:11Z`.
+   *Caveat: This assumes auth is added, each marketer belongs to a company, and a company id is available for the cache key*. Cache API responses keyed by company, endpoint, params and the company's data version. The API fills the cache itself (cache-aside): on a request it checks Redis, and on a miss it runs the SQL, stores the response under that key with a TTL, and returns it. When the data changes, the version changes, so old entries are never read again and age out. For example: `company_id:/api/campaigns/metrics:from=2026-10-01&to=2026-10-30&location_id=loc_01:v=2026-10-30T14:02:11Z`.
 2. **Read replicas.** PostgreSQL with a primary for the import and replicas for all API reads, behind the reader endpoint. This keeps read traffic off the primary, which handles the writes, and lets reads scale on their own by adding replicas. Replica lag is acceptable because outcomes already arrive up to 3 days late.
 3. **Rollup tables.** A rollup table stores daily totals that are already added up: one row per campaign, office and day, with the call count, bookings, revenue and so on. Today every request counts raw calls. With a rollup, a request adds up a few hundred small rows instead, so it stays fast as the calls table grows. This helps the aggregate endpoints (the dashboard metrics and daily series, and the campaign daily chart). Call lists and single-call pages still read `calls`, since a rollup has no per-call rows.
 4. **Partition `calls` by month.** Partitioning splits one big table into smaller physical tables that Postgres treats as one. Here, `calls` would split into one table per month, based on each call's `local_date`. Queries still go to `calls`, and Postgres sends each one to the right monthly table. Range queries then read only the months they need, and old months can be archived.
 5. **Sharding, only if one primary cannot take the writes or the data.**
-*Caveat: This assumes auth is added, each marketer belongs to a company, and the company id is stored on the data*. Sharding splits the data across several primary databases, each holding a subset of companies. Replicas and caches only scale reads, so sharding is the step that also scales writes and total data size beyond what one primary can hold. The natural key is the company, because every query stays inside one company.
+   *Caveat: This assumes auth is added, each marketer belongs to a company, and the company id is stored on the data*. Sharding splits the data across several primary databases, each holding a subset of companies. Replicas and caches only scale reads, so sharding is the step that also scales writes and total data size beyond what one primary can hold. The natural key is the company, because every query stays inside one company.
 
 ### Live call feed
 
