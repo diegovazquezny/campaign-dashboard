@@ -40,8 +40,8 @@ Left out on purpose: auth and multi-tenancy (out of scope), scale work, and AI f
 |---|---|
 | Import, metrics API, overview page and campaign page | $16.56 |
 | UI improvements | $26.06 |
-| Docs improvements | $5.34 |
+| Docs improvements | $5.94 |
 
-The rows sum to $47.96. The total is rounded up to $60 to allow for the margin of error.
+The rows sum to $48.56. The total is rounded up to $60 to allow for the margin of error.
 
 Sonnet 5.5 did the implementation, Haiku 5.5 handled small bulk tasks, and Opus 5.5 was used for planning and a few reviews. Model, purpose and cost per milestone are in [AI_COST_LOG.md](AI_COST_LOG.md).
