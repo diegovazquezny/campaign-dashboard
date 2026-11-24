@@ -4,81 +4,103 @@ For engineers working on the code. Running the project is in [README.md](README.
 
 ## Architecture
 
+One diagram per page, showing the API calls Next.js makes to render it.
+
+### Dashboard (`/`)
+
 ```mermaid
 flowchart LR
-    csv[("data/*.csv<br/>calls, campaigns, locations")]
-    browser[Browser]
-    web["Next.js server component<br/>dashboard-ui, :3000"]
-    api["Rails API<br/>api, :3001"]
+    browser[Campaign Dashboard]
+    web["Next.js server"]
+    api["Rails API"]
     db[(PostgreSQL)]
 
-    csv -- "db:seed / import:all, at seed time" --> api
-    browser -- "GET / and /campaigns/:id, filters in the URL" --> web
-    web -- "fetch API_URL/api/..., no-store" --> api
-    api -- "SQL at query time" --> db
+    browser -- "GET /, filters in the URL" --> web
+    web -- "fetch /api/meta" --> api
+    web -- "fetch /api/campaigns/metrics" --> api
+    web -- "fetch /api/daily" --> api
+    api -- "SQL" --> db
 ```
 
-- The browser only talks to Next.js. Pages are server components that call the API using `API_URL` (`http://api:3001` in Docker, default `http://localhost:3001`). Requests use `cache: "no-store"` and a 5 s timeout (`dashboard-ui/lib/api.ts`). No CORS is involved.
-- Filters live in the URL (`preset`, `from`, `to`, `location`), so views are shareable links (`dashboard-ui/lib/filters.ts`, `lib/date-ranges.ts`).
-- The API computes every metric in SQL at request time from the `calls` table. There is no rollup or cache.
-- The CSVs are seed data. `docker-compose.yml` runs `bin/rails db:prepare db:seed` before starting the API; `api/db/seeds.rb` imports only when `calls` is empty. `./data` is mounted read-only at `/data` (`DATA_DIR=/data`).
+### Campaign detail (`/campaigns/:id`)
 
-## Import pipeline
+```mermaid
+flowchart LR
+    browser[Campaign Dashboard]
+    web["Next.js server"]
+    api["Rails API"]
+    db[(PostgreSQL)]
 
-Design: [PLAN.md section 6](plans/PLAN.md). Code: `api/app/services/importer.rb` and `api/app/services/importer/`.
+    browser -- "GET /campaigns/:id, filters and page in the URL" --> web
+    web -- "fetch /api/meta" --> api
+    web -- "fetch /api/campaigns/:id/daily" --> api
+    web -- "fetch /api/calls" --> api
+    api -- "SQL" --> db
+```
 
-- `bin/rails import:all` (`api/lib/tasks/`) forces a re-import and prints a summary; it aborts with `import failed: ...` on `Importer::Error`. It is idempotent.
-- `Importer::Runner` does everything in one transaction (`requires_new: true`): `ReferenceLoader` (locations, campaigns), `CallsReader` (stream and validate `calls.csv`), `CallsWriter` (stage, upsert, recompute local dates). Any failure rolls back everything, so `calls` is either fully loaded or empty.
-- **Versions:** a call can appear several times. The newest `updated_at` (stored as `source_updated_at`) wins regardless of file order; the upsert only overwrites when `excluded.source_updated_at > calls.source_updated_at`. Two rows with the same `(call_id, updated_at)` but different content are both rejected as "conflicting versions"; exact duplicates collapse.
-- **Rejected rows:** `Importer::CallRowValidator` rejects a row with a reason and line number instead of failing the import. Rules include blank required fields, unknown channel/outcome, answered/outcome/agent/revenue consistency, `ended_at` before `started_at`, `duration_seconds` not equal to `ended_at - started_at`, and unknown `location_id` / `campaign_id`. The summary lists rejections. If a call's newest version is rejected, it keeps its older valid state.
-- **Timezones:** `locations.timezone` is validated against `pg_timezone_names`. `calls.local_date` is the call's `started_at` in the office's timezone, and all date ranges filter on it. After each import, `CallsWriter#recompute_local_dates` fixes any call whose stored date no longer matches its location's timezone.
+### No campaign (`/campaigns/none`)
 
-## Metric definitions
+```mermaid
+flowchart LR
+    browser[Campaign Dashboard]
+    web["Next.js server"]
+    api["Rails API"]
+    db[(PostgreSQL)]
 
-Definitions and rationale: [PLAN.md section 7](plans/PLAN.md). Implementation: `api/app/services/metrics/`.
+    browser -- "GET /campaigns/none, filters and page in the URL" --> web
+    web -- "fetch /api/meta" --> api
+    web -- "fetch /api/calls" --> api
+    api -- "SQL" --> db
+```
 
-- `CallFacts` is the single per-call source for every metric. The office filter is a flag (`at_office`), not a WHERE, so campaign-wide call counts (the share denominator) and office counts come from one scan.
-- **New callers** use a per-call `NOT EXISTS` probe for an earlier call from the same `caller_number_hash`, ordered by `(started_at, call_id)`, over all calls (ignoring range, office and campaign). It uses the `(caller_number_hash, started_at, call_id)` index, so cost follows calls in range, not total history. "First" means first since the data starts, so earlier callers look new.
-- **Spend** is estimated at query time in `SpendSql`, shared by both endpoints. The data has no actual spend: it is `daily_budget_cents` times the days of the range inside data coverage. With a `location_id` it is the office's share of the campaign's calls in range times that, rounded; it is null if the campaign has no calls in range. Daily rows use cumulative rounding so they sum exactly to the table figure. $0-budget campaigns and "No campaign" have null spend.
-- **Totals** (`CampaignMetrics`): counts and revenue sum all rows; `unique_callers` is a distinct count, not a sum; rates are recomputed from summed counts; `totals.paid` holds `revenue_cents`, `booked`, `spend_cents`, `revenue_per_spend` and `spend_per_booking_cents` over rows with non-null spend only.
-- Ratios are `null` when the denominator is null or 0.
-- Every campaign is listed even with no calls. The "No campaign" row (`campaign_id: null`) appears only when it has calls, and carries `channel_breakdown`.
+### Call details (`/calls/:id`)
+
+```mermaid
+flowchart LR
+    browser[Campaign Dashboard]
+    web["Next.js server"]
+    api["Rails API"]
+    db[(PostgreSQL)]
+
+    browser -- "GET /calls/:id, list filters in the URL" --> web
+    web -- "fetch /api/calls/:id" --> api
+    api -- "SQL" --> db
+```
+
+- The browser only talks to Next.js. Pages are server components that call the API on the server, in parallel where a page needs several endpoints, using `API_URL`.
+- Filters live in the URL (`preset`, `from`, `to`, `location`, plus `page` on call lists), so views are shareable links.
+- The API computes every metric and call list in SQL at request time from the `calls` table. There is no rollup or cache.
+- The CSVs are seed data, loaded once before the API starts, not read at request time. `docker-compose.yml` runs `bin/rails db:prepare db:seed` before starting the API.
 
 ## API
 
-Dates are `YYYY-MM-DD`, money is in cents. Routes are in `api/config/routes.rb`; response examples are in [PLAN.md section 8](plans/PLAN.md).
+Dates are `YYYY-MM-DD`, money is in cents. Routes are in `api/config/routes.rb`; response examples are in [PLAN.md section 8](plans/PLAN.md). The web client's function for each endpoint is in `dashboard-ui/lib/api.ts`.
 
 | Endpoint | Params | Returns |
 |---|---|---|
 | `GET /api/meta` | none | `data_coverage` (`from`, `to`), `freshness` (`latest_update_at`, `outcomes_may_be_incomplete_from`), `locations`, `campaigns`. Coverage and freshness are `null` on an empty database. |
 | `GET /api/campaigns/metrics` | `from`, `to` (required), `location_id` (optional) | `range`, `rows`, `totals` |
 | `GET /api/campaigns/:id/daily` | `from`, `to` (required), `location_id` (optional) | `campaign`, `days` (one per date in range, zero-filled) |
+| `GET /api/daily` | `from`, `to` (required), `location_id` (optional) | `range`, `days` (one per date in range, zero-filled), across all calls including "No campaign", so day sums equal the metrics `totals`. No spend. |
+| `GET /api/calls` | `from`, `to` (required); `location_id`, `campaign_id` (a campaign id or `none`), `outcome` (an outcome or `awaiting`), `page` (default 1) (optional) | `page`, `page_size` (25), `total`, `calls` (newest first). Never includes the caller hash. |
+| `GET /api/calls/:id` | none | One call: the list row plus `is_first_call`, `caller_call_count` and `caller_first_seen` |
 | `GET /up` | none | Rails health check |
-
-**Validation** (`Api::RangeParams`): `from` and `to` must be present, match `YYYY-MM-DD` and be real calendar dates; `from` must be on or before `to`; the range may not exceed 366 days; a present `location_id` must be a non-blank string. All of these return 400. An unknown `location_id`, or an unknown campaign id on `/daily`, returns 404. The 400 checks run first, so a bad range plus an unknown location is a 400.
-
-**Error shape** (`Api::BaseController`):
-
-```json
-{ "error": { "code": "bad_request", "message": "from must be on or before to" } }
-```
-
-| Status | `code` | Raised for |
-|---|---|---|
-| 400 | `bad_request` | `Api::BadRequest` (for example `from is required`); `ActionController::ParameterMissing` is also mapped to 400 as a fallback |
-| 404 | `not_found` | `ActiveRecord::RecordNotFound`; the message is always `record not found` |
-
-The web client wraps failures in `ApiRequestError` (status, code, message), using `network_error`, `timeout`, `http_error` or `invalid_response` for transport failures and non-API error bodies.
 
 ## Data freshness
 
-- Outcomes arrive late, up to about 3 days ([PLAN.md section 3](plans/PLAN.md)). `/api/meta` returns `latest_update_at` (max `calls.source_updated_at`) and `outcomes_may_be_incomplete_from`, the UTC date of `latest_update_at` minus 72 hours (`Api::MetaController::OUTCOME_DELAY`).
-- The `awaiting_outcome` metric counts answered calls with no outcome yet. It also counts outcomes that were never recorded, so it is not only the recent-days lag.
-- `dashboard-ui/lib/badges.ts` and `components/page-header.tsx` drive the header chips:
-  - **Coverage chip:** "Data covers ..." from `data_coverage`, or "No data loaded".
-  - **Freshness warning:** shown when the selected `to` is on or after `outcomes_may_be_incomplete_from` ("Bookings and revenue from ... onward may be incomplete.").
-  - **Partial-range warning:** shown when the range extends outside data coverage.
-- Spend is clipped to data coverage, so ranges that start before the data are not charged for days with no calls.
+Outcomes arrive late, up to about 3 days ([PLAN.md section 3](plans/PLAN.md)), so recent bookings and revenue can be incomplete.
+
+- **`/api/meta`** returns two freshness fields:
+  - `latest_update_at`: the most recent update in the data. The UI does not display it.
+  - `outcomes_may_be_incomplete_from`: 3 days before `latest_update_at`. Calls from this date on may still be waiting for their outcome.
+- **Where the UI shows it** (when the selected range reaches `outcomes_may_be_incomplete_from`):
+  - A freshness warning chip in the page header.
+  - Shaded days and a legend in the dashboard overview chart.
+  - A "May be incomplete" label on the outcome-based KPI cards.
+- **Other header chips** (`dashboard-ui/lib/badges.ts`, `components/page-header.tsx`):
+  - Coverage: "Data covers ...", or "No data loaded".
+  - Partial range: the range extends outside data coverage.
+- **`awaiting_outcome`** counts answered calls with no outcome yet, shown as the "Awaiting outcome" column in the campaign table. It includes outcomes never recorded, not just the recent lag.
 
 ## Testing
 
@@ -95,9 +117,73 @@ Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) r
 
 ## Scaling path
 
-Detail: [PLAN.md section 7](plans/PLAN.md) ("First-call query and scaling path").
+### The workload
 
-- Today every request aggregates `calls` directly, backed by indexes on `local_date`, `(campaign_id, local_date)`, `(location_id, local_date)`, `source_updated_at` and `(caller_number_hash, started_at, call_id)` (`api/db/schema.rb`).
-- `bin/rails metrics:scale_check` builds about 1M synthetic calls in a scratch `<db>_scale_check` database and runs `EXPLAIN ANALYZE` on the metrics and daily queries (see `api/lib/scale_check.rb` for the env options). It never touches the configured database: it creates `<db>_scale_check`, drops it afterwards (`KEEP=1` keeps it), and refuses to run in production or when the configured database already has that suffix.
-- If volume grows, measure first and materialize only when a latency target is missed. The likely next step is a daily rollup table; it would need first-call status stored at write time, with the current query as its backfill and test oracle.
-- Spend is computed in one place (`SpendSql`), so replacing the budget estimate with actual spend is a contained change.
+- **Read-heavy.** Viewers only read. The only writes are the batch import, so write scaling is a separate, smaller problem.
+- **Cacheable.** Responses depend only on the query params and the loaded data, and the data changes only when an import runs.
+- **Stale reads are fine.** Outcomes already arrive up to 3 days late ([Data freshness](#data-freshness)), so a replica or cache that is seconds or minutes behind changes nothing the user can see.
+
+### Order of work
+
+1. **Redis cache (ElastiCache).**
+*Caveat: This assumes auth is added, each marketer belongs to a company, and a company id is available for the cache key*. Cache API responses keyed by company, endpoint, params and the company's data version. The API fills the cache itself (cache-aside): on a request it checks Redis, and on a miss it runs the SQL, stores the response under that key with a TTL, and returns it. When the data changes, the version changes, so old entries are never read again and age out. For example: `company_id:/api/campaigns/metrics:from=2026-10-01&to=2026-10-30&location_id=loc_01:v=2026-10-30T14:02:11Z`.
+2. **Read replicas.** PostgreSQL with a primary for the import and replicas for all API reads, behind the reader endpoint. This keeps read traffic off the primary, which handles the writes, and lets reads scale on their own by adding replicas. Replica lag is acceptable because outcomes already arrive up to 3 days late.
+3. **Rollup tables.** A rollup table stores daily totals that are already added up: one row per campaign, office and day, with the call count, bookings, revenue and so on. Today every request counts raw calls. With a rollup, a request adds up a few hundred small rows instead, so it stays fast as the calls table grows. This helps the aggregate endpoints (the dashboard metrics and daily series, and the campaign daily chart). Call lists and single-call pages still read `calls`, since a rollup has no per-call rows.
+4. **Partition `calls` by month.** Partitioning splits one big table into smaller physical tables that Postgres treats as one. Here, `calls` would split into one table per month, based on each call's `local_date`. Queries still go to `calls`, and Postgres sends each one to the right monthly table. Range queries then read only the months they need, and old months can be archived.
+5. **Sharding, only if one primary cannot take the writes or the data.**
+*Caveat: This assumes auth is added, each marketer belongs to a company, and the company id is stored on the data*. Sharding splits the data across several primary databases, each holding a subset of companies. Replicas and caches only scale reads, so sharding is the step that also scales writes and total data size beyond what one primary can hold. The natural key is the company, because every query stays inside one company.
+
+### Live call feed
+
+Today the data is a CSV loaded once. Live, calls would arrive continuously from the call-tracking platform. The source system is not chosen yet, so this is the shape the CSV tells us to expect ([PLAN.md section 3](plans/PLAN.md)):
+
+- **One message per write of a call**, with the same fields as a `calls.csv` row. A call usually arrives twice: when it ends, then again about 24 to 72 hours later when its outcome and revenue are filled in.
+- **Out of order and duplicated.** Some versions arrive late or twice, so the newest `updated_at` must win, never the last one received. The importer already does this.
+- **Reference data** (`campaigns`, `locations`) changes rarely and comes from a separate sync, not the call feed.
+
+```mermaid
+flowchart LR
+    source[Call tracking platform]
+    ingest["Ingest endpoint"]
+    queue[(Message queue)]
+    worker["Ingest workers"]
+    dlq[(DLQ)]
+    primary[(Primary DB)]
+    cache[(Redis)]
+
+    source -- "webhook, one call per message" --> ingest --> queue --> worker
+    worker -- "upsert, update rollups" --> primary
+    worker -- "bump company data version" --> cache
+    worker -- "rejected rows" --> dlq
+```
+
+- **Publish messages.** The platform sends a webhook for each call update to a small ingest endpoint, which puts the message on a message queue.
+- **Consume messages.** Workers ingest messages in small batches instead of one big transaction. Rows that fail go to a dead-letter queue.
+- **Bump the data version.** After each batch, the worker sets a new data version in Redis for each company it wrote calls for. The version is part of the cache key, so the API's next request for that company misses the old entries and recomputes from the database. Old entries expire via TTL.
+
+### Deployment on AWS
+
+```mermaid
+flowchart LR
+    users[Users]
+    lb["Route 53 + ALB"]
+    web["Next.js pods (EKS)"]
+    api["Rails API pods (EKS)"]
+    cache[(ElastiCache Redis)]
+    proxy[RDS Proxy]
+    replica[(Aurora replicas)]
+    primary[(Aurora primary)]
+    import["Import worker"]
+
+    users --> lb --> web --> api
+    api -- "cache hit" --> cache
+    api -- "cache miss" --> proxy --> replica
+    import --> primary
+    primary -- "replication" --> replica
+    import -- "bump data version" --> cache
+```
+
+- **Stateless pods.** Next.js and Rails keep no state, so each runs as an EKS Deployment behind an ALB and scales with a Horizontal Pod Autoscaler on CPU or request rate. The web tier calls the API over the cluster network.
+- **Multi-AZ first.** Spread pods and the Aurora instances across availability zones. This covers most availability needs.
+- **Multiple regions, if latency or disaster recovery requires it.** Run an EKS cluster per region, route users with Route 53 latency routing, and use an Aurora Global Database with a read replica and a Redis cache in each region. Writes and imports stay in one primary region. Cross-region replication is usually under a second, which is fine for this data. This adds real cost and operational load, so adopt it for a reason, not by default.
+- **Static assets** (JS, CSS) go behind CloudFront. Pages stay dynamic and uncached, because they render per request from URL filters.
