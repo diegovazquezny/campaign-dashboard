@@ -62,7 +62,7 @@ echo "    campaign with calls: $name"
 # The page is server-rendered HTML, so the name appears escaped (e.g. & as &amp;).
 escaped=$(printf '%s' "$name" | python3 -I -c 'import html,sys; print(html.escape(sys.stdin.read()))')
 
-# Ask for the same dates as the API check: the default range (last quarter) moves with today's date.
+# Ask for the same dates as the API check: the default range (last 90 days) moves with today's date.
 page="$WEB/?preset=custom&from=$from&to=$to"
 step "GET $page"
 body=$(mktemp)

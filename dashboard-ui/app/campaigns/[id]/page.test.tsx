@@ -123,11 +123,11 @@ describe("CampaignDetail", () => {
     vi.clearAllMocks();
   });
 
-  it("uses the last-quarter range by default and renders chart and table", async () => {
+  it("uses the last-90-days range by default and renders chart and table", async () => {
     await renderPage();
     expect(getCampaignDaily).toHaveBeenCalledWith("a", {
-      from: "2026-07-01",
-      to: "2026-09-30",
+      from: "2026-08-25",
+      to: "2026-11-22",
       locationId: undefined,
     });
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Alpha");
@@ -214,8 +214,8 @@ describe("CampaignDetail", () => {
     it("fetches the page's calls with the same filters and renders them", async () => {
       await renderPage({ location: "loc1", page: "2" });
       expect(getCalls).toHaveBeenCalledWith({
-        from: "2026-07-01",
-        to: "2026-09-30",
+        from: "2026-08-25",
+        to: "2026-11-22",
         campaignId: "a",
         locationId: "loc1",
         page: 2,

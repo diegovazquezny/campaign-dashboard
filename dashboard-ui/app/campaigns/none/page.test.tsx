@@ -83,8 +83,8 @@ describe("NoCampaignCalls", () => {
   it("lists calls with campaign_id none and shows no daily chart or table", async () => {
     await renderPage({ location: "loc1" });
     expect(getCalls).toHaveBeenCalledWith({
-      from: "2026-07-01",
-      to: "2026-09-30",
+      from: "2026-08-25",
+      to: "2026-11-22",
       campaignId: "none",
       locationId: "loc1",
       page: 1,

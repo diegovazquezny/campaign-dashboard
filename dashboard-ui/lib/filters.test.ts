@@ -12,7 +12,7 @@ import {
 describe("buildQuery", () => {
   test("drops default preset and empty location", () => {
     expect(
-      buildQuery({ preset: "this_quarter" }, { preset: "last_quarter" }),
+      buildQuery({ preset: "this_quarter" }, { preset: "last_90_days" }),
     ).toBe("");
     expect(buildQuery({ location: "a" }, { location: "" })).toBe("");
   });
@@ -41,8 +41,8 @@ describe("buildQuery", () => {
     ).toBe("preset=custom&from=2026-07-01&to=2026-09-30");
   });
   test("location is kept across preset changes", () => {
-    expect(buildQuery({ location: "x" }, { preset: "last_90_days" })).toBe(
-      "preset=last_90_days&location=x",
+    expect(buildQuery({ location: "x" }, { preset: "last_30_days" })).toBe(
+      "preset=last_30_days&location=x",
     );
   });
   test("ignores from/to when preset is not custom", () => {
@@ -77,7 +77,7 @@ describe("buildQuery page", () => {
     ).toBe("foo=1&preset=last_30_days&page=2");
   });
   test.each([
-    [{ preset: "last_90_days" as const }],
+    [{ preset: "last_30_days" as const }],
     [{ location: "y" }],
     [{ from: "2026-01-01" }],
     [{ to: "2026-01-31" }],
