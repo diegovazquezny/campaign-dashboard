@@ -17,7 +17,7 @@ A marketer deciding which campaigns are worth their budget. The dashboard answer
 
 One main page (KPIs, two charts, missed calls, sortable campaign table) with date and office filters, plus campaign and call detail pages. I chose depth on one user's question over a broad generic dashboard. The core views work without any model.
 
-Left out on purpose: auth and multi-tenancy (out of scope), scale work, and AI features. See [DECISIONS.md](DECISIONS.md) for the design choices and the alternatives I rejected.
+Left out on purpose: auth and multi-tenancy (out of scope), scale work, and AI features. See [DECISIONS.md](DECISIONS.md) for the design choices and the alternatives I rejected. For the engineering side, start with [TECHNICAL_SUMMARY.md](TECHNICAL_SUMMARY.md).
 
 ## Trade-offs
 
@@ -34,4 +34,14 @@ Left out on purpose: auth and multi-tenancy (out of scope), scale work, and AI f
 
 ## AI spend
 
-_To be added._
+**About $60** of the $250 budget, so under 25%. This is an estimate and could be off by roughly $10.
+
+| Where it went | Cost |
+|---|---|
+| Import, metrics API, overview page and campaign page | $16.56 |
+| UI improvements | $26.06 |
+| Docs improvements | $5.94 |
+
+The rows sum to $48.56. The total is rounded up to $60 to allow for the margin of error.
+
+Sonnet 5.5 did the implementation, Haiku 5.5 handled small bulk tasks, and Opus 5.5 was used for planning and a few reviews. Model, purpose and cost per milestone are in [AI_COST_LOG.md](AI_COST_LOG.md).

@@ -179,7 +179,7 @@ Things to know about the data:
 - Some calls have no campaign. They appear as a pinned "No campaign" row.
 - The data has no actual ad spend. Spend is estimated from each campaign's daily budget and labelled "Budgeted spend (est.)".
 
-More detail: [plans/PLAN.md](plans/PLAN.md) (the full design), [DECISIONS.md](DECISIONS.md) (product decisions and limits), [TECHNICAL.md](TECHNICAL.md) (architecture, import, metrics, API) and [AI_COST_LOG.md](AI_COST_LOG.md).
+More detail: [plans/PLAN.md](plans/PLAN.md) (the full design), [DECISIONS.md](DECISIONS.md) (product decisions and limits), [TECHNICAL_SUMMARY.md](TECHNICAL_SUMMARY.md) (the 1-2 page technical overview), [TECHNICAL.md](TECHNICAL.md) (architecture, import, metrics, API) and [AI_COST_LOG.md](AI_COST_LOG.md).
 
 ## Layout
 
