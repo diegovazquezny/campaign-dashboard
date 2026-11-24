@@ -1,6 +1,6 @@
 # Technical overview
 
-For engineers working on the code. Running the project is in [README.md](README.md); the full design and rationale is [plans/PLAN.md](plans/PLAN.md), linked below by section instead of repeated.
+For engineers working on the code. Running the project is in [README.md](README.md); the full design and rationale is [plans/PLAN.md](plans/PLAN.md), linked below by section instead of repeated. The data model and the alternatives considered for each design choice are in [DECISIONS.md](DECISIONS.md), and the trade-offs, shortcuts and next steps are in [TRADEOFFS.md](TRADEOFFS.md).
 
 ## Architecture
 
