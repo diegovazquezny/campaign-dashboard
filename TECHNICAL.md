@@ -4,67 +4,29 @@ For engineers working on the code. Running the project is in [README.md](README.
 
 ## Architecture
 
-One diagram per page, showing the API calls Next.js makes to render it.
-
-### Dashboard (`/`)
-
 ```mermaid
 flowchart LR
+    csv[("CSV files")]
     browser[Campaign Dashboard]
-    web["Next.js server"]
-    api["Rails API"]
+
+    subgraph web["Next.js"]
+        pages["Server-rendered pages"]
+    end
+
+    subgraph rails["Rails API"]
+        endpoints["REST endpoints"]
+        metrics["Metrics (raw SQL)"]
+        importer["Importer"]
+        endpoints --> metrics
+    end
+
     db[(PostgreSQL)]
 
-    browser -- "GET /, filters in the URL" --> web
-    web -- "fetch /api/meta" --> api
-    web -- "fetch /api/campaigns/metrics" --> api
-    web -- "fetch /api/daily" --> api
-    api -- "SQL" --> db
-```
-
-### Campaign detail (`/campaigns/:id`)
-
-```mermaid
-flowchart LR
-    browser[Campaign Dashboard]
-    web["Next.js server"]
-    api["Rails API"]
-    db[(PostgreSQL)]
-
-    browser -- "GET /campaigns/:id, filters and page in the URL" --> web
-    web -- "fetch /api/meta" --> api
-    web -- "fetch /api/campaigns/:id/daily" --> api
-    web -- "fetch /api/calls" --> api
-    api -- "SQL" --> db
-```
-
-### No campaign (`/campaigns/none`)
-
-```mermaid
-flowchart LR
-    browser[Campaign Dashboard]
-    web["Next.js server"]
-    api["Rails API"]
-    db[(PostgreSQL)]
-
-    browser -- "GET /campaigns/none, filters and page in the URL" --> web
-    web -- "fetch /api/meta" --> api
-    web -- "fetch /api/calls" --> api
-    api -- "SQL" --> db
-```
-
-### Call details (`/calls/:id`)
-
-```mermaid
-flowchart LR
-    browser[Campaign Dashboard]
-    web["Next.js server"]
-    api["Rails API"]
-    db[(PostgreSQL)]
-
-    browser -- "GET /calls/:id, list filters in the URL" --> web
-    web -- "fetch /api/calls/:id" --> api
-    api -- "SQL" --> db
+    browser -- "page requests, filters in the URL" --> pages
+    pages -- "fetch, on the server" --> endpoints
+    metrics -- "SQL at request time" --> db
+    csv -- "seed, once before the API starts" --> importer
+    importer -- "upsert" --> db
 ```
 
 - The browser only talks to Next.js. Pages are server components that call the API on the server, in parallel where a page needs several endpoints, using `API_URL`.
@@ -102,6 +64,23 @@ Outcomes arrive late, up to about 3 days ([PLAN.md section 3](plans/PLAN.md)), s
   - Partial range: the range extends outside data coverage.
 - **`awaiting_outcome`** counts answered calls with no outcome yet, shown as the "Awaiting outcome" column in the campaign table. It includes outcomes never recorded, not just the recent lag.
 
+## Failure modes
+
+| What goes wrong | What happens |
+|---|---|
+| A CSV row is invalid (blank field, unknown channel or outcome, bad duration, unknown office or campaign, wrong number of fields) | The row is rejected with a reason and line number. The rest of the import continues, and the summary lists the rejections. |
+| A call's newest version is rejected | The call keeps its older valid state. |
+| Two versions of a call have the same `updated_at` but different content | Both are rejected as "conflicting versions". Exact duplicates collapse to one. |
+| Versions arrive out of order, or the import is run twice | The newest `updated_at` wins and a re-run changes nothing. |
+| The import fails partway (missing file, wrong header, malformed CSV, database error) | Everything rolls back and the database is left as it was. `import:all` exits non-zero. On first start the seed retries the import, because `calls` is still empty. |
+| The API gets a bad range (missing, malformed, `from` after `to`, over 366 days) | 400 with a JSON error (`bad_request`). |
+| The API gets an unknown office or campaign | 404 (`not_found`). The call detail page shows the Next.js not-found page. |
+| The API is down or slow | The web client gives up after 5 seconds so a hung API can't block a page. This is a default, comfortably above today's millisecond responses, and would need raising (or the query speeding up) at much larger data sizes. The page shows the error message inline, and unexpected errors show "Something went wrong" with a "Try again" button. |
+| The database is empty | `/api/meta` returns null coverage and the header says "No data loaded". |
+| The selected range goes beyond the data | A yellow "Selected range extends outside available data" warning. Spend only counts days the data covers. |
+| Recent outcomes haven't arrived yet | A warning chip, shaded chart days and "May be incomplete" on the outcome-based KPI cards. |
+| A ratio has no denominator (no spend, no bookings) | The API returns `null` and the UI shows "—", not 0 or infinity. |
+
 ## Testing
 
 Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) runs RuboCop and RSpec for `api`, and ESLint and Vitest for `dashboard-ui`.
@@ -115,6 +94,22 @@ Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) r
 - **Web (Vitest, `dashboard-ui/`):** unit and component tests next to the code (date presets, badges, table sorting, API client, pages).
 - **Commands:** `bundle exec rspec` and `bundle exec rubocop` in `api/`; `npm test`, `npm run lint` and `npx next typegen && npx tsc --noEmit` in `dashboard-ui/` (`tsc` needs the route types that `next typegen` generates; `next build` and `next dev` also generate them).
 
+## AI tools used
+
+- **Claude Code**, in the terminal and in the desktop app, for planning, implementation, reviews and docs.
+- **Models:** Opus 5.5 for planning, Sonnet 5.5 for implementation and Haiku 5.5 for small bulk tasks, to keep cost down. Cost per milestone is in [AI_COST_LOG.md](AI_COST_LOG.md).
+- **Skills I created** (`.claude/skills/`), so each task starts from the written plan instead of a fresh prompt:
+  - `plan-next-milestone` finds the next unplanned milestone in `plans/PLAN.md` and breaks it into tasks.
+  - `do-next-task` finds the milestone in progress and implements its next task.
+  - `pr-review` reviews a change in plain English for correctness, safety, load, tests, speed and over-engineering.
+- **Verifying output:** AI-written code is not trusted on its own.
+  - Tests cover the data logic, including an independent spend oracle that recomputes spend separately from the production SQL.
+  - Real-data specs check that the daily series add up to the table.
+  - `scripts/smoke.sh` checks the whole Docker stack end to end.
+  - Pre-commit hooks run rubocop and eslint, and CI runs the same checks plus the test suites.
+  - Work lands through small pull requests that I review before merging.
+- **The product has no AI features.** Every number comes from SQL, so the core views work without a model.
+
 ## Scaling path
 
 ### The workload
@@ -127,7 +122,7 @@ Strategy: [PLAN.md section 10](plans/PLAN.md). CI (`.github/workflows/ci.yml`) r
 
 1. **Redis cache (ElastiCache).**
    *Caveat: This assumes auth is added, each marketer belongs to a company, and a company id is available for the cache key*. Cache API responses keyed by company, endpoint, params and the company's data version. The API fills the cache itself (cache-aside): on a request it checks Redis, and on a miss it runs the SQL, stores the response under that key with a TTL, and returns it. When the data changes, the version changes, so old entries are never read again and age out. For example: `company_id:/api/campaigns/metrics:from=2026-10-01&to=2026-10-30&location_id=loc_01:v=2026-10-30T14:02:11Z`.
-2. **Read replicas.** PostgreSQL with a primary for the import and replicas for all API reads, behind the reader endpoint. This keeps read traffic off the primary, which handles the writes, and lets reads scale on their own by adding replicas. Replica lag is acceptable because outcomes already arrive up to 3 days late.
+2. **Read replicas.** PostgreSQL with a primary for the import and replicas for all API reads, with the API spreading its read queries across the replicas. This keeps read traffic off the primary, which handles the writes, and lets reads scale on their own by adding replicas. Replica lag is acceptable because outcomes already arrive up to 3 days late.
 3. **Rollup tables.** A rollup table stores daily totals that are already added up: one row per campaign, office and day, with the call count, bookings, revenue and so on. Today every request counts raw calls. With a rollup, a request adds up a few hundred small rows instead, so it stays fast as the calls table grows. This helps the aggregate endpoints (the dashboard metrics and daily series, and the campaign daily chart). Call lists and single-call pages still read `calls`, since a rollup has no per-call rows.
 4. **Partition `calls` by month.** Partitioning splits one big table into smaller physical tables that Postgres treats as one. Here, `calls` would split into one table per month, based on each call's `local_date`. Queries still go to `calls`, and Postgres sends each one to the right monthly table. Range queries then read only the months they need, and old months can be archived.
 5. **Sharding, only if one primary cannot take the writes or the data.**
@@ -170,20 +165,19 @@ flowchart LR
     web["Next.js pods (EKS)"]
     api["Rails API pods (EKS)"]
     cache[(ElastiCache Redis)]
-    proxy[RDS Proxy]
-    replica[(Aurora replicas)]
-    primary[(Aurora primary)]
+    replica[(RDS read replicas)]
+    primary[(RDS primary)]
     import["Import worker"]
 
     users --> lb --> web --> api
     api -- "cache hit" --> cache
-    api -- "cache miss" --> proxy --> replica
+    api -- "cache miss" --> replica
     import --> primary
     primary -- "replication" --> replica
     import -- "bump data version" --> cache
 ```
 
 - **Stateless pods.** Next.js and Rails keep no state, so each runs as an EKS Deployment behind an ALB and scales with a Horizontal Pod Autoscaler on CPU or request rate. The web tier calls the API over the cluster network.
-- **Multi-AZ first.** Spread pods and the Aurora instances across availability zones. This covers most availability needs.
-- **Multiple regions, if latency or disaster recovery requires it.** Run an EKS cluster per region, route users with Route 53 latency routing, and use an Aurora Global Database with a read replica and a Redis cache in each region. Writes and imports stay in one primary region. Cross-region replication is usually under a second, which is fine for this data. This adds real cost and operational load, so adopt it for a reason, not by default.
+- **Multi-AZ first.** Spread pods and the RDS instances across availability zones. This covers most availability needs.
+- **Multiple regions, if latency or disaster recovery requires it.** Run an EKS cluster per region, route users with Route 53 latency routing, and use a cross-region RDS read replica and a Redis cache in each region. Writes and imports stay in one primary region. Cross-region replica lag is usually seconds, which is fine for this data. This adds real cost and operational load, so adopt it for a reason, not by default.
 - **Static assets** (JS, CSS) go behind CloudFront. Pages stay dynamic and uncached, because they render per request from URL filters.
