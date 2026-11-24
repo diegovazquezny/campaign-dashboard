@@ -17,7 +17,7 @@ A marketer deciding which campaigns are worth their budget. The dashboard answer
 
 One main page (KPIs, two charts, missed calls, sortable campaign table) with date and office filters, plus campaign and call detail pages. I chose depth on one user's question over a broad generic dashboard. The core views work without any model.
 
-Left out on purpose: auth and multi-tenancy (out of scope), scale work, and AI features. See [DECISIONS.md](DECISIONS.md) for the design choices and the alternatives I rejected.
+Left out on purpose: auth and multi-tenancy (out of scope), scale work, and AI features. See [DECISIONS.md](DECISIONS.md) for the design choices and the alternatives I rejected. For the engineering side, start with [TECHNICAL_SUMMARY.md](TECHNICAL_SUMMARY.md).
 
 ## Trade-offs
 
